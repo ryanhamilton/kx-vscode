@@ -1,2 +1,2 @@
-# When the repo is cloned into windows, the scripts need LF line endings to run in bash
-*.sh text eol=lf
+# Prettier and tools/rebrand.mjs write LF, so a Windows checkout must not convert to CRLF
+* text=auto eol=lf
