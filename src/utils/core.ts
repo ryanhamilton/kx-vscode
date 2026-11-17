@@ -86,7 +86,7 @@ export function getHash(input: string): string {
 }
 
 export function getKeyForServerName(name: string) {
-  const conf = workspace.getConfiguration("kdb");
+  const conf = workspace.getConfiguration("peachq");
   const servers = conf.get<{ [key: string]: { serverAlias: string } }>(
     "servers",
     {},
@@ -221,11 +221,11 @@ export function getEnvironment(resource?: WorkspaceFolder): {
   }
 
   const qHomeDirectory = workspace
-    .getConfiguration("kdb", resource)
+    .getConfiguration("peachq", resource)
     .get<string>("qHomeDirectory", "");
 
   let qHomeDirectoryWorkspace = workspace
-    .getConfiguration("kdb", resource)
+    .getConfiguration("peachq", resource)
     .get<string>("qHomeDirectoryWorkspace", "");
 
   if (
@@ -395,27 +395,27 @@ function sortByField<T>(
 }
 
 export function getServers(): Server {
-  const raw = workspace.getConfiguration().get<unknown>("kdb.servers");
+  const raw = workspace.getConfiguration().get<unknown>("peachq.servers");
 
   if (!raw) {
-    resetConnections("kdb.servers");
+    resetConnections("peachq.servers");
   }
 
   return sortByField(
-    validConnections<ServerDetails>("kdb.servers", raw, "serverAlias"),
+    validConnections<ServerDetails>("peachq.servers", raw, "serverAlias"),
     "serverAlias",
   );
 }
 
 export function getAutoFocusOutputOnEntrySetting(): boolean {
   return workspace
-    .getConfiguration("kdb")
+    .getConfiguration("peachq")
     .get<boolean>("autoFocusOutputOnEntry", true);
 }
 
 export function getHideDetailedConsoleQueryOutputSetting(): boolean {
   return workspace
-    .getConfiguration("kdb")
+    .getConfiguration("peachq")
     .get<boolean>("hideSourceExpressions", true);
 }
 
@@ -441,9 +441,11 @@ export function setOutputWordWrapper(): void {
 
 export function getInsights(): Insights {
   const configuration = workspace.getConfiguration();
-  const raw = configuration.get<unknown>("kdb.insightsEnterpriseConnections");
+  const raw = configuration.get<unknown>(
+    "peachq.insightsEnterpriseConnections",
+  );
   const insights = validConnections<InsightDetails>(
-    "kdb.insightsEnterpriseConnections",
+    "peachq.insightsEnterpriseConnections",
     raw,
     "alias",
   );
@@ -455,9 +457,9 @@ export function getInsights(): Insights {
     // only invalid entries: leave them, and the legacy setting, untouched
     return {};
   }
-  const legacy = configuration.get<unknown>("kdb.insights");
+  const legacy = configuration.get<unknown>("peachq.insights");
   const insightsList = validConnections<InsightDetails>(
-    "kdb.insights",
+    "peachq.insights",
     legacy,
     "alias",
   );
@@ -467,7 +469,7 @@ export function getInsights(): Insights {
       Object.keys(insightsList).length === Object.keys(legacy as object).length
     ) {
       configuration.update(
-        "kdb.insights",
+        "peachq.insights",
         undefined,
         ConfigurationTarget.Global,
       );
@@ -475,18 +477,18 @@ export function getInsights(): Insights {
     return sortByField(insightsList, "alias");
   }
   if (!raw) {
-    resetConnections("kdb.insightsEnterpriseConnections");
+    resetConnections("peachq.insightsEnterpriseConnections");
   }
   return {};
 }
 
 export async function updateServers(servers: Server): Promise<void> {
-  await updateConnections("kdb.servers", "serverAlias", servers);
+  await updateConnections("peachq.servers", "serverAlias", servers);
 }
 
 export async function updateInsights(insights: Insights): Promise<void> {
   await updateConnections(
-    "kdb.insightsEnterpriseConnections",
+    "peachq.insightsEnterpriseConnections",
     "alias",
     insights,
   );
@@ -545,7 +547,7 @@ export async function offerConnectAction(connLabel?: string) {
     );
     if (result === "Connect") {
       await commands.executeCommand(
-        "kdb.connections.connect.via.dialog",
+        "peachq.connections.connect.via.dialog",
         connLabel,
       );
       return true;
@@ -579,7 +581,7 @@ export function offerReconnectionAfterEdit(connLabel: string): void {
   ).then(async (result) => {
     if (result === "Connect") {
       await commands.executeCommand(
-        "kdb.connections.connect.via.dialog",
+        "peachq.connections.connect.via.dialog",
         connLabel,
       );
     }
@@ -627,7 +629,7 @@ export function getStatus(label: string): string {
 export async function checkLocalInstall() {
   const hide = workspace
     .getConfiguration()
-    .get<boolean>("kdb.neverShowQInstallAgain", false);
+    .get<boolean>("peachq.neverShowQInstallAgain", false);
 
   if (hide) return;
   showWelcome();

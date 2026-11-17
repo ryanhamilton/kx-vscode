@@ -47,17 +47,17 @@ describe("HelpFeedbackProvider", () => {
     const expected = [
       {
         label: "Extension Documentation",
-        command: "kdb.help.openDocumentation",
+        command: "peachq.help.openDocumentation",
         icon: "help-doc.svg",
       },
       {
         label: "Suggest a Feature",
-        command: "kdb.help.suggestFeature",
+        command: "peachq.help.suggestFeature",
         icon: "feature.svg",
       },
       {
         label: "Report a Bug",
-        command: "kdb.help.reportBug",
+        command: "peachq.help.reportBug",
         icon: "bug.svg",
       },
     ];

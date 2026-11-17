@@ -34,7 +34,7 @@ const logger = "dataSourceConverterProvider";
  * original file is left where it is.
  */
 export class DataSourceConverterProvider implements CustomTextEditorProvider {
-  static readonly viewType = "kdb.dataSourceConverter";
+  static readonly viewType = "peachq.dataSourceConverter";
 
   public static register(): Disposable {
     return window.registerCustomEditorProvider(

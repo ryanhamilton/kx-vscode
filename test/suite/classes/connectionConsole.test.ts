@@ -213,7 +213,7 @@ describe("ConnectionConsole", () => {
     await layout();
     assert.deepStrictEqual(executed, []);
     assert.ok(
-      payload().includes(CLEAR) && payload().includes("KX connection"),
+      payload().includes(CLEAR) && payload().includes("peachq connection"),
       `the console never started:\n${JSON.stringify(payload())}`,
     );
     console.dispose();
@@ -223,7 +223,7 @@ describe("ConnectionConsole", () => {
     open();
     await idle();
     assert.ok(
-      payload().includes(CLEAR) && payload().includes("KX connection"),
+      payload().includes(CLEAR) && payload().includes("peachq connection"),
       `the console never started:\n${JSON.stringify(payload())}`,
     );
   });
@@ -261,7 +261,7 @@ describe("ConnectionConsole", () => {
       !shownAfterClear.includes(" ".repeat(MAX_COLUMNS)),
       `the line was left on screen:\n${JSON.stringify(shownAfterClear)}`,
     );
-    assert.ok(shownAfterClear.includes("KX connection"));
+    assert.ok(shownAfterClear.includes("peachq connection"));
   });
 
   it("should clear the screen only after the sizing, never before", async () => {
@@ -299,7 +299,7 @@ describe("ConnectionConsole", () => {
     );
     await layout();
     assert.ok(
-      payload().includes(CLEAR) && payload().includes("KX connection"),
+      payload().includes(CLEAR) && payload().includes("peachq connection"),
       `the console never started:\n${JSON.stringify(payload())}`,
     );
   });

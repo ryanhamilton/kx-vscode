@@ -28,7 +28,7 @@ relative cross-links. They were ported from the project's
 - [Reference Card](user/reference-card.md)
 - [q Home Directory](user/q-home-directory.md)
 - [Use PyKX Within REPL](user/use-pykx-within-repl.md)
-- [Sample KX Notebooks](user/sample-kx-notebooks.md)
+- [Sample peachq Notebooks](user/sample-kx-notebooks.md)
 
 ## Developer Notes
 

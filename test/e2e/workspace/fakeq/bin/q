@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * A stand-in for the q binary, spawned by ReplConnection through
- * kdb.qHomeDirectoryWorkspace. It implements just enough of the REPL protocol
+ * peachq.qHomeDirectoryWorkspace. It implements just enough of the REPL protocol
  * for executions to complete, and records everything it is sent.
  *
  * The protocol lives in src/classes/replConnection.ts (createHandler,

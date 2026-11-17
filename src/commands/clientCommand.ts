@@ -27,13 +27,18 @@ import { LanguageClient } from "vscode-languageclient/node";
 import { ext } from "../extensionVariables";
 import { runActiveEditor } from "./workspaceCommand";
 import { ExecutionTypes } from "../models/execution";
+import { PAUSED } from "../utils/kxCompat";
+import { MessageKind, notify } from "../utils/notifications";
 
 async function executeBlock(client: LanguageClient) {
   if (ext.activeTextEditor) {
-    const range = await client.sendRequest<Range>("kdb.qls.expressionRange", {
-      textDocument: { uri: `${ext.activeTextEditor.document.uri}` },
-      position: ext.activeTextEditor.selection.active,
-    });
+    const range = await client.sendRequest<Range>(
+      "peachq.qls.expressionRange",
+      {
+        textDocument: { uri: `${ext.activeTextEditor.document.uri}` },
+        position: ext.activeTextEditor.selection.active,
+      },
+    );
     if (range) {
       ext.activeTextEditor.selection = new Selection(
         range.start.line,
@@ -53,7 +58,7 @@ async function toggleParameterCache(client: LanguageClient) {
       params: string[];
       start: Position;
       end: Position;
-    }>("kdb.qls.parameterCache", {
+    }>("peachq.qls.parameterCache", {
       textDocument: { uri: `${doc.uri}` },
       position: ext.activeTextEditor.selection.active,
     });
@@ -109,26 +114,29 @@ export function connectClientCommands(
 ) {
   let mutex = false;
 
+  const exclusive = (run: () => Promise<void>) => async () => {
+    if (!client.isRunning()) {
+      notify(PAUSED, MessageKind.INFO, { logger: "clientCommand" });
+      return;
+    }
+    if (!mutex) {
+      mutex = true;
+      try {
+        await run();
+      } finally {
+        mutex = false;
+      }
+    }
+  };
+
   context.subscriptions.push(
-    commands.registerCommand("kdb.execute.block", async () => {
-      if (!mutex) {
-        mutex = true;
-        try {
-          await executeBlock(client);
-        } finally {
-          mutex = false;
-        }
-      }
-    }),
-    commands.registerCommand("kdb.toggleParameterCache", async () => {
-      if (!mutex) {
-        mutex = true;
-        try {
-          await toggleParameterCache(client);
-        } finally {
-          mutex = false;
-        }
-      }
-    }),
+    commands.registerCommand(
+      "peachq.execute.block",
+      exclusive(() => executeBlock(client)),
+    ),
+    commands.registerCommand(
+      "peachq.toggleParameterCache",
+      exclusive(() => toggleParameterCache(client)),
+    ),
   );
 }

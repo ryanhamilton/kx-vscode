@@ -8,7 +8,15 @@ import * as tseslint from "typescript-eslint";
 const currentYear = new Date().getFullYear();
 
 export default [
-  { ignores: ["**/*.d.ts", "**/*.js", "**/*.mjs", "**/.work/**"] },
+  {
+    ignores: [
+      "**/*.d.ts",
+      "**/*.js",
+      "**/*.mjs",
+      "**/.work/**",
+      ".vscode-test/**",
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

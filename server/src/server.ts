@@ -33,7 +33,7 @@ connection.onInitialize((params) => {
 
 connection.onInitialized(() => {
   connection.client.register(DidChangeConfigurationNotification.type, {
-    section: "kdb",
+    section: "peachq",
   });
 });
 

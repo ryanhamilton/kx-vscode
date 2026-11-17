@@ -185,7 +185,7 @@ describe("ResultsPanelProvider", () => {
       visible: true,
 
       show: (): void => {},
-      viewType: "kdb-results",
+      viewType: "peachq-results",
       webview: {
         options: {},
         html: "",
@@ -660,7 +660,7 @@ describe("ResultsPanelProvider", () => {
       visible: true,
 
       show: (): void => {},
-      viewType: "kdb-results",
+      viewType: "peachq-results",
       webview: {
         options: {},
         html: "",

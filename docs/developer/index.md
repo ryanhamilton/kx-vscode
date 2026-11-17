@@ -19,6 +19,8 @@ Architecture and contributor notes for the kdb VS Code extension. See also the
 - [Development](development.md) — setup, recommended extensions, scripts,
   debugging, releasing.
 - [Decisions](decisions.md) — rules settled by merged pull requests.
+- [Merging Upstream](upstream.md) — the rebrand script and how KX changes
+  enter through it.
 - [What the End to End Suite Covers](end-to-end-coverage.md) — the map of what
   `test:e2e` asserts, and what it cannot reach.
 - [Log, Telemetry and User Notifications](log-telemetry-and-user-notifications.md)

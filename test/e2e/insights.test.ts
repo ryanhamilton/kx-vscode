@@ -44,7 +44,7 @@ import {
 } from "./utils/insightsServer";
 
 // Copies of the main fixtures under the paths the workspace settings assign to
-// the Insights connections. They need their own paths because kdb.connectionMap
+// the Insights connections. They need their own paths because peachq.connectionMap
 // is keyed by path, and main.q is already spoken for by the REPL tests.
 const Q_FILE = file("insights.q");
 const PY_FILE = file("insights.py");
@@ -237,7 +237,7 @@ describe("Executing on an Insights connection", () => {
   function qCases(target: () => vscode.Uri) {
     it("sends the whole file as a scratchpad expression", async () => {
       await focus(target());
-      const request = await run("kdb.execute.fileQuery");
+      const request = await run("peachq.execute.fileQuery");
 
       assert.strictEqual(request.path, SCRATCHPAD);
       assert.strictEqual(request.body.language, "q");
@@ -254,14 +254,14 @@ describe("Executing on an Insights connection", () => {
 
     it("sends only the selection", async () => {
       await selectionOf(target(), SELECTABLE);
-      const request = await run("kdb.execute.selectedQuery");
+      const request = await run("peachq.execute.selectedQuery");
 
       assert.strictEqual(request.body.expression, SELECTABLE);
     });
 
     it("identifies itself as the signed in user", async () => {
       await focus(target());
-      const request = await run("kdb.execute.fileQuery");
+      const request = await run("peachq.execute.fileQuery");
 
       // getOptions(needUsername) decodes the token to fill this in, so an
       // instance can attribute the scratchpad to a user.
@@ -272,7 +272,7 @@ describe("Executing on an Insights connection", () => {
   function pythonCases(target: () => vscode.Uri) {
     it("runs the file as python", async () => {
       await focus(target());
-      const request = await run("kdb.scratchpad.python.run.file");
+      const request = await run("peachq.scratchpad.python.run.file");
 
       assert.strictEqual(request.path, SCRATCHPAD);
       assert.strictEqual(request.body.language, "python");
@@ -286,7 +286,7 @@ describe("Executing on an Insights connection", () => {
   function sqlCases(target: () => vscode.Uri) {
     it("goes to the service gateway rather than the scratchpad", async () => {
       await focus(target());
-      const request = await run("kdb.execute.fileQuery");
+      const request = await run("peachq.execute.fileQuery");
 
       // SQL on Insights is a datasource query, not a scratchpad expression, so
       // it is never wrapped in s) the way a kdb+ connection's is.
@@ -326,7 +326,7 @@ describe("Executing on an Insights connection", () => {
   describe("from a quke file", () => {
     it("sends only the selection as a scratchpad expression", async () => {
       await selectionOf(QUKE_FILE, QUKE_SELECTED);
-      const request = await run("kdb.execute.selectedQuery");
+      const request = await run("peachq.execute.selectedQuery");
 
       assert.strictEqual(request.path, SCRATCHPAD);
       assert.strictEqual(request.body.language, "q");
@@ -335,7 +335,7 @@ describe("Executing on an Insights connection", () => {
 
     it("sends the current line when nothing is selected", async () => {
       await caretAt(QUKE_FILE, QUKE_LINE);
-      const request = await run("kdb.execute.selectedQuery");
+      const request = await run("peachq.execute.selectedQuery");
 
       assert.ok(
         request.body.expression.includes(QUKE_LINE),
@@ -353,8 +353,8 @@ describe("Executing on an Insights connection", () => {
       const notebook = await vscode.workspace.openNotebookDocument(NOTEBOOK);
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
-        id: "kx-notebook-1",
-        extension: "KX.kdb",
+        id: "peachq-notebook-1",
+        extension: "peachq.peachq",
       });
 
       insights.clear();
@@ -418,8 +418,8 @@ describe("Executing on an Insights connection", () => {
       notebook = await vscode.workspace.openNotebookDocument(IMAGE_NOTEBOOK);
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
-        id: "kx-notebook-1",
-        extension: "KX.kdb",
+        id: "peachq-notebook-1",
+        extension: "peachq.peachq",
       });
     });
 
@@ -486,8 +486,8 @@ describe("Executing on an Insights connection", () => {
         await vscode.workspace.openNotebookDocument(LATE_IMAGE_NOTEBOOK);
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
-        id: "kx-notebook-1",
-        extension: "KX.kdb",
+        id: "peachq-notebook-1",
+        extension: "peachq.peachq",
       });
     });
 
@@ -532,8 +532,8 @@ describe("Executing on an Insights connection", () => {
         await vscode.workspace.openNotebookDocument(LATE_IMAGE_NOTEBOOK);
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
-        id: "kx-notebook-1",
-        extension: "KX.kdb",
+        id: "peachq-notebook-1",
+        extension: "peachq.peachq",
       });
     });
 
@@ -579,8 +579,8 @@ describe("Executing on an Insights connection", () => {
         await vscode.workspace.openNotebookDocument(LATE_IMAGE_NOTEBOOK);
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
-        id: "kx-notebook-1",
-        extension: "KX.kdb",
+        id: "peachq-notebook-1",
+        extension: "peachq.peachq",
       });
     });
 
@@ -633,8 +633,8 @@ describe("Executing on an Insights connection", () => {
         await vscode.workspace.openNotebookDocument(LATE_IMAGE_NOTEBOOK);
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
-        id: "kx-notebook-1",
-        extension: "KX.kdb",
+        id: "peachq-notebook-1",
+        extension: "peachq.peachq",
       });
     });
 
@@ -676,7 +676,7 @@ describe("Executing on an Insights connection", () => {
   describe("with a target assigned", () => {
     it("runs qsql against the assembly and tier", async () => {
       await focus(TARGET_FILE);
-      const request = await run("kdb.execute.fileQuery");
+      const request = await run("peachq.execute.fileQuery");
 
       assert.strictEqual(request.path, "/servicegateway/kxi/qsql");
       assert.ok(
@@ -694,7 +694,7 @@ describe("Executing on an Insights connection", () => {
 
     it("prints a lambda result with its own line breaks", async () => {
       await focus(LAMBDA_FILE);
-      await run("kdb.execute.fileQuery");
+      await run("peachq.execute.fileQuery");
 
       await untilConsoleShows("h:x+a;", "the lambda to be printed");
       const lines = (await terminalText(CONSOLE))
@@ -726,8 +726,8 @@ describe("Executing on an Insights connection", () => {
       );
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
-        id: "kx-notebook-1",
-        extension: "KX.kdb",
+        id: "peachq-notebook-1",
+        extension: "peachq.peachq",
       });
 
       insights.clear();
@@ -799,13 +799,17 @@ describe("Executing on an Insights connection", () => {
 
   describe("the results destination", () => {
     after(async () => {
-      await vscode.commands.executeCommand("kdb.results.destination.terminal");
+      await vscode.commands.executeCommand(
+        "peachq.results.destination.terminal",
+      );
     });
 
     it("asks for text and prints to the console for the terminal", async () => {
-      await vscode.commands.executeCommand("kdb.results.destination.terminal");
+      await vscode.commands.executeCommand(
+        "peachq.results.destination.terminal",
+      );
       await focus(Q_FILE);
-      const request = await run("kdb.execute.fileQuery");
+      const request = await run("peachq.execute.fileQuery");
 
       assert.strictEqual(request.body.returnFormat, "text");
 
@@ -816,9 +820,9 @@ describe("Executing on an Insights connection", () => {
     });
 
     it("asks for structured text for the view", async () => {
-      await vscode.commands.executeCommand("kdb.results.destination.view");
+      await vscode.commands.executeCommand("peachq.results.destination.view");
       await focus(Q_FILE);
-      const request = await run("kdb.execute.fileQuery");
+      const request = await run("peachq.execute.fileQuery");
 
       assert.strictEqual(request.body.returnFormat, "structuredText");
     });
@@ -827,7 +831,7 @@ describe("Executing on an Insights connection", () => {
   describe("when the scratchpad reports an error", () => {
     it("shows it in the console", async () => {
       await focus(FAILING_FILE);
-      await run("kdb.execute.fileQuery");
+      await run("peachq.execute.fileQuery");
 
       await untilConsoleShows(FAILURE, "the error to be shown in the console");
     });
@@ -843,7 +847,7 @@ describe("Executing on an Insights connection", () => {
   describe("when the database process dies mid-query", () => {
     it("reports the reason the coordinator gave", async () => {
       await focus(RC_DEAD_FILE);
-      await run("kdb.execute.fileQuery");
+      await run("peachq.execute.fileQuery");
 
       await untilConsoleShows(
         FakeInsights.RC_DIED,
@@ -853,7 +857,7 @@ describe("Executing on an Insights connection", () => {
 
     it("reports the status the gateway gave", async () => {
       await focus(SG_DEAD_FILE);
-      await run("kdb.execute.fileQuery");
+      await run("peachq.execute.fileQuery");
 
       // The 502 body is openresty's HTML page, which carries no reason worth
       // showing, so the status line stands in for it.
@@ -924,7 +928,7 @@ describe("Executing on an Insights connection", () => {
     after(async () => {
       for (const alias of [OLD.alias, OLDER.alias, RECENT.alias]) {
         await vscode.commands.executeCommand(
-          "kdb.connections.disconnect",
+          "peachq.connections.disconnect",
           alias,
         );
       }
@@ -936,7 +940,7 @@ describe("Executing on an Insights connection", () => {
     async function runOn(target: FakeInsights, uri: vscode.Uri) {
       target.clear();
       await focus(uri);
-      await vscode.commands.executeCommand("kdb.execute.fileQuery");
+      await vscode.commands.executeCommand("peachq.execute.fileQuery");
       await until(
         () => target.queries().length > 0,
         `a request on ${uri.path}`,

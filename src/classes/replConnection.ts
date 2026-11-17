@@ -105,7 +105,7 @@ const NS = {
 
 const CONF = {
   DEFAULT: "default",
-  TITLE: `KX ${ext.REPL}`,
+  TITLE: `peachq ${ext.REPL}`,
   PROMPT: ")",
   MAX_INPUT: 80 * 40,
 };
@@ -195,10 +195,7 @@ export class ReplConnection {
   private readonly terminal: vscode.Terminal;
   private readonly executions: Execution[] = [];
 
-  private messages? = [
-    `${CONF.TITLE} Copyright (C) 1993-${new Date().getFullYear()} KX Systems` +
-      ANSI.CRLF.repeat(2),
-  ];
+  private messages? = [CONF.TITLE + ANSI.CRLF.repeat(2)];
 
   private env: { [key: string]: string } = {};
   private process: ChildProcessWithoutNullStreams;

@@ -25,7 +25,8 @@ connection and timeout items it does for notebooks and workbooks: click the
 connection to rebind the file, the timeout to change how long its queries may
 run.
 
-Create one with **KX: New Query**, or with the **+** button on the Queries view.
+Create one with **peachq: New Query**, or with the **+** button on the Queries
+view.
 
 ## Choosing what to run
 
@@ -218,6 +219,6 @@ it into a workbook (`.kdb.q`, `.kdb.sql`), which gives you the language server,
 the run gutter and per-statement execution.
 
 Opening a `.kdb.json` converts it and opens what came out; the original file is
-left on disk. **KX: Convert datasources to queries** does the same across the
-whole workspace. Each converted file keeps the connection the original was bound
-to.
+left on disk. **peachq: Convert datasources to queries** does the same across
+the whole workspace. Each converted file keeps the connection the original was
+bound to.

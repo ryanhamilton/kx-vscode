@@ -139,7 +139,7 @@ describe("queryEditorProvider", () => {
     let isConnectedStub: sinon.SinonStub;
 
     beforeEach(() => {
-      ext.outputChannel = vscode.window.createOutputChannel("kdb", {
+      ext.outputChannel = vscode.window.createOutputChannel("peachq", {
         log: true,
       });
       isConnectedStub = sinon.stub(connMngService, "isConnected");
@@ -323,7 +323,7 @@ describe("queryEditorProvider", () => {
       });
 
     beforeEach(async () => {
-      ext.outputChannel = vscode.window.createOutputChannel("kdb", {
+      ext.outputChannel = vscode.window.createOutputChannel("peachq", {
         log: true,
       });
       telemetry = ext.telemetry;

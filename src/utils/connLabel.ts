@@ -24,7 +24,7 @@ const logger = "connLabel";
 export function getWorkspaceLabels() {
   const existingConnLbls = workspace
     .getConfiguration()
-    .get<Labels[]>("kdb.connectionLabels");
+    .get<Labels[]>("peachq.connectionLabels");
   ext.connLabelList.length = 0;
   if (existingConnLbls && existingConnLbls.length > 0) {
     const sortedLabels = existingConnLbls.sort((a, b) =>
@@ -41,7 +41,7 @@ export function clearWorkspaceLabels() {
   getWorkspaceLabelsConnMap();
 
   if (ext.connLabelList.length === 0) {
-    workspace.getConfiguration().update("kdb.labelsConnectionMap", [], true);
+    workspace.getConfiguration().update("peachq.labelsConnectionMap", [], true);
     return;
   }
 
@@ -58,7 +58,7 @@ export function clearWorkspaceLabels() {
   if (removedCount > 0) {
     workspace
       .getConfiguration()
-      .update("kdb.labelsConnectionMap", ext.labelConnMapList, true);
+      .update("peachq.labelsConnectionMap", ext.labelConnMapList, true);
   }
 }
 
@@ -88,7 +88,7 @@ export function createNewLabel(name: string, colorName: string) {
 
     workspace
       .getConfiguration()
-      .update("kdb.connectionLabels", ext.connLabelList, true);
+      .update("peachq.connectionLabels", ext.connLabelList, true);
 
     notify("Connection label created.", MessageKind.DEBUG, {
       logger,
@@ -105,7 +105,7 @@ export function createNewLabel(name: string, colorName: string) {
 export function getWorkspaceLabelsConnMap() {
   const existingLabelConnMaps = workspace
     .getConfiguration()
-    .get<ConnectionLabel[]>("kdb.labelsConnectionMap");
+    .get<ConnectionLabel[]>("peachq.labelsConnectionMap");
   ext.labelConnMapList.length = 0;
   if (existingLabelConnMaps && existingLabelConnMaps.length > 0) {
     existingLabelConnMaps.forEach((labelConnMap: ConnectionLabel) => {
@@ -159,7 +159,7 @@ export function removeConnFromLabels(connName: string) {
   });
   workspace
     .getConfiguration()
-    .update("kdb.labelsConnectionMap", ext.labelConnMapList, true);
+    .update("peachq.labelsConnectionMap", ext.labelConnMapList, true);
 }
 
 export async function handleLabelsConnMap(labels: string[], connName: string) {
@@ -169,7 +169,7 @@ export async function handleLabelsConnMap(labels: string[], connName: string) {
   });
   await workspace
     .getConfiguration()
-    .update("kdb.labelsConnectionMap", ext.labelConnMapList, true);
+    .update("peachq.labelsConnectionMap", ext.labelConnMapList, true);
 }
 
 export function retrieveConnLabelsNames(
@@ -208,11 +208,11 @@ export function renameLabel(name: string, newName: string) {
   }
   workspace
     .getConfiguration()
-    .update("kdb.labelsConnectionMap", ext.labelConnMapList, true)
+    .update("peachq.labelsConnectionMap", ext.labelConnMapList, true)
     .then(() =>
       workspace
         .getConfiguration()
-        .update("kdb.connectionLabels", ext.connLabelList, true),
+        .update("peachq.connectionLabels", ext.connLabelList, true),
     );
   NewConnectionPannel.refreshLabels();
 }
@@ -228,7 +228,7 @@ export function setLabelColor(name: string, color: string) {
   }
   workspace
     .getConfiguration()
-    .update("kdb.connectionLabels", ext.connLabelList, true);
+    .update("peachq.connectionLabels", ext.connLabelList, true);
   NewConnectionPannel.refreshLabels();
 }
 
@@ -240,7 +240,7 @@ export function deleteLabel(name: string) {
   }
   workspace
     .getConfiguration()
-    .update("kdb.connectionLabels", ext.connLabelList, true);
+    .update("peachq.connectionLabels", ext.connLabelList, true);
 
   notify("Connection label deleted.", MessageKind.DEBUG, {
     logger,

@@ -25,10 +25,13 @@ describe("clientCommands", () => {
   const client = sinon.createStubInstance(LanguageClient);
   let executeBlock;
   let toggleParameterCache;
+  let running: boolean;
 
   beforeEach(() => {
     const context = <vscode.ExtensionContext>{ subscriptions: [] };
     sinon.stub(vscode.commands, "registerCommand").value((a, b) => b);
+    running = true;
+    (client as any).isRunning = () => running;
     clientCommand.connectClientCommands(context, client);
     executeBlock = context.subscriptions[0];
     toggleParameterCache = context.subscriptions[1];
@@ -58,7 +61,7 @@ describe("clientCommands", () => {
       );
     });
   });
-  describe("kdb.toggleParameterCache", () => {
+  describe("peachq.toggleParameterCache", () => {
     it("should add parameter cache for single line functions", async () => {
       let edit: vscode.WorkspaceEdit;
       sinon.stub(client, "sendRequest").value(async () => ({
@@ -95,6 +98,21 @@ describe("clientCommands", () => {
         true,
       );
       assert.strictEqual(res.dataSource.selectedType, "SQL");
+    });
+  });
+  describe("while the language client is paused", () => {
+    it("says so instead of asking it", async () => {
+      running = false;
+      ext.outputChannel = vscode.window.createOutputChannel("peachq", {
+        log: true,
+      });
+      const info = sinon.stub(vscode.window, "showInformationMessage");
+      const request = sinon.spy();
+      sinon.stub(client, "sendRequest").value(request);
+      await executeBlock();
+      await toggleParameterCache();
+      sinon.assert.notCalled(request);
+      sinon.assert.calledTwice(info);
     });
   });
 });

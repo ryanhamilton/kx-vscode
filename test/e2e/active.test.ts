@@ -26,16 +26,16 @@ import {
 } from "./utils";
 import { CONSOLE, kdb, start } from "./utils/connection";
 
-// Unassigned, so nothing in kdb.connectionMap decides where it runs.
+// Unassigned, so nothing in peachq.connectionMap decides where it runs.
 const ACTIVE_FILE = file("active.q");
 const QUERY = '"ACTIVE_TARGET"';
 
-// Assigned to the REPL in kdb.connectionMap, which outranks the active target.
+// Assigned to the REPL in peachq.connectionMap, which outranks the active target.
 const PINNED_FILE = file("pinned.q");
 const PINNED = '"PINNED_REPL"';
 
 // ReplConnection names its terminal after the folder it is based in.
-const REPL = "KX REPL";
+const REPL = "peachq REPL";
 
 describe("Routing to the active target", () => {
   before(async () => {
@@ -44,7 +44,7 @@ describe("Routing to the active target", () => {
 
     // Connecting opens the connection console; the REPL has to be started for
     // its terminal to exist at all.
-    await vscode.commands.executeCommand("kdb.repl.start");
+    await vscode.commands.executeCommand("peachq.repl.start");
     await until(() => !!terminal(REPL), "the REPL terminal to open");
   });
 
@@ -58,7 +58,7 @@ describe("Routing to the active target", () => {
 
     kdb.clear();
     const from = mark();
-    await vscode.commands.executeCommand("kdb.execute.fileQuery");
+    await vscode.commands.executeCommand("peachq.execute.fileQuery");
 
     assert.ok(
       since(from).includes(QUERY),
@@ -77,7 +77,7 @@ describe("Routing to the active target", () => {
 
     kdb.clear();
     const from = mark();
-    await vscode.commands.executeCommand("kdb.execute.fileQuery");
+    await vscode.commands.executeCommand("peachq.execute.fileQuery");
 
     const code = kdb
       .queries()
@@ -101,7 +101,7 @@ describe("Routing to the active target", () => {
 
     kdb.clear();
     const from = mark();
-    await vscode.commands.executeCommand("kdb.execute.fileQuery");
+    await vscode.commands.executeCommand("peachq.execute.fileQuery");
 
     assert.ok(
       since(from).includes(QUERY),
@@ -120,7 +120,7 @@ describe("Routing to the active target", () => {
 
     kdb.clear();
     const from = mark();
-    await vscode.commands.executeCommand("kdb.execute.fileQuery");
+    await vscode.commands.executeCommand("peachq.execute.fileQuery");
 
     assert.ok(
       since(from).includes(PINNED),

@@ -43,7 +43,7 @@ const KEY = {
  * TerminalLinkProvider (see extension.ts) matches this text and opens the KDB
  * Results view — terminals do not allow `command:` hyperlinks directly.
  */
-export const OPEN_RESULTS_HINT = "kdb Results View";
+export const OPEN_RESULTS_HINT = "peachq Results View";
 
 const CUT = "..";
 
@@ -102,7 +102,7 @@ export class ConnectionConsole {
     private readonly onClose?: () => void,
   ) {
     this.pty = vscode.window.createTerminal({
-      name: `KX ${getConnShortName(connLabel)}`,
+      name: `peachq ${getConnShortName(connLabel)}`,
       iconPath: new vscode.ThemeIcon("database"),
       isTransient: true,
       pty: {
@@ -213,7 +213,7 @@ export class ConnectionConsole {
     this.onDidWrite.fire(
       ANSI.CLEAR +
         ANSI.BOLD_ON +
-        `KX ${getConnShortName(this.connLabel)}` +
+        `peachq ${getConnShortName(this.connLabel)}` +
         ANSI.BOLD_OFF +
         ANSI.CRLF +
         ANSI.CRLF,

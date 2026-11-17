@@ -204,7 +204,9 @@ describe("workspaceCommand", () => {
       });
 
     it("should show the connection of the active notebook", async () => {
-      stubActiveTab(new vscode.TabInputNotebook(notebookUri, "kx-notebook"));
+      stubActiveTab(
+        new vscode.TabInputNotebook(notebookUri, "peachq-notebook"),
+      );
       const spy = sinon.spy(ext.runScratchpadItem, "show");
       await workspaceCommand.updateStatusBarItems();
       sinon.assert.called(spy);
@@ -212,7 +214,9 @@ describe("workspaceCommand", () => {
     });
 
     it("should show the timeout of the active notebook", async () => {
-      stubActiveTab(new vscode.TabInputNotebook(notebookUri, "kx-notebook"));
+      stubActiveTab(
+        new vscode.TabInputNotebook(notebookUri, "peachq-notebook"),
+      );
       const spy = sinon.spy(ext.pickTimeoutItem, "show");
       await workspaceCommand.updateStatusBarItems();
       sinon.assert.called(spy);
@@ -222,7 +226,7 @@ describe("workspaceCommand", () => {
       stubActiveTab(
         new vscode.TabInputNotebook(
           vscode.Uri.file("unassigned.kxnb"),
-          "kx-notebook",
+          "peachq-notebook",
         ),
       );
       const spy = sinon.spy(ext.runScratchpadItem, "show");
@@ -232,7 +236,7 @@ describe("workspaceCommand", () => {
     });
 
     it("should show the connection of the active query", async () => {
-      stubActiveTab(new vscode.TabInputCustom(queryUri, "kdb.queryEditor"));
+      stubActiveTab(new vscode.TabInputCustom(queryUri, "peachq.queryEditor"));
       const spy = sinon.spy(ext.runScratchpadItem, "show");
       await workspaceCommand.updateStatusBarItems();
       sinon.assert.called(spy);
@@ -240,7 +244,7 @@ describe("workspaceCommand", () => {
     });
 
     it("should show the timeout of the active query", async () => {
-      stubActiveTab(new vscode.TabInputCustom(queryUri, "kdb.queryEditor"));
+      stubActiveTab(new vscode.TabInputCustom(queryUri, "peachq.queryEditor"));
       const spy = sinon.spy(ext.pickTimeoutItem, "show");
       await workspaceCommand.updateStatusBarItems();
       sinon.assert.called(spy);
@@ -250,7 +254,7 @@ describe("workspaceCommand", () => {
       stubActiveTab(
         new vscode.TabInputCustom(
           vscode.Uri.file("unassigned.kxquery"),
-          "kdb.queryEditor",
+          "peachq.queryEditor",
         ),
       );
       const spy = sinon.spy(ext.runScratchpadItem, "show");
@@ -263,7 +267,7 @@ describe("workspaceCommand", () => {
       stubActiveTab(
         new vscode.TabInputCustom(
           vscode.Uri.file("unassigned.kxquery"),
-          "kdb.queryEditor",
+          "peachq.queryEditor",
         ),
       );
       const spy = sinon.spy(ext.pickTimeoutItem, "show");
@@ -301,6 +305,42 @@ describe("workspaceCommand", () => {
         "Mid",
         "zeta",
       ]);
+    });
+  });
+
+  describe("a connection map only the KX extension's settings hold", () => {
+    const legacy = vscode.Uri.file("/legacy.q");
+    const path = () => vscode.workspace.asRelativePath(legacy, false);
+    let ours: { [key: string]: string };
+
+    beforeEach(() => {
+      ours = {};
+      sinon.stub(vscode.workspace, "getConfiguration").value((section) => ({
+        get: (key: string) =>
+          key === "servers"
+            ? [{ serverAlias: "connection2" }]
+            : key !== "connectionMap"
+              ? {}
+              : section === "peachq"
+                ? ours
+                : { [path()]: "connection2" },
+        update: async (_key: string, map: { [key: string]: string }) => {
+          ours = map;
+        },
+      }));
+    });
+
+    it("still assigns the file", () => {
+      assert.strictEqual(
+        workspaceCommand.getServerForUri(legacy),
+        "connection2",
+      );
+    });
+
+    it("stays cleared once cleared", async () => {
+      await workspaceCommand.setServerForUri(legacy, undefined);
+      assert.strictEqual(ours[path()], "");
+      assert.strictEqual(workspaceCommand.getServerForUri(legacy), undefined);
     });
   });
 
@@ -574,7 +614,7 @@ describe("workspaceCommand", () => {
     });
 
     it("should take the notebook showing in front, no cell focused", () => {
-      activeTab(new vscode.TabInputNotebook(notebookUri, "kx-notebook"));
+      activeTab(new vscode.TabInputNotebook(notebookUri, "peachq-notebook"));
       const result = workspaceCommand.getActiveFileUri();
       assert.strictEqual(result?.toString(), notebookUri.toString());
     });

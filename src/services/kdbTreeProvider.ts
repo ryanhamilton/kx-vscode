@@ -64,7 +64,7 @@ export class KdbTreeProvider
     this.serverList = serverList;
     vscode.commands.executeCommand(
       "setContext",
-      "kdb.selectContentNodesContext",
+      "peachq.selectContentNodesContext",
       ext.selectContentNodesContext,
     );
     this._onDidChangeTreeData.fire();
@@ -81,7 +81,7 @@ export class KdbTreeProvider
       element instanceof MetaObjectPayloadNode
     ) {
       element.command = {
-        command: "kdb.connections.open.meta",
+        command: "peachq.connections.open.meta",
         title: "Open Meta Object",
         arguments: [element],
       };
@@ -562,7 +562,7 @@ export class KdbNode extends vscode.TreeItem {
       ext.kdbrootNodes.push(label);
       vscode.commands.executeCommand(
         "setContext",
-        "kdb.rootNodes",
+        "peachq.rootNodes",
         ext.kdbrootNodes,
       );
     }
@@ -573,7 +573,7 @@ export class KdbNode extends vscode.TreeItem {
         ext.kdbNodesWithoutAuth.push(label);
         vscode.commands.executeCommand(
           "setContext",
-          "kdb.kdbNodesWithoutAuth",
+          "peachq.kdbNodesWithoutAuth",
           ext.kdbNodesWithoutAuth,
         );
       }
@@ -583,7 +583,7 @@ export class KdbNode extends vscode.TreeItem {
         ext.kdbNodesWithoutAuth.splice(index, 1);
         vscode.commands.executeCommand(
           "setContext",
-          "kdb.kdbNodesWithoutAuth",
+          "peachq.kdbNodesWithoutAuth",
           ext.kdbNodesWithoutAuth,
         );
       }
@@ -595,7 +595,7 @@ export class KdbNode extends vscode.TreeItem {
         ext.kdbNodesWithoutTls.push(label);
         vscode.commands.executeCommand(
           "setContext",
-          "kdb.kdbNodesWithoutTls",
+          "peachq.kdbNodesWithoutTls",
           ext.kdbNodesWithoutTls,
         );
       }
@@ -605,7 +605,7 @@ export class KdbNode extends vscode.TreeItem {
         ext.kdbNodesWithoutTls.splice(index, 1);
         vscode.commands.executeCommand(
           "setContext",
-          "kdb.kdbNodesWithoutTls",
+          "peachq.kdbNodesWithoutTls",
           ext.kdbNodesWithoutTls,
         );
       }
@@ -659,7 +659,7 @@ export class InsightsNode extends vscode.TreeItem {
       ext.kdbinsightsNodes.push(this.label);
       vscode.commands.executeCommand(
         "setContext",
-        "kdb.insightsNodes",
+        "peachq.insightsNodes",
         ext.kdbinsightsNodes,
       );
     }

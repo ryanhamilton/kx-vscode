@@ -30,15 +30,15 @@ export class HelpFeedbackProvider implements vscode.TreeDataProvider<HelpItem> {
     return [
       new HelpItem(
         "Extension Documentation",
-        "kdb.help.openDocumentation",
+        "peachq.help.openDocumentation",
         "help-doc.svg",
       ),
       new HelpItem(
         "Suggest a Feature",
-        "kdb.help.suggestFeature",
+        "peachq.help.suggestFeature",
         "feature.svg",
       ),
-      new HelpItem("Report a Bug", "kdb.help.reportBug", "bug.svg"),
+      new HelpItem("Report a Bug", "peachq.help.reportBug", "bug.svg"),
     ];
   }
 }

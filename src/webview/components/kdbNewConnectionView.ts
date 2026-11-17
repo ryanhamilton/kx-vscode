@@ -831,13 +831,13 @@ export class KdbNewConnectionView extends LitElement {
   private save() {
     if (this.serverType === ServerType.INSIGHTS) {
       this.vscode.postMessage({
-        command: "kdb.connections.add.insights",
+        command: "peachq.connections.add.insights",
         data: this.data,
         labels: this.labels,
       });
     } else {
       this.vscode.postMessage({
-        command: "kdb.connections.add.kdb",
+        command: "peachq.connections.add.kdb",
         data: this.data,
         labels: this.labels,
       });
@@ -846,7 +846,7 @@ export class KdbNewConnectionView extends LitElement {
 
   private createLabel() {
     this.vscode.postMessage({
-      command: "kdb.connections.labels.add",
+      command: "peachq.connections.labels.add",
       data: {
         name: this.newLblName,
         colorName: this.newLblColorName,
@@ -864,7 +864,7 @@ export class KdbNewConnectionView extends LitElement {
     }
     if (this.connectionData.connType === 1) {
       this.vscode.postMessage({
-        command: "kdb.connections.edit.kdb",
+        command: "peachq.connections.edit.kdb",
         data: this.data,
         oldAlias: this.oldAlias,
         editAuth: this.editAuth,
@@ -872,7 +872,7 @@ export class KdbNewConnectionView extends LitElement {
       });
     } else {
       this.vscode.postMessage({
-        command: "kdb.connections.edit.insights",
+        command: "peachq.connections.edit.insights",
         data: this.data,
         oldAlias: this.oldAlias,
         labels: this.labels,

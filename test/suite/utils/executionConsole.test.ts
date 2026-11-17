@@ -530,7 +530,7 @@ describe("executionConsole", () => {
           sinon.assert.calledOnce(notifyStub);
           sinon.assert.calledWith(
             executeCommandStub,
-            "kdb.connections.disconnect",
+            "peachq.connections.disconnect",
           );
         });
 
@@ -545,7 +545,7 @@ describe("executionConsole", () => {
           sinon.assert.calledOnce(notifyStub);
           sinon.assert.calledWith(
             executeCommandStub,
-            "kdb.connections.disconnect",
+            "peachq.connections.disconnect",
           );
         });
       });

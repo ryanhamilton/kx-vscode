@@ -60,8 +60,8 @@ Reported on Windows: queries in a notebook do not run with Ctrl+D or Ctrl+Enter.
 The acceptance criteria asks for Ctrl+Enter or Ctrl+D to run the query on the
 current line and display its results.
 
-Fixed: Ctrl/Cmd+D in a KX notebook cell runs the selection, or the current line
-when nothing is selected, through the cell's own execution, so its result
+Fixed: Ctrl/Cmd+D in a peachq notebook cell runs the selection, or the current
+line when nothing is selected, through the cell's own execution, so its result
 replaces the cell's output. Ctrl+Enter stays VS Code's Run Cell
 (`notebook.cell.execute`), the same command the selection runs through; the
 Windows report of Ctrl+Enter failing has not been reproduced.
@@ -176,17 +176,17 @@ no longer offers `REPL`, which `(active)` already covers; a file already
 assigned `REPL` keeps following the active REPL. A pinned file runs on its REPL
 whichever is active, and a pinned REPL that is not running is started in its
 folder. The name is the workspace folder name and the path under it, so the
-assignment in `kdb.connectionMap` holds for everyone sharing the settings: where
-the only workspace folder goes by another name, as in a clone under a different
-directory, the path is taken under that folder. Folders that share a name are
-numbered, `src` and `src [2]`, and a REPL whose folder has left the workspace is
-named by its path. A name with a colon is still a REPL, not a quick `host:port`
-connection. The status bar shows `REPL (<name>)` for a pinned file, and
-`REPL → <name>` for one still assigned `REPL`, updated as focus moves.
+assignment in `peachq.connectionMap` holds for everyone sharing the settings:
+where the only workspace folder goes by another name, as in a clone under a
+different directory, the path is taken under that folder. Folders that share a
+name are numbered, `src` and `src [2]`, and a REPL whose folder has left the
+workspace is named by its path. A name with a colon is still a REPL, not a quick
+`host:port` connection. The status bar shows `REPL (<name>)` for a pinned file,
+and `REPL → <name>` for one still assigned `REPL`, updated as focus moves.
 
 ### 10. KXI-73661 - Source expressions for the REPL
 
-The ticket is a screenshot of the `kdb.hideSourceExpressions` setting ("When
+The ticket is a screenshot of the `peachq.hideSourceExpressions` setting ("When
 disabled, the console shows all evaluated expressions, intermediate steps, and
 results from your query"). The ask is for the REPL to honour it too, as the
 output console does.
@@ -207,7 +207,7 @@ In a Windows (not WSL) workspace, starting the REPL prints
 1, followed by "KDB installation not found for workspace". The install flow then
 links to KDB-X, which needs WSL, and reports that it does. Proposed in the
 ticket: start q with something like `bash -c "q"` on non-WSL Windows, or, if the
-REPL cannot work there, do not offer it at all, including **KX: Start REPL
+REPL cannot work there, do not offer it at all, including **peachq: Start REPL
 Here**. The e2e suite cannot cover this (its stand-in q does not run through
 `cmd.exe`).
 
@@ -256,8 +256,8 @@ What was wrong:
   (`activate.bat` on Windows). conda, pyenv, poetry and global interpreters were
   dropped without a word.
 - **Only one environment per workspace folder.** The lookup used the workspace
-  folder, so a REPL started in a subfolder with **KX: Start REPL Here** got the
-  workspace's environment, not the one selected for that project.
+  folder, so a REPL started in a subfolder with **peachq: Start REPL Here** got
+  the workspace's environment, not the one selected for that project.
 - **PyKX found Python by `PATH`.** `pykx.q` runs `PYKX_EXECUTABLE` when it is
   set, otherwise `python3` then `python` from `PATH`. The interpreter PyKX
   loaded was whatever activation left first on `PATH`, and nothing at all when

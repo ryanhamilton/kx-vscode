@@ -13,9 +13,11 @@
 
 ## Overview
 
-The **kdb VS Code extension** (`KX.kdb`) — an IDE for the q language and the kdb
-product suite (KDB-X, kdb Insights Enterprise, kdb+ Personal Edition): edit
-q/Python/SQL, connect to multiple kdb processes, run queries, view results.
+**peachq** (`peachq.peachq`), a fork of the KX extension (`KX.kdb`) — an IDE for
+the q language and the kdb product suite (KDB-X, kdb Insights Enterprise, kdb+
+Personal Edition): edit q/Python/SQL, connect to multiple kdb processes, run
+queries, view results. Beside an enabled KX extension it defers
+(`src/utils/kxCompat.ts`).
 
 ## Build & Development Commands
 
@@ -189,6 +191,10 @@ events change.
 
 ## Conventions
 
+- **Ids come from the rebrand script**: every public id renamed from upstream
+  (`kdb.*` → `peachq.*`, views, notebook type, titles) is produced by
+  [tools/rebrand.mjs](tools/rebrand.mjs), never edited by hand; upstream enters
+  through it ([docs/developer/upstream.md](docs/developer/upstream.md)).
 - **License header**: every `.ts` file must start with the Apache 2.0 header
   block, with the current year (ESLint `license-header/header`) — copy it from
   any existing source file.

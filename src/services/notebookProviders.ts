@@ -34,7 +34,7 @@ export class KxNotebookTargetActionProvider
 
   constructor() {
     vscode.workspace.onDidChangeConfiguration((event) => {
-      if (event.affectsConfiguration("kdb.connectionMap")) {
+      if (event.affectsConfiguration("peachq.connectionMap")) {
         this._onDidChangeCellStatusBarItems.fire();
       }
     });
@@ -61,7 +61,7 @@ export class KxNotebookTargetActionProvider
 
       targetItem.command = {
         title: "Choose Target",
-        command: "kdb.file.pickTarget",
+        command: "peachq.file.pickTarget",
         arguments: [cell],
       };
 
@@ -80,7 +80,7 @@ export class KxNotebookTargetActionProvider
 
       variableNameItem.command = {
         title: "Input Variable Name",
-        command: "kdb.file.inputVariable",
+        command: "peachq.file.inputVariable",
         arguments: [cell],
       };
 
@@ -151,7 +151,7 @@ export function getCellKind(cell: vscode.NotebookCell) {
   }
 }
 
-// Must match the kdb.notebook.rowLimit.<n> commands and menus in package.json.
+// Must match the peachq.notebook.rowLimit.<n> commands and menus in package.json.
 export const ROW_LIMIT_PRESETS = [10, 100, 1000, 10000, 100000, 1000000];
 
 const ROW_LIMIT_MAX = 1000000;
@@ -161,7 +161,7 @@ const ROW_LIMIT_DEFAULT = 100;
 // A notebook keeps its own row limit in its metadata; the settings are the
 // defaults for notebooks that have none.
 export function getRowLimit(notebook?: vscode.NotebookDocument): RowLimit {
-  const config = vscode.workspace.getConfiguration("kdb");
+  const config = vscode.workspace.getConfiguration("peachq");
   const saved = notebook?.metadata?.rowLimit;
   const limit = isValidRowLimit(saved)
     ? saved
@@ -198,7 +198,7 @@ async function updateRowLimitMetadata(
 
 function activeKxNotebook() {
   const notebook = vscode.window.activeNotebookEditor?.notebook;
-  return notebook?.notebookType === "kx-notebook" ? notebook : undefined;
+  return notebook?.notebookType === "peachq-notebook" ? notebook : undefined;
 }
 
 export function parseRowLimit(value: string): number | undefined {
@@ -287,15 +287,15 @@ export function trackNotebookOnRepl(): vscode.Disposable {
     const notebook = vscode.window.activeNotebookEditor?.notebook;
     vscode.commands.executeCommand(
       "setContext",
-      "kdb.notebookOnRepl",
-      notebook?.notebookType === "kx-notebook" && runsOnRepl(notebook.uri),
+      "peachq.notebookOnRepl",
+      notebook?.notebookType === "peachq-notebook" && runsOnRepl(notebook.uri),
     );
   };
   update();
   return vscode.Disposable.from(
     vscode.window.onDidChangeActiveNotebookEditor(update),
     vscode.workspace.onDidChangeConfiguration((event) => {
-      if (event.affectsConfiguration("kdb.connectionMap")) update();
+      if (event.affectsConfiguration("peachq.connectionMap")) update();
     }),
     onDidChangeSessionMaps(update),
     onDidChangeActiveTarget(update),
@@ -314,12 +314,12 @@ export function trackNotebookRowLimit(): vscode.Disposable {
       : { limit: undefined, from: undefined };
     vscode.commands.executeCommand(
       "setContext",
-      "kdb.notebookRowLimitValue",
+      "peachq.notebookRowLimitValue",
       limit,
     );
     vscode.commands.executeCommand(
       "setContext",
-      "kdb.notebookRowLimitFromValue",
+      "peachq.notebookRowLimitFromValue",
       from,
     );
   };
@@ -330,7 +330,7 @@ export function trackNotebookRowLimit(): vscode.Disposable {
       if (event.notebook === activeKxNotebook() && event.metadata) update();
     }),
     vscode.workspace.onDidChangeConfiguration((event) => {
-      if (event.affectsConfiguration("kdb.notebookRowLimit")) update();
+      if (event.affectsConfiguration("peachq.notebookRowLimit")) update();
     }),
   );
 }

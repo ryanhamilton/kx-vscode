@@ -38,20 +38,20 @@ import { answer, clear, untilRaised } from "./utils/prompt";
 const RESET = "/scratchpadmanager/reset";
 const CONFIRMATION = "Reset Scratchpad?";
 
-// Copies of main.q under the paths kdb.connectionMap and kdb.timeoutMap assign
+// Copies of main.q under the paths peachq.connectionMap and peachq.timeoutMap assign
 // to this suite.
 const TIMED_FILE = file("timeout.q");
 const TIMED_TARGET = file("timeout.target.q");
 const ASSIGNED = [TIMED_FILE, TIMED_TARGET];
 
-// What kdb.timeoutMap gives timeout.q in the workspace settings, and what
-// kdb.defaultTimeout leaves everything else on.
+// What peachq.timeoutMap gives timeout.q in the workspace settings, and what
+// peachq.defaultTimeout leaves everything else on.
 const OVERRIDDEN = 5;
 const DEFAULT = 30;
 
 async function reset(connLabel = CONNECTION) {
   insights.clear();
-  await vscode.commands.executeCommand("kdb.scratchpad.reset", {
+  await vscode.commands.executeCommand("peachq.scratchpad.reset", {
     label: connLabel,
   });
 }
@@ -60,7 +60,7 @@ async function reset(connLabel = CONNECTION) {
 async function run(uri: vscode.Uri) {
   insights.clear();
   await focus(uri);
-  await vscode.commands.executeCommand("kdb.execute.fileQuery");
+  await vscode.commands.executeCommand("peachq.execute.fileQuery");
   await until(() => insights.queries().length > 0, `a request for ${uri.path}`);
   return insights.queries()[0];
 }
@@ -129,7 +129,7 @@ describe("The Insights scratchpad", () => {
 
       after(async () => {
         await vscode.commands.executeCommand(
-          "kdb.connections.disconnect",
+          "peachq.connections.disconnect",
           OLD.alias,
         );
         await old.close();
@@ -137,7 +137,7 @@ describe("The Insights scratchpad", () => {
 
       it("says so rather than offering to reset", async () => {
         old.clear();
-        await vscode.commands.executeCommand("kdb.scratchpad.reset", {
+        await vscode.commands.executeCommand("peachq.scratchpad.reset", {
           label: OLD.alias,
         });
 

@@ -33,7 +33,9 @@ describe("dataSourceConverterProvider", () => {
   let scratchpadTreeProvider: any;
 
   beforeEach(() => {
-    ext.outputChannel = vscode.window.createOutputChannel("kdb", { log: true });
+    ext.outputChannel = vscode.window.createOutputChannel("peachq", {
+      log: true,
+    });
     convertDataSource = sinon.stub(queryCommand, "convertDataSource");
     openWith = sinon.stub(workspaceUtils, "openWith").resolves();
     queryTreeProvider = ext.queryTreeProvider;

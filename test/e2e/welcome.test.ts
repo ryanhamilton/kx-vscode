@@ -18,7 +18,7 @@ import { activate, file, focus, until } from "./utils";
 import { Webview, webview } from "./utils/webview";
 
 /**
- * The welcome page, in both halves: the panel kdb.show.welcome opens, which is
+ * The welcome page, in both halves: the panel peachq.show.welcome opens, which is
  * all the extension host exposes of it, and the page inside that panel, mounted
  * separately because webview content cannot be reached into from out here — see
  * test/e2e/utils/webview.ts.
@@ -45,7 +45,7 @@ describe("Welcome", () => {
         );
 
     const open = async () => {
-      await vscode.commands.executeCommand("kdb.show.welcome");
+      await vscode.commands.executeCommand("peachq.show.welcome");
       await until(
         () => panels()[0]?.isActive === true,
         "the welcome panel to open",
@@ -80,7 +80,7 @@ describe("Welcome", () => {
         "the welcome panel to lose focus",
       );
 
-      await vscode.commands.executeCommand("kdb.show.welcome");
+      await vscode.commands.executeCommand("peachq.show.welcome");
       await until(
         () => panels()[0]?.isActive === true,
         "the welcome panel to be revealed",

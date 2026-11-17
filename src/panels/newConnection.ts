@@ -100,40 +100,40 @@ export class NewConnectionPannel {
 
     this._panel.webview.onDidReceiveMessage((message) => {
       /* c8 ignore start */
-      if (message.command === "kdb.connections.add.insights") {
+      if (message.command === "peachq.connections.add.insights") {
         vscode.commands.executeCommand(
-          "kdb.connections.add.insights",
+          "peachq.connections.add.insights",
           message.data,
           message.labels,
         );
       }
-      if (message.command === "kdb.connections.add.kdb") {
+      if (message.command === "peachq.connections.add.kdb") {
         vscode.commands.executeCommand(
-          "kdb.connections.add.kdb",
+          "peachq.connections.add.kdb",
           message.data,
           message.labels,
         );
       }
-      if (message.command === "kdb.connections.edit.insights") {
+      if (message.command === "peachq.connections.edit.insights") {
         vscode.commands.executeCommand(
-          "kdb.connections.edit.insights",
+          "peachq.connections.edit.insights",
           message.data,
           message.oldAlias,
           message.labels,
         );
       }
-      if (message.command === "kdb.connections.edit.kdb") {
+      if (message.command === "peachq.connections.edit.kdb") {
         vscode.commands.executeCommand(
-          "kdb.connections.edit.kdb",
+          "peachq.connections.edit.kdb",
           message.data,
           message.oldAlias,
           message.editAuth,
           message.labels,
         );
       }
-      if (message.command === "kdb.connections.labels.add") {
+      if (message.command === "peachq.connections.labels.add") {
         vscode.commands.executeCommand(
-          "kdb.connections.labels.add",
+          "peachq.connections.labels.add",
           message.data.name,
           message.data.colorName,
         );

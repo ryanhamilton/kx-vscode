@@ -30,7 +30,9 @@ describe("storage", () => {
     }));
 
   beforeEach(() => {
-    ext.outputChannel = vscode.window.createOutputChannel("kdb", { log: true });
+    ext.outputChannel = vscode.window.createOutputChannel("peachq", {
+      log: true,
+    });
     root = mkdtempSync(join(tmpdir(), "kdb-storage-"));
     storageAt(root);
   });

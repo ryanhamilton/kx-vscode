@@ -255,7 +255,7 @@ describe("q language features", () => {
 
     it("caches a lambda's parameters and takes them back out", async () => {
       await caretAt(LANG, LOCAL);
-      await vscode.commands.executeCommand("kdb.toggleParameterCache");
+      await vscode.commands.executeCommand("peachq.toggleParameterCache");
       await until(
         () => document.getText().includes(CACHED),
         "the parameters to be cached",
@@ -268,7 +268,7 @@ describe("q language features", () => {
       );
 
       await caretAt(LANG, LOCAL);
-      await vscode.commands.executeCommand("kdb.toggleParameterCache");
+      await vscode.commands.executeCommand("peachq.toggleParameterCache");
       await until(
         () => !document.getText().includes(CACHED),
         "the cache to be removed again",

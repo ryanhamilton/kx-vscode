@@ -68,7 +68,9 @@ describe("queryCommand", () => {
   let stat: sinon.SinonStub;
 
   beforeEach(() => {
-    ext.outputChannel = vscode.window.createOutputChannel("kdb", { log: true });
+    ext.outputChannel = vscode.window.createOutputChannel("peachq", {
+      log: true,
+    });
     ext.queryTreeProvider = <any>{ reload() {} };
     ext.scratchpadTreeProvider = <any>{ reload() {} };
     writeFile = sinon.stub().resolves();

@@ -216,7 +216,7 @@ describe("insightsConnection", () => {
     };
 
     beforeEach(() => {
-      ext.outputChannel = window.createOutputChannel("kdb", { log: true });
+      ext.outputChannel = window.createOutputChannel("peachq", { log: true });
       adapter = axios.defaults.adapter;
     });
 
@@ -417,7 +417,7 @@ describe("insightsConnection", () => {
     };
 
     beforeEach(() => {
-      ext.outputChannel = window.createOutputChannel("kdb", { log: true });
+      ext.outputChannel = window.createOutputChannel("peachq", { log: true });
       adapter = axios.defaults.adapter;
     });
 
@@ -646,7 +646,7 @@ describe("insightsConnection", () => {
     };
 
     beforeEach(() => {
-      ext.outputChannel = window.createOutputChannel("kdb", { log: true });
+      ext.outputChannel = window.createOutputChannel("peachq", { log: true });
       adapter = axios.defaults.adapter;
       sinon.stub(window, "showErrorMessage").resolves(undefined);
       kdbOutputLog = sinon.stub(loggers, "kdbOutputLog");

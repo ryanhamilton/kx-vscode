@@ -34,7 +34,7 @@ import { insights, start as startInsights } from "./utils/insights";
 import { Request } from "./utils/qserver";
 
 /**
- * How many table rows a KX notebook cell shows, and from which end, chosen
+ * How many table rows a peachq notebook cell shows, and from which end, chosen
  * from the notebook toolbar. A cell on a connection asks the process for only
  * those rows, and the extension cuts whatever comes back to them as well.
  * Nothing but a notebook is affected.
@@ -75,7 +75,7 @@ function honoured(
 
 const honouring = (args: Request["args"]) => honoured(HUNDRED, args?.rowLimit);
 
-const config = () => vscode.workspace.getConfiguration("kdb");
+const config = () => vscode.workspace.getConfiguration("peachq");
 
 async function reset() {
   for (const key of [LIMIT, FROM]) {
@@ -92,7 +92,7 @@ async function set(limit: number, from: string) {
 async function chooseFrom(label: string) {
   picks("Notebook Rows", label);
   await vscode.commands.executeCommand(
-    `kdb.notebook.rowLimitFrom.${config().get(FROM)}`,
+    `peachq.notebook.rowLimitFrom.${config().get(FROM)}`,
   );
 }
 
@@ -102,7 +102,7 @@ async function chooseLimit(label: string, typed?: string) {
     types("Notebook Row Limit", typed);
   }
   await vscode.commands.executeCommand(
-    `kdb.notebook.rowLimit.${config().get(LIMIT)}`,
+    `peachq.notebook.rowLimit.${config().get(LIMIT)}`,
   );
 }
 
@@ -242,7 +242,7 @@ describe("Limiting the rows a notebook shows", () => {
   it("limits a new notebook run on the active connection", async () => {
     await set(10, "first");
     await reveal(CONSOLE);
-    await vscode.commands.executeCommand("kdb.createNotebook");
+    await vscode.commands.executeCommand("peachq.createNotebook");
     await until(
       () => vscode.window.activeNotebookEditor?.notebook.isUntitled === true,
       "the new notebook to open",
@@ -303,8 +303,8 @@ describe("Limiting the rows a notebook shows", () => {
 
   // The terminal and the results view get what they always did.
   for (const [what, uri, command] of [
-    ["a q workbook", Q_WORKBOOK, "kdb.execute.fileQuery"],
-    ["a python workbook", PY_WORKBOOK, "kdb.scratchpad.python.run.file"],
+    ["a q workbook", Q_WORKBOOK, "peachq.execute.fileQuery"],
+    ["a python workbook", PY_WORKBOOK, "peachq.scratchpad.python.run.file"],
   ] as const) {
     it(`sends no row limit for ${what}`, async () => {
       await set(10, "last");

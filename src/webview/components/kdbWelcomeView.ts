@@ -118,7 +118,7 @@ export class KdbWelcomeView extends LitElement {
           <strong>Start coding</strong>
           <div>
             Installation completes → run command
-            <strong>KX: Start REPL</strong> from the command palette.
+            <strong>peachq: Start REPL</strong> from the command palette.
           </div>
         </div>
       </div>
@@ -169,8 +169,8 @@ export class KdbWelcomeView extends LitElement {
   private renderQHome() {
     return html`
       <p>
-        To use <strong>KX: Start REPL</strong> on Windows itself, point it at a
-        kdb+ installation with the q home directory setting.
+        To use <strong>peachq: Start REPL</strong> on Windows itself, point it
+        at a kdb+ installation with the q home directory setting.
       </p>
       <div class="row mt-1 middle">
         <button

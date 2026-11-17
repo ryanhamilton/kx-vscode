@@ -24,13 +24,13 @@ describe("Notebook row limit toolbar", () => {
       "utf8",
     ),
   ).contributes.commands.filter((cmd: any) =>
-    cmd.command.startsWith("kdb.notebook.rowLimit"),
+    cmd.command.startsWith("peachq.notebook.rowLimit"),
   );
 
   it("should have a command for every preset", () => {
     assert.deepStrictEqual(
       commands
-        .map((cmd) => cmd.command.match(/^kdb\.notebook\.rowLimit\.(\d+)$/))
+        .map((cmd) => cmd.command.match(/^peachq\.notebook\.rowLimit\.(\d+)$/))
         .filter(Boolean)
         .map((match) => Number(match[1])),
       ROW_LIMIT_PRESETS,
@@ -40,7 +40,7 @@ describe("Notebook row limit toolbar", () => {
   it("should disable every row limit command while the notebook runs on the REPL", () => {
     assert.strictEqual(commands.length, ROW_LIMIT_PRESETS.length + 3);
     for (const cmd of commands) {
-      assert.strictEqual(cmd.enablement, "!kdb.notebookOnRepl", cmd.command);
+      assert.strictEqual(cmd.enablement, "!peachq.notebookOnRepl", cmd.command);
     }
   });
 });
