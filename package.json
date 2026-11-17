@@ -306,11 +306,6 @@
       },
       {
         "category": "KX",
-        "command": "kdb.ls.q.lint",
-        "title": "Lint file with qlint"
-      },
-      {
-        "category": "KX",
         "command": "kdb.file.rename",
         "title": "Rename"
       },
@@ -651,10 +646,6 @@
         {
           "command": "kdb.scratchpad.python.run.file",
           "when": "resourceFilename =~ /\\.(?:py)$/i"
-        },
-        {
-          "command": "kdb.ls.q.lint",
-          "when": "false"
         },
         {
           "command": "kdb.file.rename",

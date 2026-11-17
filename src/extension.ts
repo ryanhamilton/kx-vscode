@@ -23,7 +23,6 @@ import {
 
 import { initActiveTargetTracking } from "./classes/activeTargetTracker";
 import { OPEN_RESULTS_HINT } from "./classes/connectionConsole";
-import { connectBuildTools, lintCommand } from "./commands/buildToolsCommand";
 import { connectClientCommands } from "./commands/clientCommand";
 import {
   activeConnection,
@@ -304,7 +303,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
   await client.start();
   connectClientCommands(context, client);
-  await connectBuildTools();
 
   const authExtension = vscode.extensions.getExtension("KX.kdb-auth");
   if (authExtension) {
@@ -743,22 +741,6 @@ function registerFileCommands(): CommandRegistration[] {
   return fileCommands;
 }
 
-function registerLSCommands(): CommandRegistration[] {
-  const lsCommands: CommandRegistration[] = [
-    {
-      command: "kdb.ls.q.lint",
-      callback: async () => {
-        const editor = ext.activeTextEditor;
-        if (editor) {
-          await lintCommand(editor.document);
-        }
-      },
-    },
-  ];
-
-  return lsCommands;
-}
-
 function registerNotebookCommands(): CommandRegistration[] {
   const notebookCommands: CommandRegistration[] = [
     {
@@ -811,7 +793,6 @@ function registerAllExtensionCommands(): void {
     ...registerConnectionsCommands(),
     ...registerExecuteCommands(),
     ...registerFileCommands(),
-    ...registerLSCommands(),
     ...registerNotebookCommands(),
     ...registerReplCommands(),
   ];
