@@ -126,6 +126,16 @@
           "default": false,
           "scope": "resource"
         },
+        "peachq.lint.enabled": {
+          "type": "boolean",
+          "description": "Lint q files with peachq's qlint (q -lsp). While it runs, the built-in linting above is off.",
+          "default": true
+        },
+        "peachq.lint.qPath": {
+          "type": "string",
+          "description": "Experimental: the peachq binary that serves q -lsp. Empty uses PEACHQ_LSP_Q, then the bundled peachq; never q from QHOME or PATH.",
+          "default": ""
+        },
         "peachq.refactoring": {
           "type": "string",
           "enum": [

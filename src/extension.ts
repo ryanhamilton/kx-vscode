@@ -135,6 +135,7 @@ import {
   showDeferStatus,
 } from "./utils/kxCompat";
 import { MessageKind, notify, Runner } from "./utils/notifications";
+import { qlintActive, startQlint, stopQlint } from "./utils/qlint";
 import AuthSettings from "./utils/secretStorage";
 import { ExtensionTelemetry } from "./utils/telemetryClient";
 import { addWorkspaceFile, openWith, setUriContent } from "./utils/workspace";
@@ -376,6 +377,10 @@ export async function activate(context: vscode.ExtensionContext) {
         true,
       ),
     },
+    middleware: {
+      handleDiagnostics: (uri, diagnostics, next) =>
+        next(uri, qlintActive() ? [] : diagnostics),
+    },
   };
 
   client = new LanguageClient(
@@ -393,6 +398,15 @@ export async function activate(context: vscode.ExtensionContext) {
 
   if (!deferring) {
     await client.start();
+    await startQlint();
+    context.subscriptions.push(
+      vscode.workspace.onDidChangeConfiguration(async (event) => {
+        if (event.affectsConfiguration("peachq.lint")) {
+          await stopQlint();
+          await startQlint();
+        }
+      }),
+    );
   }
   connectClientCommands(context, client);
   await connectBuildTools();
@@ -1213,6 +1227,7 @@ function registerAllExtensionCommands(): void {
 
 export async function deactivate(): Promise<void> {
   ext.builtinServer?.stop();
+  await stopQlint();
   await ext.telemetry.dispose();
 
   if (ext.client) {
