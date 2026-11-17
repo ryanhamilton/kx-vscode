@@ -5,7 +5,7 @@ description:
   Setting up, building, testing, debugging and releasing the kdb VS Code
   extension.
 tags: [kdb, vscode, development, testing, debugging, release]
-timestamp: 2026-07-10
+timestamp: 2026-11-17
 ---
 
 ## Setup
@@ -21,7 +21,6 @@ npm install
 - [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
 - [lit-plugin](https://marketplace.visualstudio.com/items?itemName=runem.lit-plugin)
 - [Debug Configuration Launcher](https://marketplace.visualstudio.com/items?itemName=ecmel.vscode-launcher)
-- [SonarQube](https://marketplace.visualstudio.com/items?itemName=SonarSource.sonarlint-vscode)
 
 ## Scripts
 
@@ -36,20 +35,7 @@ Run these with `npm run scriptName`
 | `test`        | Perform [Unit Tests](https://github.com/KxSystems/kx-vscode/tree/dev/test/suite)     |
 | `test:e2e`    | Perform [End to End Tests](https://github.com/KxSystems/kx-vscode/tree/dev/test/e2e) |
 | `coverage`    | Produce coverage reports                                                             |
-| `q-test`      | Perform [q Tests](https://github.com/KxSystems/kx-vscode/tree/dev/test/q/tests)      |
-
-## Configuring SonarQube
-
-Once you've installed the
-[SonarQube Extension](https://marketplace.visualstudio.com/items?itemName=SonarSource.sonarlint-vscode),
-add the KX SonarQube server `https://sonarqube.dl.kx.com`, and it will lint as
-you type, so you don't need to wait for the github pipeline to discover issues.
-
-Ctrl + Shift + P -> "SonarQube: Analyze Current File with SonarQube" will give
-you a a detailed summary of any issues in a file.
-
-SonarQube results can be viewed at
-https://sonarqube.dl.kx.com/dashboard?branch=dev&id=kxvscode
+| `q-test`      | Perform [q Tests](../../test/q/qunit) on peachq                                      |
 
 ## Debugging
 
@@ -165,46 +151,42 @@ These tests are macOS and Linux only for now: the REPL spawns q through
 
 ## q Testing
 
-To run the tests non-interactively, you can just run `npm run q-test` and they
-will be run in the q-build container.
+The q the extension injects into a connection (`resources/q/*.q`, assembled into
+`out/vscode.q` by `build-api.js`) is tested with qunit on
+[peachq](https://peachq.org), an open-source (MIT) q. qunit is built into peachq
+(`\l pq/qunit.q`), so nothing else is installed.
 
-To run the tests interactively, you need to
-
-1. Install Python version 3.12 installed, as the tests rely on an old version of
-   pykx that doesn't support the latest Python
-
-```
-~/kx-vscode $ brew install python@3.12
-~/kx-vscode $ python3.12 -m venv venv
-~/kx-vscode $ source venv/bin/activate
+```sh
+PEACHQ_Q=/path/to/peachq/q npm run q-test                         # all of test/q/qunit
+PEACHQ_Q=/path/to/peachq/q npm run q-test test/q/qunit/listMemTest.q  # one file
 ```
 
-2. Install pykx by running the following. If you aren't running the right Python
-   version, PyKX 2.5 won't be available. More detailed instructions are
-   available [here](https://code.kx.com/pykx/pykx-under-q/intro.html)
+Without `PEACHQ_Q` it uses the `q` on `PATH`. Either way `test/q/run.q` refuses
+a q that is not peachq (no `.pq.version`). Get the build CI uses, named in
+`.peachq-version`, with
 
-```
-~/kx-vscode $ zsh ./test/q/preTest.sh
-```
-
-3. kdb+ installed, with the `q` executable in the system path
-4. [AxLibraries](https://code.kx.com/developer/getting-started/) should be
-   installed, according to its readme.
-
-To debug the tests, create a file with a username and password to secure the q
-process, then start a q process using that authentication.
-
-```
-$ echo "myusername:mypassword" >> users.txt
-$ q -u users.txt -p 1234
-KDB-X 5.0 2026.01.22 Copyright (C) 1993-2026 Kx Systems
-l64/ 16()core 15644MB myusername hostname 127.0.1.1 EXPIRE 2027.01.13 email@example.com
-
-q)\l qcumber.q
-q)\l test/q/main.q
+```sh
+curl -fsSL https://raw.githubusercontent.com/peachq-org/setup-peachq/v1.0.0/install.sh |
+  bash -s -- --version "$(cat .peachq-version)"
 ```
 
-You can now connect to the process on port 1234 and step through the tests
+or download `https://peachq.org/file/peachq-v<version>-<platform>.tar.gz`.
+
+Each `test/q/qunit/<name>Test.q` holds the namespace `.<name>Test`, whose
+`test*` functions qunit runs (`setUp`/`tearDown` around each). `run.q` runs each
+file in its own q, since `listMem` enumerates everything in the process, prints
+a line per test and a tally, and exits non-zero on any failure, error or file
+that does not load. CI also runs it on `test/q/qunit-fixture`, which always
+fails, and requires that run to exit non-zero.
+
+A check peachq cannot pass — k mode, or peachq differing from documented kdb
+behaviour — stays in the file as a `skip*` function, with a one-line reason in
+the namespace's `skipped` dictionary; a divergence also gets a line in the
+peachq notes. Expected values are never changed to match peachq.
+`QTEST_SKIPPED=1` runs the skipped functions as tests, to see whether they still
+fail.
+
+`test/q/tests/evaluatePy.quke` is not run: its checks need PyKX.
 
 ## Python and matplotlib
 
@@ -238,34 +220,4 @@ npm exec ncu
 
 ## Releasing a new version
 
-Let the doc writer, or the #docs channel if they're unavailable, know that a
-release is about to go out so they can publish the docs concurrently.
-
-Check out the branch to release, update the version number in package.json, then
-run
-
-```
-git tag v1.2.3
-git push origin v1.2.3
-```
-
-Then, in the [Actions](https://github.com/KxSystems/kx-vscode/actions) tab, open
-the pipeline that was just created, and give manual approval once the action
-reaches that point. It can take 10 minutes for the version number to be updated
-in the extension marketplace, even after it updates the timestamp to reflect the
-new release.
-
-Announce the release in #kx-product-releases, using the template
-
-```
-:rocket: VSCode Extension x.y.z has been released
-
-https://github.com/KxSystems/kx-vscode/releases/tag/vX.Y.Z
-https://marketplace.visualstudio.com/items?itemName=KX.kdb
-
-
-vX.Y.Z
-Release date: [Today's Date]
-
-[The change log, which can be found by clicking the release [here](https://github.com/KxSystems/kx-vscode/tags)]
-```
+Releases are not automated yet; see `PLAN.md`.
