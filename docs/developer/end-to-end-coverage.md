@@ -35,6 +35,11 @@ This page is the map of what it actually asserts.
   language server.
 - **Panels** — the welcome page and the new connection form, driven as real
   components.
+- **Beside the KX extension** — `npm run test:e2e:kx` loads a code-free
+  stand-in KX extension (`test/e2e/fakekx`) and runs `kx.test.ts`: every
+  command still registers, the language server stays off, the defer prompt is
+  raised once, the import copies user connections, and a workspace map under
+  the KX names still assigns a file. The usual run checks the opposite.
 
 ## Not covered
 

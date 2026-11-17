@@ -27,8 +27,12 @@ async function main() {
 
   try {
     const extensionDevelopmentPath = path.join(__dirname, "../../");
+    // E2E_FAKE_KX loads a stand-in KX extension beside ours (test/e2e/kx.test.ts).
+    const fakeKx = process.env.E2E_FAKE_KX
+      ? [path.join(extensionDevelopmentPath, "test", "e2e", "fakekx")]
+      : [];
     await runTests({
-      extensionDevelopmentPath,
+      extensionDevelopmentPath: [extensionDevelopmentPath, ...fakeKx],
       extensionTestsPath: path.join(__dirname, "./e2e/index"),
       launchArgs: [
         path.join(extensionDevelopmentPath, "test", "e2e", "workspace"),

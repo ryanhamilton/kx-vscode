@@ -27,6 +27,8 @@ import { LanguageClient } from "vscode-languageclient/node";
 import { ext } from "../extensionVariables";
 import { runActiveEditor } from "./workspaceCommand";
 import { ExecutionTypes } from "../models/execution";
+import { PAUSED } from "../utils/kxCompat";
+import { MessageKind, notify } from "../utils/notifications";
 
 async function executeBlock(client: LanguageClient) {
   if (ext.activeTextEditor) {
@@ -112,26 +114,29 @@ export function connectClientCommands(
 ) {
   let mutex = false;
 
+  const exclusive = (run: () => Promise<void>) => async () => {
+    if (!client.isRunning()) {
+      notify(PAUSED, MessageKind.INFO, { logger: "clientCommand" });
+      return;
+    }
+    if (!mutex) {
+      mutex = true;
+      try {
+        await run();
+      } finally {
+        mutex = false;
+      }
+    }
+  };
+
   context.subscriptions.push(
-    commands.registerCommand("peachq.execute.block", async () => {
-      if (!mutex) {
-        mutex = true;
-        try {
-          await executeBlock(client);
-        } finally {
-          mutex = false;
-        }
-      }
-    }),
-    commands.registerCommand("peachq.toggleParameterCache", async () => {
-      if (!mutex) {
-        mutex = true;
-        try {
-          await toggleParameterCache(client);
-        } finally {
-          mutex = false;
-        }
-      }
-    }),
+    commands.registerCommand(
+      "peachq.execute.block",
+      exclusive(() => executeBlock(client)),
+    ),
+    commands.registerCommand(
+      "peachq.toggleParameterCache",
+      exclusive(() => toggleParameterCache(client)),
+    ),
   );
 }

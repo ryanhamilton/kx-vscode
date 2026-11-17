@@ -54,6 +54,7 @@ describe("Commands", () => {
         "peachq.createNotebook",
         "peachq.query.create",
         "peachq.query.convert",
+        "peachq.importFromKx",
       ];
       const shown = palette.filter((cmd: any) => cmd.when === "true");
       assert.strictEqual(shown.length, visible.length);

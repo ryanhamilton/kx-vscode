@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import { commands } from "vscode";
+import { commands, window } from "vscode";
 
 import { setActiveTarget } from "../classes/activeTarget";
 import { ConnectionConsole } from "../classes/connectionConsole";
@@ -126,6 +126,35 @@ export class ConnectionManagementService {
     }
   }
 
+  // Imported connections arrive without their passwords, so ask on first use.
+  public async retrieveAuthData(
+    connection: KdbNode,
+  ): Promise<string | undefined> {
+    const key = connection.children[0];
+    const stored = await ext.secretSettings.getAuthData(key);
+    if (stored) {
+      return stored;
+    }
+    const title = `Connect to ${connection.details.serverAlias}`;
+    const username =
+      connection.details.username ??
+      (await window.showInputBox({ title, prompt: "Username" }));
+    if (!username) {
+      return undefined;
+    }
+    const password = await window.showInputBox({
+      title,
+      prompt: `Password for ${username}`,
+      password: true,
+    });
+    if (password === undefined) {
+      return undefined;
+    }
+    const auth = `${username}:${password}`;
+    await ext.secretSettings.storeAuthData(key, auth);
+    return auth;
+  }
+
   public async connect(connLabel: string): Promise<void> {
     /* c8 ignore start */
     try {
@@ -140,7 +169,7 @@ export class ConnectionManagementService {
       if (connection instanceof KdbNode) {
         const connectionString = this.retrieveLocalConnectionString(connection);
         const authCredentials = connection.details.auth
-          ? await ext.secretSettings.getAuthData(connection.children[0])
+          ? await this.retrieveAuthData(connection)
           : undefined;
         const localConnection = new LocalConnection(
           connectionString,

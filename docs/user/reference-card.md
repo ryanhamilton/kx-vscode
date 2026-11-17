@@ -10,16 +10,17 @@ timestamp: 2026-10-20
 
 ## Command Palette
 
-| Command                                               | Command                                                | Command                                 |
-| :---------------------------------------------------- | :----------------------------------------------------- | :-------------------------------------- |
-| peachq: Welcome to KDB-X                              | peachq: New Connection                                 | peachq: Focus on Connections view       |
-| peachq: Install KDB-X                                 | peachq: New Notebook                                   | peachq: Focus on Queries view           |
-| peachq: Start REPL                                    | peachq: New Workbook (q)                               | peachq: Focus on Workbooks view         |
-| peachq: Import Connections                            | peachq: New Workbook (Python)                          | peachq: Focus on Query History view     |
-| peachq: Export Connections                            | peachq: New Workbook (SQL)                             | peachq: Focus on Help and Feedback view |
-|                                                       | peachq: New Query                                      | peachq: Focus on peachq Results view    |
-|                                                       | peachq: Convert datasources to queries                 |                                         |
-| peachq: Set Notebook Row Limit (not used by the REPL) | peachq: Show First or Last Rows (not used by the REPL) |                                         |
+| Command                                                       | Command                                                | Command                                 |
+| :------------------------------------------------------------ | :----------------------------------------------------- | :-------------------------------------- |
+| peachq: Welcome to KDB-X                                      | peachq: New Connection                                 | peachq: Focus on Connections view       |
+| peachq: Install KDB-X                                         | peachq: New Notebook                                   | peachq: Focus on Queries view           |
+| peachq: Start REPL                                            | peachq: New Workbook (q)                               | peachq: Focus on Workbooks view         |
+| peachq: Import Connections                                    | peachq: New Workbook (Python)                          | peachq: Focus on Query History view     |
+| peachq: Export Connections                                    | peachq: New Workbook (SQL)                             | peachq: Focus on Help and Feedback view |
+|                                                               | peachq: New Query                                      | peachq: Focus on peachq Results view    |
+|                                                               | peachq: Convert datasources to queries                 |                                         |
+| peachq: Set Notebook Row Limit (not used by the REPL)         | peachq: Show First or Last Rows (not used by the REPL) |                                         |
+| peachq: Import Connections and Settings from the KX Extension |                                                        |                                         |
 
 ## Keybindings
 
@@ -106,12 +107,31 @@ to them. Whether a right click pastes is VS Code's
 | peachq.defaultTimeout                                 | resource            | `number`  | `30`          |
 | peachq.linting                                        | resource            | `boolean` | `false`       |
 | peachq.refactoring                                    | resource            | `string`  | `"Workspace"` |
+| peachq.deferToKx                                      | window              | `string`  | `"auto"`      |
 
 `peachq.connectionMap`, `peachq.targetMap` and `peachq.timeoutMap` are keyed by
 workspace relative path, so they only cover files inside the workspace. Files
 opened from outside the workspace can still be assigned a connection, an
 execution target and a timeout, but those assignments are kept in memory and are
 lost when VS Code restarts.
+
+### Beside the KX extension
+
+When the KX extension is enabled in the same window, peachq defers to it while
+`peachq.deferToKx` is `auto`: it does not start its language server, its
+keybindings are off, and a status bar item says it is paused. It asks once per
+workspace whether to use peachq instead (which opens the KX extension's page so
+you can disable it for the workspace) or keep KX. With `peachq.deferToKx` set to
+`never` peachq stays on regardless, and both extensions then claim the same
+files and keys.
+
+**Import Connections and Settings from the KX Extension** copies your user-level
+`kdb.*` settings to the `peachq.*` ones you have not set; peachq offers it at
+startup while there is something to import, until you import or choose Never.
+Passwords stay in the KX extension's secret storage, so peachq asks for each on
+first connect. A workspace whose settings still map files under the KX
+extension's names (its connection, target and timeout maps) keeps working:
+peachq reads those entries for any file its own maps do not mention.
 
 ## Execution
 

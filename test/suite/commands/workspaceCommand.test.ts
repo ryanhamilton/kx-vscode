@@ -308,6 +308,27 @@ describe("workspaceCommand", () => {
     });
   });
 
+  describe("a connection map only the KX extension's settings hold", () => {
+    it("still assigns the file", () => {
+      const legacy = vscode.Uri.file("/legacy.q");
+      sinon.stub(vscode.workspace, "getConfiguration").value((section) => ({
+        get: (key: string) =>
+          key === "servers"
+            ? [{ serverAlias: "connection2" }]
+            : key === "connectionMap" && section !== "peachq"
+              ? {
+                  [vscode.workspace.asRelativePath(legacy, false)]:
+                    "connection2",
+                }
+              : {},
+      }));
+      assert.strictEqual(
+        workspaceCommand.getServerForUri(legacy),
+        "connection2",
+      );
+    });
+  });
+
   describe("setServerForUri", () => {
     it("should associate a server with an uri", async () => {
       await assert.doesNotReject(() =>

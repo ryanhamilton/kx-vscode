@@ -748,6 +748,38 @@ describe("ConnectionManagementService", () => {
       ext.connectionsList.length = 0;
     });
 
+    describe("retrieveAuthData", () => {
+      let storeStub: sinon.SinonStub;
+      let inputStub: sinon.SinonStub;
+
+      beforeEach(() => {
+        storeStub = sinon.stub(ext.secretSettings, "storeAuthData");
+        inputStub = sinon.stub(vscode.window, "showInputBox");
+      });
+
+      it("uses stored credentials without asking", async () => {
+        getAuthDataStub.withArgs("child1").resolves("user1:pass1");
+        const auth = await connectionManagerService.retrieveAuthData(kdbNode);
+        assert.strictEqual(auth, "user1:pass1");
+        sinon.assert.notCalled(inputStub);
+      });
+
+      it("asks for and stores credentials that are missing", async () => {
+        inputStub.onFirstCall().resolves("user2");
+        inputStub.onSecondCall().resolves("pass2");
+        const auth = await connectionManagerService.retrieveAuthData(kdbNode);
+        assert.strictEqual(auth, "user2:pass2");
+        sinon.assert.calledOnceWithExactly(storeStub, "child1", "user2:pass2");
+      });
+
+      it("connects without credentials when the user cancels", async () => {
+        inputStub.resolves(undefined);
+        const auth = await connectionManagerService.retrieveAuthData(kdbNode);
+        assert.strictEqual(auth, undefined);
+        sinon.assert.notCalled(storeStub);
+      });
+    });
+
     it("should retrieve and store auth data for KdbNode connections", async () => {
       ext.connectionsList.push(kdbNode);
       getAuthDataStub.withArgs(kdbNode.children[0]).resolves("user1:pass1");

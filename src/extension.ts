@@ -122,6 +122,15 @@ import {
   hasWorkspaceOrShowOption,
 } from "./utils/core";
 import { getIconPath } from "./utils/iconsUtils";
+import {
+  DEFER_CONTEXT,
+  importableKeys,
+  offerImportFromKx,
+  promptDeferToKx,
+  runImportFromKx,
+  shouldDeferToKx,
+  showDeferStatus,
+} from "./utils/kxCompat";
 import { MessageKind, notify, Runner } from "./utils/notifications";
 import AuthSettings from "./utils/secretStorage";
 import { ExtensionTelemetry } from "./utils/telemetryClient";
@@ -164,6 +173,9 @@ export async function activate(context: vscode.ExtensionContext) {
       "off";
 
   ext.telemetry = new ExtensionTelemetry(enableTelemetry);
+
+  const deferring = shouldDeferToKx();
+  vscode.commands.executeCommand("setContext", DEFER_CONTEXT, deferring);
 
   getWorkspaceLabelsConnMap();
   getWorkspaceLabels();
@@ -382,7 +394,9 @@ export async function activate(context: vscode.ExtensionContext) {
     ),
   );
 
-  await client.start();
+  if (!deferring) {
+    await client.start();
+  }
   connectClientCommands(context, client);
   await connectBuildTools();
 
@@ -426,14 +440,33 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   }
 
-  setTimeout(() => {
-    checkLocalInstall();
-  }, 500);
+  if (deferring) {
+    context.subscriptions.push(showDeferStatus());
+    promptDeferToKx(context.workspaceState);
+  } else {
+    setTimeout(() => {
+      checkLocalInstall();
+    }, 500);
+    offerImportFromKx(
+      context.globalState,
+      importableKeys(extensionPackage),
+      refreshImportedConnections,
+    );
+  }
 
   notify("peachq extension is now active.", MessageKind.DEBUG, {
     logger,
     telemetry: "Extension.Activated",
   });
+
+  return { deferringToKx: deferring };
+}
+
+function refreshImportedConnections() {
+  getWorkspaceLabelsConnMap();
+  getWorkspaceLabels();
+  ext.serverProvider.refresh(getServers());
+  ext.serverProvider.refreshInsights(getInsights());
 }
 
 function registerSetupCommands(): CommandRegistration[] {
@@ -699,6 +732,14 @@ function registerQueryHistoryCommands(): CommandRegistration[] {
 
 function registerConnectionsCommands(): CommandRegistration[] {
   const connectionCommands: CommandRegistration[] = [
+    {
+      command: "peachq.importFromKx",
+      callback: () =>
+        runImportFromKx(
+          importableKeys(ext.context.extension.packageJSON),
+          refreshImportedConnections,
+        ),
+    },
     {
       command: "peachq.connections.connect",
       callback: async (viewItem?: KdbNode | InsightsNode) => {

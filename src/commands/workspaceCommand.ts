@@ -59,6 +59,7 @@ import {
   isQuickAlias,
   offerConnectAction,
 } from "../utils/core";
+import { kxMapEntry } from "../utils/kxCompat";
 import { MessageKind, notify } from "../utils/notifications";
 import {
   RunFlag,
@@ -349,7 +350,9 @@ export function getServerForUri(uri: Uri) {
       "connectionMap",
       {},
     );
-    server = map[relativePath(uri)];
+    server =
+      map[relativePath(uri)] ??
+      kxMapEntry("connectionMap", uri, relativePath(uri));
   }
 
   const servers = getServers();
@@ -384,7 +387,8 @@ export function getTargetForUri(uri: Uri) {
       "targetMap",
       {},
     );
-    target = map[relativePath(uri)];
+    target =
+      map[relativePath(uri)] ?? kxMapEntry("targetMap", uri, relativePath(uri));
   }
 
   return target ? normalizeAssemblyTarget(target) : undefined;
@@ -448,7 +452,9 @@ export function getTimeoutForUri(uri: Uri) {
       "timeoutMap",
       {},
     );
-    uriTimeout = map[relativePath(uri)];
+    uriTimeout =
+      map[relativePath(uri)] ??
+      kxMapEntry("timeoutMap", uri, relativePath(uri));
   }
 
   if (uriTimeout) {

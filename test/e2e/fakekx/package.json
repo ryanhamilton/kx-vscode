@@ -1,0 +1,47 @@
+{
+  "name": "kdb",
+  "displayName": "Fake KX extension for the e2e suite",
+  "description": "Contributes a few of the KX extension's ids and no code, so peachq can be tested beside it.",
+  "publisher": "KX",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "vscode": "^1.103.0"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "kdb.execute.fileQuery",
+        "title": "Execute Entire File",
+        "category": "KX"
+      },
+      {
+        "command": "kdb.connections.add",
+        "title": "Add Connection",
+        "category": "KX"
+      }
+    ],
+    "languages": [
+      {
+        "id": "q",
+        "extensions": [
+          ".q",
+          ".k",
+          ".quke"
+        ]
+      }
+    ],
+    "configuration": {
+      "title": "kdb",
+      "properties": {
+        "kdb.servers": {
+          "type": "object",
+          "scope": "machine"
+        },
+        "kdb.connectionMap": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

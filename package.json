@@ -168,6 +168,20 @@
           "default": "first",
           "description": "Default for whether a peachq notebook cell output shows the first or the last rows of a table; each notebook can set its own",
           "scope": "machine-overridable"
+        },
+        "peachq.deferToKx": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "never"
+          ],
+          "enumDescriptions": [
+            "Pause peachq's q features (language server and keybindings) in a window where the KX extension is enabled",
+            "Always run peachq's q features, even beside the KX extension"
+          ],
+          "default": "auto",
+          "description": "What peachq does when the KX extension is also enabled",
+          "scope": "window"
         }
       }
     },
@@ -568,6 +582,11 @@
         "category": "peachq",
         "command": "peachq.query.convert",
         "title": "Convert datasources to queries"
+      },
+      {
+        "category": "peachq",
+        "command": "peachq.importFromKx",
+        "title": "Import Connections and Settings from the KX Extension"
       }
     ],
     "keybindings": [
@@ -1048,6 +1067,10 @@
         {
           "command": "peachq.notebook.rowLimitFrom.last",
           "when": "false"
+        },
+        {
+          "command": "peachq.importFromKx",
+          "when": "true"
         }
       ],
       "webview/context": [
@@ -1472,6 +1495,7 @@
     "test:folder": "cross-env TEST_FOLDER=$1 npm run test",
     "pretest:e2e": "npm run build && npm run pretest",
     "test:e2e": "node ./out-test/test/runE2E.js",
+    "test:e2e:kx": "cross-env E2E_FAKE_KX=1 TEST_FILE=kx npm run test:e2e",
     "coverage": "rimraf out && c8 -o coverage-reports -r lcov -r cobertura -r html npm run test",
     "q-test": "bash qcumber.sh -src test/q/main.q -test test/q/tests"
   },
