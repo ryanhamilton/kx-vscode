@@ -139,8 +139,10 @@ export namespace ext {
   }
 
   export const urlLinks = {
-    suggestFeature: "https://forum.kx.com/c/ideas-feature-requests",
-    reportBug: "https://github.com/KxSystems/kx-vscode/issues/new?labels=bug",
+    suggestFeature:
+      "https://github.com/ryanhamilton/kx-vscode/issues/new?labels=enhancement",
+    reportBug:
+      "https://github.com/ryanhamilton/kx-vscode/issues/new?labels=bug",
   };
 
   export const kdbLicName = "kc.lic";
