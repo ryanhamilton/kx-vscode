@@ -25,6 +25,8 @@ jobs:
       - run: npm ci
       - run: npx eslint --no-warn-ignored
       - run: npx tsc --noEmit --strict false
+      - name: Rebrand table applied
+        run: node tools/rebrand.mjs --check
       - run: npm run build
 
   unit:
@@ -68,6 +70,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test:e2e
+        env:
+          HEADLESS: 1
+      - name: End to end tests beside a fake KX extension
+        run: npm run test:e2e:kx
         env:
           HEADLESS: 1
 
