@@ -11,3 +11,5 @@ Open q extension (`peachq.peachq`), carved from the KX fork. Staged PRs into `de
 ## Deferred
 
 - e2e "Executing on an Insights connection … prints to the console for the terminal" times out on `dev` as inherited from upstream (2/2 runs).
+- test/suite clientCommand "should execute current block" fails when run alone, passes in the full suite (inherited).
+- Marketplace itemName=KX.kdb links, code.kx.com links and package.json keywords: repoint in item 5.
