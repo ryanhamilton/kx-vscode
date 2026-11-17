@@ -66,7 +66,7 @@ describe("Query history", () => {
     it("sends the query back to the kdb+ process it was run on", async () => {
       kdb.clear();
       await vscode.commands.executeCommand(
-        "kdb.queryHistory.rerun",
+        "peachq.queryHistory.rerun",
         entry(KDB, KDB_QUERY),
       );
 
@@ -82,7 +82,7 @@ describe("Query history", () => {
     it("sends the query back to the Insights connection it was run on", async () => {
       insights.clear();
       await vscode.commands.executeCommand(
-        "kdb.queryHistory.rerun",
+        "peachq.queryHistory.rerun",
         entry(INSIGHTS, INSIGHTS_QUERY, false),
       );
 
@@ -102,7 +102,7 @@ describe("Query history", () => {
       const clipboard = await vscode.env.clipboard.readText();
       try {
         await vscode.commands.executeCommand(
-          "kdb.queryHistory.copyQuery",
+          "peachq.queryHistory.copyQuery",
           entry(KDB, KDB_QUERY),
         );
 

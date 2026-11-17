@@ -77,7 +77,7 @@ function unparsed(): QueryMeta {
 }
 
 export class QueryEditorProvider implements CustomTextEditorProvider {
-  static readonly viewType = "kdb.queryEditor";
+  static readonly viewType = "peachq.queryEditor";
 
   public static register(context: ExtensionContext): Disposable {
     const provider = new QueryEditorProvider(context);
@@ -164,7 +164,7 @@ export class QueryEditorProvider implements CustomTextEditorProvider {
 
     const changeConfigurationSubscription = workspace.onDidChangeConfiguration(
       (event) => {
-        if (event.affectsConfiguration("kdb.connectionMap")) {
+        if (event.affectsConfiguration("peachq.connectionMap")) {
           updateWebview();
         }
       },

@@ -27,7 +27,7 @@ import { getUri } from "../utils/uriUtils";
 import { webviewReset } from "../utils/webviewPage";
 
 export class ChartEditorProvider implements CustomTextEditorProvider {
-  static readonly viewType = "kdb.chartEditor";
+  static readonly viewType = "peachq.chartEditor";
 
   public static register(context: ExtensionContext): Disposable {
     const provider = new ChartEditorProvider(context);

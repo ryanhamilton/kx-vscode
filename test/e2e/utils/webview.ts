@@ -184,11 +184,11 @@ export async function webview(
   attributes: Record<string, string> = {},
   bundle = "webview.js",
 ): Promise<Webview> {
-  const extension = vscode.extensions.getExtension("KX.kdb");
+  const extension = vscode.extensions.getExtension("peachq.peachq");
   assert.ok(extension, "the kdb extension is not installed in this window");
 
   const panel = vscode.window.createWebviewPanel(
-    "kdb.e2eWebview",
+    "peachq.e2eWebview",
     `end to end ${tag}`,
     vscode.ViewColumn.One,
     {

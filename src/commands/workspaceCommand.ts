@@ -176,7 +176,7 @@ export function runItemText(text: string) {
 
 function setRunScratchpadItemText(uri: Uri, text: string) {
   ext.runScratchpadItem.text = `$(cloud) ${runItemText(text)}`;
-  ext.runScratchpadItem.tooltip = `KX: Choose connection for '${getBasename(uri)}'`;
+  ext.runScratchpadItem.tooltip = `peachq: Choose connection for '${getBasename(uri)}'`;
 }
 
 export async function setTimeoutItem(uri: Uri) {
@@ -216,11 +216,11 @@ function setTimeouttemText(
   }
 
   ext.pickTimeoutItem.text = `$(watch) ${text}`;
-  ext.pickTimeoutItem.tooltip = `KX: Choose timeout for '${getBasename(uri)}'`;
+  ext.pickTimeoutItem.tooltip = `peachq: Choose timeout for '${getBasename(uri)}'`;
 }
 
 export function getInsightsServers() {
-  const conf = workspace.getConfiguration("kdb");
+  const conf = workspace.getConfiguration("peachq");
   const servers = conf.get<{ [key: string]: { alias: string } }>(
     "insightsEnterpriseConnections",
     {},
@@ -233,7 +233,7 @@ export function getInsightsServers() {
 }
 
 function getServers() {
-  const conf = workspace.getConfiguration("kdb");
+  const conf = workspace.getConfiguration("peachq");
   const servers = conf.get<{ [key: string]: { serverAlias: string } }>(
     "servers",
     {},
@@ -289,7 +289,7 @@ function relativePath(uri: Uri) {
 }
 
 // Assignments for files outside the workspace cannot be persisted in the
-// kdb.connectionMap/targetMap/timeoutMap settings, which are keyed by
+// peachq.connectionMap/targetMap/timeoutMap settings, which are keyed by
 // workspace relative path. They are kept in memory for the session instead.
 const sessionConnectionMap = new Map<string, string>();
 const sessionTargetMap = new Map<string, string>();
@@ -298,7 +298,7 @@ const sessionTimeoutMap = new Map<string, number>();
 const sessionMapChangedEmitter = new EventEmitter<void>();
 
 // Session assignments don't change the configuration, so consumers relying on
-// kdb.connectionMap changes need this event to know when to refresh.
+// peachq.connectionMap changes need this event to know when to refresh.
 export const onDidChangeSessionMaps = sessionMapChangedEmitter.event;
 
 function isOutsideWorkspace(uri: Uri) {
@@ -328,7 +328,7 @@ export async function setServerForUri(uri: Uri, server: string | undefined) {
     setSessionValue(sessionConnectionMap, uri, server);
     return;
   }
-  const conf = workspace.getConfiguration("kdb", uri);
+  const conf = workspace.getConfiguration("peachq", uri);
   const map = conf.get<{ [key: string]: string | undefined }>(
     "connectionMap",
     {},
@@ -344,7 +344,7 @@ export function getServerForUri(uri: Uri) {
   if (isOutsideWorkspace(uri)) {
     server = sessionConnectionMap.get(sessionKey(uri));
   } else {
-    const conf = workspace.getConfiguration("kdb", uri);
+    const conf = workspace.getConfiguration("peachq", uri);
     const map = conf.get<{ [key: string]: string | undefined }>(
       "connectionMap",
       {},
@@ -366,7 +366,7 @@ export async function setTargetForUri(uri: Uri, target: string | undefined) {
     setSessionValue(sessionTargetMap, uri, target);
     return;
   }
-  const conf = workspace.getConfiguration("kdb", uri);
+  const conf = workspace.getConfiguration("peachq", uri);
   const map = conf.get<{ [key: string]: string | undefined }>("targetMap", {});
   map[relativePath(uri)] = target;
   await conf.update("targetMap", map);
@@ -379,7 +379,7 @@ export function getTargetForUri(uri: Uri) {
   if (isOutsideWorkspace(uri)) {
     target = sessionTargetMap.get(sessionKey(uri));
   } else {
-    const conf = workspace.getConfiguration("kdb", uri);
+    const conf = workspace.getConfiguration("peachq", uri);
     const map = conf.get<{ [key: string]: string | undefined }>(
       "targetMap",
       {},
@@ -424,7 +424,7 @@ export async function setTimeoutForUri(uri: Uri, timeout: number | undefined) {
     if (isOutsideWorkspace(uri)) {
       setSessionValue(sessionTimeoutMap, uri, timeout);
     } else {
-      const conf = workspace.getConfiguration("kdb", uri);
+      const conf = workspace.getConfiguration("peachq", uri);
       const map = conf.get<{ [key: string]: number | undefined }>(
         "timeoutMap",
         {},
@@ -438,7 +438,7 @@ export async function setTimeoutForUri(uri: Uri, timeout: number | undefined) {
 
 export function getTimeoutForUri(uri: Uri) {
   uri = Uri.file(uri.path);
-  const conf = workspace.getConfiguration("kdb", uri);
+  const conf = workspace.getConfiguration("peachq", uri);
   let uriTimeout: number | undefined;
 
   if (isOutsideWorkspace(uri)) {
@@ -973,7 +973,7 @@ export type RunTarget =
 
 /**
  * Decides where a q/Python/SQL file runs. Precedence:
- *   1. persisted assignment (kdb.connectionMap): an explicit REPL assignment is
+ *   1. persisted assignment (peachq.connectionMap): an explicit REPL assignment is
  *      sticky; an explicit connection is resolved (offering to connect);
  *   2. otherwise the active target — the last-focused KX terminal (REPL or a
  *      connection console);
@@ -1154,7 +1154,7 @@ export class ConnectionLensProvider implements CodeLensProvider {
 
     lenses.push(
       new CodeLens(top, {
-        command: "kdb.file.pickConnection",
+        command: "peachq.file.pickConnection",
         title: server ? `Run on ${server}` : "Run on active",
       }),
     );
@@ -1164,7 +1164,7 @@ export class ConnectionLensProvider implements CodeLensProvider {
       if (!isSql(document.uri) && conn instanceof InsightsNode) {
         lenses.push(
           new CodeLens(top, {
-            command: "kdb.file.pickTarget",
+            command: "peachq.file.pickTarget",
             title: getTargetForUri(document.uri) || "scratchpad",
           }),
         );
@@ -1182,7 +1182,7 @@ export function connectWorkspaceCommands() {
   );
   ext.runScratchpadItem.command = <Command>{
     title: "Choose Connection",
-    command: "kdb.file.pickConnection",
+    command: "peachq.file.pickConnection",
     arguments: [],
   };
 
@@ -1192,7 +1192,7 @@ export function connectWorkspaceCommands() {
   );
   ext.pickTimeoutItem.command = <Command>{
     title: "Choose Timeout",
-    command: "kdb.file.pickTimeout",
+    command: "peachq.file.pickTimeout",
     arguments: [],
   };
 

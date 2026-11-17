@@ -23,7 +23,7 @@ import { FakeQ } from "./utils/qserver";
 /**
  * Running a file whose connection is declared but not connected.
  *
- * The file names its connection in kdb.connectionMap, so it neither falls back
+ * The file names its connection in peachq.connectionMap, so it neither falls back
  * to the REPL nor to whatever is active: the run stops and asks. Answering is
  * what the notification stand-in is for — the buttons are drawn by the
  * workbench and no API presses one.
@@ -51,7 +51,7 @@ const server = new FakeQ();
 
 async function runFile() {
   await focus(QUERY_FILE);
-  await vscode.commands.executeCommand("kdb.execute.fileQuery");
+  await vscode.commands.executeCommand("peachq.execute.fileQuery");
 }
 
 describe("Running a file whose connection is not connected", () => {
@@ -69,7 +69,7 @@ describe("Running a file whose connection is not connected", () => {
   after(async () => {
     fs.rmSync(QUERY_FILE.fsPath, { force: true });
     await vscode.commands.executeCommand(
-      "kdb.connections.disconnect",
+      "peachq.connections.disconnect",
       CONNECTION,
     );
     await server.close();

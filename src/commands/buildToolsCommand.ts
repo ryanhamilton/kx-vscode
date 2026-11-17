@@ -64,7 +64,7 @@ function getBuidToolsHome() {
 
 function getRuntime() {
   const home = workspace
-    .getConfiguration("kdb")
+    .getConfiguration("peachq")
     .get<string>("qHomeDirectory", "");
 
   if (!home) {
@@ -132,7 +132,7 @@ function isLintingSupported(document: TextDocument) {
 
 function isAutoLintingEnabled(document: TextDocument) {
   return workspace
-    .getConfiguration("kdb", document)
+    .getConfiguration("peachq", document)
     .get<boolean>("linting", false);
 }
 

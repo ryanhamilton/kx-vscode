@@ -186,8 +186,8 @@ describe("connLabels", () => {
     ];
 
     const getStub = sinon.stub();
-    getStub.withArgs("kdb.connectionLabels").returns(labels);
-    getStub.withArgs("kdb.labelsConnectionMap").returns([]);
+    getStub.withArgs("peachq.connectionLabels").returns(labels);
+    getStub.withArgs("peachq.labelsConnectionMap").returns([]);
 
     getConfigurationStub.returns({
       get: getStub,
@@ -338,8 +338,8 @@ describe("connLabels", () => {
 
     it("should clear all connection mappings when no labels exist", () => {
       const getStub = sinon.stub();
-      getStub.withArgs("kdb.connectionLabels").returns([]);
-      getStub.withArgs("kdb.labelsConnectionMap").returns([
+      getStub.withArgs("peachq.connectionLabels").returns([]);
+      getStub.withArgs("peachq.labelsConnectionMap").returns([
         { labelName: "nonexistent1", connections: ["conn1"] },
         { labelName: "nonexistent2", connections: ["conn2"] },
       ]);
@@ -351,7 +351,12 @@ describe("connLabels", () => {
 
       LabelsUtils.clearWorkspaceLabels();
 
-      sinon.assert.calledWith(updateStub, "kdb.labelsConnectionMap", [], true);
+      sinon.assert.calledWith(
+        updateStub,
+        "peachq.labelsConnectionMap",
+        [],
+        true,
+      );
     });
 
     it("should remove orphaned label connection mappings", () => {
@@ -368,8 +373,10 @@ describe("connLabels", () => {
       ];
 
       const getStub = sinon.stub();
-      getStub.withArgs("kdb.connectionLabels").returns(validLabels);
-      getStub.withArgs("kdb.labelsConnectionMap").returns(connectionMappings);
+      getStub.withArgs("peachq.connectionLabels").returns(validLabels);
+      getStub
+        .withArgs("peachq.labelsConnectionMap")
+        .returns(connectionMappings);
 
       getConfigurationStub.returns({
         get: getStub,
@@ -386,7 +393,7 @@ describe("connLabels", () => {
 
       sinon.assert.calledWith(
         updateStub,
-        "kdb.labelsConnectionMap",
+        "peachq.labelsConnectionMap",
         ext.labelConnMapList,
         true,
       );
@@ -403,8 +410,10 @@ describe("connLabels", () => {
       ];
 
       const getStub = sinon.stub();
-      getStub.withArgs("kdb.connectionLabels").returns(validLabels);
-      getStub.withArgs("kdb.labelsConnectionMap").returns(connectionMappings);
+      getStub.withArgs("peachq.connectionLabels").returns(validLabels);
+      getStub
+        .withArgs("peachq.labelsConnectionMap")
+        .returns(connectionMappings);
 
       getConfigurationStub.returns({
         get: getStub,
@@ -431,8 +440,10 @@ describe("connLabels", () => {
       ];
 
       const getStub = sinon.stub();
-      getStub.withArgs("kdb.connectionLabels").returns(validLabels);
-      getStub.withArgs("kdb.labelsConnectionMap").returns(connectionMappings);
+      getStub.withArgs("peachq.connectionLabels").returns(validLabels);
+      getStub
+        .withArgs("peachq.labelsConnectionMap")
+        .returns(connectionMappings);
 
       getConfigurationStub.returns({
         get: getStub,
@@ -453,7 +464,7 @@ describe("connLabels", () => {
 
       sinon.assert.neverCalledWith(
         updateStub,
-        "kdb.labelsConnectionMap",
+        "peachq.labelsConnectionMap",
         sinon.match.array,
         true,
       );
@@ -465,8 +476,8 @@ describe("connLabels", () => {
       ];
 
       const getStub = sinon.stub();
-      getStub.withArgs("kdb.connectionLabels").returns(validLabels);
-      getStub.withArgs("kdb.labelsConnectionMap").returns([]);
+      getStub.withArgs("peachq.connectionLabels").returns(validLabels);
+      getStub.withArgs("peachq.labelsConnectionMap").returns([]);
 
       getConfigurationStub.returns({
         get: getStub,
@@ -498,8 +509,10 @@ describe("connLabels", () => {
       ];
 
       const getStub = sinon.stub();
-      getStub.withArgs("kdb.connectionLabels").returns(validLabels);
-      getStub.withArgs("kdb.labelsConnectionMap").returns(connectionMappings);
+      getStub.withArgs("peachq.connectionLabels").returns(validLabels);
+      getStub
+        .withArgs("peachq.labelsConnectionMap")
+        .returns(connectionMappings);
 
       getConfigurationStub.returns({
         get: getStub,

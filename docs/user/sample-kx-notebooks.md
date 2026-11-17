@@ -1,12 +1,14 @@
 ---
 type: Reference
-title: Sample KX Notebooks
-description: Downloadable example .kxnb notebooks and where each one runs (Insights Enterprise and/or REPL).
+title: Sample peachq Notebooks
+description:
+  Downloadable example .kxnb notebooks and where each one runs (Insights
+  Enterprise and/or REPL).
 tags: [kdb, vscode, notebooks, kxnb, samples]
 timestamp: 2026-07-10
 ---
 
-# Sample KX Notebooks
+# Sample peachq Notebooks
 
 | Notebook                                                                                                | Description                                                                  | Works on IE | Works on REPL |
 | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | :---------: | :-----------: |

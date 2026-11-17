@@ -69,18 +69,18 @@ describe("Exporting the results as CSV", () => {
 
     // The view only renders once it has been resolved, and only holds
     // something to export once a query has been rendered into it.
-    await vscode.commands.executeCommand("kdb.results.destination.view");
-    await vscode.commands.executeCommand("kdb-results.focus");
+    await vscode.commands.executeCommand("peachq.results.destination.view");
+    await vscode.commands.executeCommand("peachq-results.focus");
     await focus(QUERY_FILE);
     kdb.clear();
-    await vscode.commands.executeCommand("kdb.execute.fileQuery");
+    await vscode.commands.executeCommand("peachq.execute.fileQuery");
     await until(() => kdb.queries().length > 0, "the query to run");
 
     // The results are rendered after the command that filled them resolves, so
     // the export is asked for until there is something to export.
     for (let attempt = 0; attempt < 100; attempt++) {
       clear();
-      await vscode.commands.executeCommand("kdb.resultsPanel.export.csv");
+      await vscode.commands.executeCommand("peachq.resultsPanel.export.csv");
       if (exported().length > 0) {
         break;
       }
@@ -118,7 +118,7 @@ describe("Exporting the results as CSV", () => {
     kdb.data = "OK";
     fs.rmSync(QUERY_FILE.fsPath, { force: true });
     discard();
-    await vscode.commands.executeCommand("kdb.results.destination.terminal");
+    await vscode.commands.executeCommand("peachq.results.destination.terminal");
     await vscode.commands.executeCommand("workbench.action.closeAllEditors");
   });
 
@@ -157,10 +157,10 @@ describe("Exporting the results as CSV", () => {
 
   it("says so rather than writing a file when there is nothing to export", async () => {
     discard();
-    await vscode.commands.executeCommand("kdb.resultsPanel.clear");
+    await vscode.commands.executeCommand("peachq.resultsPanel.clear");
     clear();
 
-    await vscode.commands.executeCommand("kdb.resultsPanel.export.csv");
+    await vscode.commands.executeCommand("peachq.resultsPanel.export.csv");
 
     assert.deepStrictEqual(exported(), []);
     assert.strictEqual(raised("No results to export").length, 1);

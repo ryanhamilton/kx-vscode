@@ -721,8 +721,8 @@ describe("KdbNewConnectionView", () => {
       const api = acquireVsCodeApi();
       sinon.stub(api, "postMessage").value(({ command, data }) => {
         if (
-          command === "kdb.connections.add.kdb" ||
-          command === "kdb.connections.add.insights"
+          command === "peachq.connections.add.kdb" ||
+          command === "peachq.connections.add.insights"
         ) {
           result = data;
         }
@@ -783,8 +783,8 @@ describe("KdbNewConnectionView", () => {
       let result: any;
       sinon.stub(api, "postMessage").value(({ command, data }) => {
         if (
-          command === "kdb.connections.edit.kdb" ||
-          command === "kdb.connections.edit.insights"
+          command === "peachq.connections.edit.kdb" ||
+          command === "peachq.connections.edit.insights"
         ) {
           result = data;
         }

@@ -68,7 +68,7 @@ const PY_OTHER = "BRAVO_PY";
 const PY_BRIDGE = "pystruct_run";
 
 // ReplConnection names its terminal after the folder it is based in.
-const REPL = "KX REPL";
+const REPL = "peachq REPL";
 
 const SLEEPS = "SLEEP_2000";
 
@@ -84,7 +84,7 @@ describe("Executing on the REPL", () => {
     // An unassigned file runs on whichever KX terminal was focused last, so
     // whatever a suite before this one left connected, the REPL has to be the
     // one in front before any of these run.
-    await vscode.commands.executeCommand("kdb.repl.start");
+    await vscode.commands.executeCommand("peachq.repl.start");
     await until(() => !!terminal(REPL), "the REPL terminal to open");
     await reveal(REPL);
   });
@@ -99,7 +99,7 @@ describe("Executing on the REPL", () => {
   function executionCases(target: () => vscode.Uri) {
     it("runs the whole file", async () => {
       await focus(target());
-      const sent = await run("kdb.execute.fileQuery");
+      const sent = await run("peachq.execute.fileQuery");
 
       assert.ok(sent.includes(TWO_STATEMENTS), `two statements:\n${sent}`);
       assert.ok(
@@ -110,7 +110,7 @@ describe("Executing on the REPL", () => {
 
     it("evaluates nothing inside a block or exit comment", async () => {
       await focus(target());
-      const sent = await run("kdb.execute.fileQuery");
+      const sent = await run("peachq.execute.fileQuery");
 
       assert.ok(
         !sent.includes(IN_BLOCK_COMMENT),
@@ -124,7 +124,7 @@ describe("Executing on the REPL", () => {
 
     it("sends only the selection", async () => {
       await selectionOf(target(), SELECTABLE_TERM);
-      const sent = await run("kdb.execute.selectedQuery");
+      const sent = await run("peachq.execute.selectedQuery");
 
       assert.ok(sent.includes(SELECTABLE_TERM), `selection:\n${sent}`);
       assert.ok(
@@ -135,7 +135,7 @@ describe("Executing on the REPL", () => {
 
     it("sends the current line when nothing is selected", async () => {
       await caretAt(target(), TWO_STATEMENTS);
-      const sent = await run("kdb.execute.selectedQuery");
+      const sent = await run("peachq.execute.selectedQuery");
 
       assert.ok(sent.includes(TWO_STATEMENTS), `line:\n${sent}`);
       assert.ok(
@@ -146,7 +146,7 @@ describe("Executing on the REPL", () => {
 
     it("sends the last statement without its trailing comment", async () => {
       await caretAt(target(), LAST_STATEMENT_COMMENT);
-      const sent = await run("kdb.execute.selectedQuery");
+      const sent = await run("peachq.execute.selectedQuery");
 
       assert.deepStrictEqual(sent.split("\n").filter(Boolean), [
         LAST_STATEMENT,
@@ -155,14 +155,14 @@ describe("Executing on the REPL", () => {
 
     it("sends nothing when the caret is on the trailing empty line", async () => {
       await lastLineOf(target());
-      const sent = await run("kdb.execute.selectedQuery");
+      const sent = await run("peachq.execute.selectedQuery");
 
       assert.strictEqual(sent, "", `an empty line was sent:\n${sent}`);
     });
 
     it("sends the whole multi-line expression for a block", async () => {
       await caretAt(target(), EXPRESSION_FIRST_LINE);
-      const sent = await run("kdb.execute.block");
+      const sent = await run("peachq.execute.block");
 
       assert.ok(
         sent.includes(EXPRESSION_CONTINUATION),
@@ -178,7 +178,7 @@ describe("Executing on the REPL", () => {
   function sqlExecutionCases(target: () => vscode.Uri) {
     it("flattens the whole file into a single statement line", async () => {
       await focus(target());
-      const lines = (await run("kdb.execute.fileQuery"))
+      const lines = (await run("peachq.execute.fileQuery"))
         .split("\n")
         .filter(Boolean);
 
@@ -193,7 +193,7 @@ describe("Executing on the REPL", () => {
 
     it("runs only the selected query", async () => {
       await selectionOf(target(), SQL_FIRST_QUERY);
-      const sent = await run("kdb.execute.selectedQuery");
+      const sent = await run("peachq.execute.selectedQuery");
 
       assert.ok(sent.includes(SQL_FIRST_QUERY), `selected query:\n${sent}`);
       assert.ok(
@@ -204,7 +204,7 @@ describe("Executing on the REPL", () => {
 
     it("sends the current line when nothing is selected", async () => {
       await caretAt(target(), SQL_FIRST_QUERY);
-      const lines = (await run("kdb.execute.selectedQuery"))
+      const lines = (await run("peachq.execute.selectedQuery"))
         .split("\n")
         .filter(Boolean);
 
@@ -219,7 +219,7 @@ describe("Executing on the REPL", () => {
 
     it("sends nothing when the caret is on the trailing empty line", async () => {
       await lastLineOf(target());
-      const sent = await run("kdb.execute.selectedQuery");
+      const sent = await run("peachq.execute.selectedQuery");
 
       assert.strictEqual(sent, "", `an empty line was sent:\n${sent}`);
     });
@@ -228,7 +228,7 @@ describe("Executing on the REPL", () => {
   function pythonExecutionCases(target: () => vscode.Uri) {
     it("sends the whole file through the pykx bridge", async () => {
       await focus(target());
-      const sent = await run("kdb.scratchpad.python.run.file");
+      const sent = await run("peachq.scratchpad.python.run.file");
 
       assert.ok(sent.includes(PY_BRIDGE), `no bridge:\n${sent}`);
       assert.ok(sent.includes(PY_MARKER), `${PY_MARKER}:\n${sent}`);
@@ -237,7 +237,7 @@ describe("Executing on the REPL", () => {
 
     it("sends a selection through the pykx bridge", async () => {
       await selectionOf(target(), PY_SELECTABLE);
-      const sent = await run("kdb.scratchpad.python.run");
+      const sent = await run("peachq.scratchpad.python.run");
 
       assert.ok(sent.includes(PY_BRIDGE), `no bridge:\n${sent}`);
       assert.ok(sent.includes(PY_MARKER), `selection:\n${sent}`);
@@ -246,7 +246,7 @@ describe("Executing on the REPL", () => {
 
     it("sends the current line when nothing is selected", async () => {
       await caretAt(target(), PY_SELECTABLE);
-      const sent = await run("kdb.scratchpad.python.run");
+      const sent = await run("peachq.scratchpad.python.run");
 
       assert.ok(sent.includes(PY_BRIDGE), `no bridge:\n${sent}`);
       assert.ok(sent.includes(PY_MARKER), `line:\n${sent}`);
@@ -255,7 +255,7 @@ describe("Executing on the REPL", () => {
 
     it("sends nothing when the caret is on the trailing empty line", async () => {
       await lastLineOf(target());
-      const sent = await run("kdb.scratchpad.python.run");
+      const sent = await run("peachq.scratchpad.python.run");
 
       assert.strictEqual(sent, "", `an empty line was sent:\n${sent}`);
     });
@@ -292,7 +292,7 @@ describe("Executing on the REPL", () => {
 
     it("sends only the selection", async () => {
       await selectionOf(QUKE_FILE, QUKE_SELECTED);
-      const sent = await run("kdb.execute.selectedQuery");
+      const sent = await run("peachq.execute.selectedQuery");
 
       assert.ok(sent.includes(QUKE_SELECTED), `selection:\n${sent}`);
       assert.ok(
@@ -303,7 +303,7 @@ describe("Executing on the REPL", () => {
 
     it("sends the current line when nothing is selected", async () => {
       await caretAt(QUKE_FILE, QUKE_LINE);
-      const sent = await run("kdb.execute.selectedQuery");
+      const sent = await run("peachq.execute.selectedQuery");
 
       assert.ok(sent.includes(QUKE_LINE), `line:\n${sent}`);
       assert.ok(
@@ -314,7 +314,7 @@ describe("Executing on the REPL", () => {
 
     it("sends nothing when the caret is on the trailing empty line", async () => {
       await lastLineOf(QUKE_FILE);
-      const sent = await run("kdb.execute.selectedQuery");
+      const sent = await run("peachq.execute.selectedQuery");
 
       assert.strictEqual(sent, "", `an empty line was sent:\n${sent}`);
     });
@@ -329,8 +329,8 @@ describe("Executing on the REPL", () => {
       const notebook = await vscode.workspace.openNotebookDocument(NOTEBOOK);
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
-        id: "kx-notebook-1",
-        extension: "KX.kdb",
+        id: "peachq-notebook-1",
+        extension: "peachq.peachq",
       });
 
       const sent = await run("notebook.execute");
@@ -364,8 +364,8 @@ describe("Executing on the REPL", () => {
       const notebook = await vscode.workspace.openNotebookDocument(NOTEBOOK);
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
-        id: "kx-notebook-1",
-        extension: "KX.kdb",
+        id: "peachq-notebook-1",
+        extension: "peachq.peachq",
       });
 
       await vscode.commands.executeCommand("notebook.execute");
@@ -415,7 +415,7 @@ describe("Executing on the REPL", () => {
     }
 
     before(async () => {
-      await vscode.commands.executeCommand("kdb.repl.start");
+      await vscode.commands.executeCommand("peachq.repl.start");
       await until(() => !!terminal(REPL), "the REPL terminal to open");
     });
 
@@ -552,7 +552,7 @@ describe("Executing on the REPL", () => {
     });
 
     it("shows each statement it runs when source expressions are shown", async () => {
-      const conf = vscode.workspace.getConfiguration("kdb");
+      const conf = vscode.workspace.getConfiguration("peachq");
       await conf.update(
         "hideSourceExpressions",
         false,
@@ -562,7 +562,7 @@ describe("Executing on the REPL", () => {
         type(KEY.CTRL_L);
         await untilShows("sym:`AAPL", false);
         await focus(Q_FILE);
-        await vscode.commands.executeCommand("kdb.execute.fileQuery");
+        await vscode.commands.executeCommand("peachq.execute.fileQuery");
         await untilShows("q) sym:`AAPL");
         await untilShows("q) qty:120");
       } finally {
@@ -600,8 +600,8 @@ describe("Executing on the REPL", () => {
         await vscode.workspace.openNotebookDocument(CANCEL_NOTEBOOK);
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
-        id: "kx-notebook-1",
-        extension: "KX.kdb",
+        id: "peachq-notebook-1",
+        extension: "peachq.peachq",
       });
 
       const from = mark();
@@ -632,7 +632,7 @@ describe("Executing on the REPL", () => {
   describe("what the REPL cannot do", () => {
     it("does not populate a scratchpad", async () => {
       await focus(Q_FILE);
-      const sent = await run("kdb.file.populateScratchpad");
+      const sent = await run("peachq.file.populateScratchpad");
 
       assert.strictEqual(sent, "", `the file was sent anyway:\n${sent}`);
     });
@@ -646,13 +646,13 @@ describe("Executing on the REPL", () => {
 
     it("runs on the active REPL, whatever folder the file is in", async () => {
       await vscode.commands.executeCommand(
-        "kdb.repl.openFolder",
+        "peachq.repl.openFolder",
         vscode.Uri.file(FOLDER_B),
       );
 
       await focus(FOLDER_A_FILE);
       const fromWorkspace = mark();
-      const sent = await run("kdb.execute.fileQuery", FOLDER_B);
+      const sent = await run("peachq.execute.fileQuery", FOLDER_B);
 
       assert.ok(
         sent.includes(FOLDER_A_QUERY),
@@ -667,7 +667,7 @@ describe("Executing on the REPL", () => {
 
     it("runs a file pinned to a REPL on that REPL, starting it, not on the active one", async () => {
       const FOLDER_A = path.join(WORKSPACE, "folderA");
-      const conf = vscode.workspace.getConfiguration("kdb");
+      const conf = vscode.workspace.getConfiguration("peachq");
       const map = conf.get<Record<string, string>>("connectionMap", {});
       await conf.update("connectionMap", {
         ...map,
@@ -676,14 +676,14 @@ describe("Executing on the REPL", () => {
 
       try {
         await vscode.commands.executeCommand(
-          "kdb.repl.openFolder",
+          "peachq.repl.openFolder",
           vscode.Uri.file(FOLDER_B),
         );
         await focus(FOLDER_A_FILE);
 
         const fromA = mark(FOLDER_A);
         const fromB = mark(FOLDER_B);
-        await vscode.commands.executeCommand("kdb.execute.fileQuery");
+        await vscode.commands.executeCommand("peachq.execute.fileQuery");
 
         await until(
           () => since(fromA, FOLDER_A).includes(FOLDER_A_QUERY),
@@ -695,7 +695,7 @@ describe("Executing on the REPL", () => {
           `the active REPL received it:\n${since(fromB, FOLDER_B)}`,
         );
         assert.ok(
-          terminal("KX REPL (workspace/folderA)"),
+          terminal("peachq REPL (workspace/folderA)"),
           "the pinned REPL has no terminal",
         );
       } finally {

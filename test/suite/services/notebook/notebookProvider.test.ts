@@ -267,7 +267,7 @@ describe("Providers", () => {
 
       beforeEach(() => {
         notebook = {
-          notebookType: "kx-notebook",
+          notebookType: "peachq-notebook",
           uri: vscode.Uri.file("a.kxnb"),
           metadata: {},
         };
@@ -333,13 +333,13 @@ describe("Providers", () => {
         sinon.assert.calledWith(
           executeCommandStub,
           "setContext",
-          "kdb.notebookRowLimitValue",
+          "peachq.notebookRowLimitValue",
           10,
         );
         sinon.assert.calledWith(
           executeCommandStub,
           "setContext",
-          "kdb.notebookRowLimitFromValue",
+          "peachq.notebookRowLimitFromValue",
           "last",
         );
       });
@@ -355,7 +355,7 @@ describe("Providers", () => {
     const onRepl = () =>
       executeCommandStub
         .getCalls()
-        .filter((call) => call.args[1] === "kdb.notebookOnRepl")
+        .filter((call) => call.args[1] === "peachq.notebookOnRepl")
         .at(-1)?.args[2];
 
     beforeEach(() => {
@@ -366,7 +366,10 @@ describe("Providers", () => {
       executeCommandStub = sinon.stub(vscode.commands, "executeCommand");
       runsOnReplStub = sinon.stub(workspaceCommand, "runsOnRepl");
       sinon.stub(vscode.window, "activeNotebookEditor").get(() => ({
-        notebook: { notebookType: "kx-notebook", uri: vscode.Uri.file("a") },
+        notebook: {
+          notebookType: "peachq-notebook",
+          uri: vscode.Uri.file("a"),
+        },
       }));
     });
 

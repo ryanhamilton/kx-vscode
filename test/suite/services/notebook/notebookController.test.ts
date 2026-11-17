@@ -923,7 +923,7 @@ describe("Controller", () => {
           range ? "a:1\nb:2" : lines.join("\n"),
       });
       const notebook = <vscode.NotebookDocument>(<unknown>{
-        notebookType: "kx-notebook",
+        notebookType: "peachq-notebook",
         uri: vscode.Uri.file("test.kxnb"),
         getCells: () => [cell],
       });
@@ -964,7 +964,7 @@ describe("Controller", () => {
       sinon.assert.notCalled(executeCommandStub);
     });
 
-    it("should not run an editor outside a KX notebook", async () => {
+    it("should not run an editor outside a peachq notebook", async () => {
       const editor = <vscode.TextEditor>(<unknown>{
         document: { uri: vscode.Uri.file("test.q") },
       });

@@ -32,7 +32,7 @@ import { webviewReset } from "../utils/webviewPage";
 const logger = "resultsPanelProvider";
 
 export class KdbResultsViewProvider implements WebviewViewProvider {
-  public static readonly viewType = "kdb-results";
+  public static readonly viewType = "peachq-results";
   public isInsights = false;
   public isPython = false;
   public _colorTheme: any;
@@ -195,7 +195,7 @@ export class KdbResultsViewProvider implements WebviewViewProvider {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         ${webviewReset(getNonce())}
         <script type="module" nonce="${getNonce()}" src="${getResource("out/webview.js")}"></script>
-        <title>KDB Results</title>
+        <title>peachq Results</title>
       </head>
       <body>
         <kdb-results-view size="100"></kdb-results-view>

@@ -89,11 +89,11 @@ describe("What the connected process has in memory", () => {
      */
     kdb.clear();
     await vscode.commands.executeCommand(
-      "kdb.connections.disconnect",
+      "peachq.connections.disconnect",
       CONNECTION,
     );
     await vscode.commands.executeCommand(
-      "kdb.connections.connect.via.dialog",
+      "peachq.connections.connect.via.dialog",
       CONNECTION,
     );
     await until(

@@ -559,7 +559,7 @@ describe("REPL", () => {
       await running;
     });
 
-    it("should follow kdb.hideSourceExpressions by default", async () => {
+    it("should follow peachq.hideSourceExpressions by default", async () => {
       const setting = sinon
         .stub(coreUtils, "getHideDetailedConsoleQueryOutputSetting")
         .returns(false);

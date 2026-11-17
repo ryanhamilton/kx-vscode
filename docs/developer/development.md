@@ -1,7 +1,9 @@
 ---
 type: Developer Guide
 title: Development
-description: Setting up, building, testing, debugging and releasing the kdb VS Code extension.
+description:
+  Setting up, building, testing, debugging and releasing the kdb VS Code
+  extension.
 tags: [kdb, vscode, development, testing, debugging, release]
 timestamp: 2026-07-10
 ---
@@ -25,47 +27,57 @@ npm install
 
 Run these with `npm run scriptName`
 
-| Script        | Description                                 |
-| :------------ | :------------------------------------------ |
-| `update-deps` | Update dependencies to latest patch version |
-| `format`      | Format all `ts` files                       |
-| `lint`        | Lint all `ts` files                         |
-| `package`     | Produce `vsix`                              |
-| `test`        | Perform [Unit Tests](https://github.com/KxSystems/kx-vscode/tree/dev/test/suite)|
-| `test:e2e`    | Perform [End to End Tests](https://github.com/KxSystems/kx-vscode/tree/dev/test/e2e)|
-| `coverage`    | Produce coverage reports|
-| `q-test`      | Perform [q Tests](https://github.com/KxSystems/kx-vscode/tree/dev/test/q/tests)|
+| Script        | Description                                                                          |
+| :------------ | :----------------------------------------------------------------------------------- |
+| `update-deps` | Update dependencies to latest patch version                                          |
+| `format`      | Format all `ts` files                                                                |
+| `lint`        | Lint all `ts` files                                                                  |
+| `package`     | Produce `vsix`                                                                       |
+| `test`        | Perform [Unit Tests](https://github.com/KxSystems/kx-vscode/tree/dev/test/suite)     |
+| `test:e2e`    | Perform [End to End Tests](https://github.com/KxSystems/kx-vscode/tree/dev/test/e2e) |
+| `coverage`    | Produce coverage reports                                                             |
+| `q-test`      | Perform [q Tests](https://github.com/KxSystems/kx-vscode/tree/dev/test/q/tests)      |
 
 ## Configuring SonarQube
 
-Once you've installed the [SonarQube Extension](https://marketplace.visualstudio.com/items?itemName=SonarSource.sonarlint-vscode), add the KX SonarQube server `https://sonarqube.dl.kx.com`, and it will lint as you type, so you don't need to wait for the github pipeline to discover issues.
+Once you've installed the
+[SonarQube Extension](https://marketplace.visualstudio.com/items?itemName=SonarSource.sonarlint-vscode),
+add the KX SonarQube server `https://sonarqube.dl.kx.com`, and it will lint as
+you type, so you don't need to wait for the github pipeline to discover issues.
 
-Ctrl + Shift + P -> "SonarQube: Analyze Current File with SonarQube" will give you a a detailed summary of any issues in a file.
+Ctrl + Shift + P -> "SonarQube: Analyze Current File with SonarQube" will give
+you a a detailed summary of any issues in a file.
 
-SonarQube results can be viewed at https://sonarqube.dl.kx.com/dashboard?branch=dev&id=kxvscode
+SonarQube results can be viewed at
+https://sonarqube.dl.kx.com/dashboard?branch=dev&id=kxvscode
 
 ## Debugging
 
-Pressing F5 with a file in the extension open will launch a VSCode instance running the extension built from source, with the debugger open in the original VSCode instance.
+Pressing F5 with a file in the extension open will launch a VSCode instance
+running the extension built from source, with the debugger open in the original
+VSCode instance.
 
 On VS Code 1.139, whose bundled JavaScript debugger (js-debug 1.117) cannot
 attach on Node 24.20
 ([vscode-js-debug#2416](https://github.com/microsoft/vscode-js-debug/issues/2416)),
-F5 leaves the new instance stopped on its first line and reports "Extension
-host did not start in 10 seconds". Run Without Debugging (Ctrl+F5) still works.
-To debug, install
+F5 leaves the new instance stopped on its first line and reports "Extension host
+did not start in 10 seconds". Run Without Debugging (Ctrl+F5) still works. To
+debug, install
 [JavaScript Debugger (Nightly)](https://marketplace.visualstudio.com/items?itemName=ms-vscode.js-debug-nightly)
 and disable the built-in one (search the extensions for
 `@builtin @id:ms-vscode.js-debug`), then reload the window. Revert both once VS
 Code ships js-debug 1.140 or later.
 
-Extension [Unit Tests](https://github.com/KxSystems/kx-vscode/tree/dev/test/suite) can be debugged by selecting `Extension Tests` target from run and debug tab.
+Extension
+[Unit Tests](https://github.com/KxSystems/kx-vscode/tree/dev/test/suite) can be
+debugged by selecting `Extension Tests` target from run and debug tab.
 
 Testing will stop at any breakpoint set in test or source file.
 
 ![Run and debug tab](../images/dev-run-and-debug-tab.png)
 
-Single test file can also be debugged by clicking run button from the editor toolbar:
+Single test file can also be debugged by clicking run button from the editor
+toolbar:
 
 ![Debug single test file](../images/dev-debug-single-test-file.png)
 
@@ -76,17 +88,18 @@ Single test file can also be debugged by clicking run button from the editor too
 and drives the extension the way a user does: real commands, real workspace
 settings, the real language server. Nothing is stubbed.
 
-The test files sit directly in [test/e2e](https://github.com/KxSystems/kx-vscode/tree/dev/test/e2e);
-everything they are built out of — the stand-ins, the fixtures, the helpers that
-drive VS Code — lives in
+The test files sit directly in
+[test/e2e](https://github.com/KxSystems/kx-vscode/tree/dev/test/e2e); everything
+they are built out of — the stand-ins, the fixtures, the helpers that drive VS
+Code — lives in
 [test/e2e/utils](https://github.com/KxSystems/kx-vscode/tree/dev/test/e2e/utils).
 
 Stand-ins take the place of everything outside the extension, and each records
 what it is sent, which is what the tests assert on:
 
 - `fakeq/bin/q`, spawned by the REPL because the workspace points
-  `kdb.qHomeDirectoryWorkspace` at it. It answers the REPL handshake and writes
-  a `.transcript.log` next to the directory each REPL runs in.
+  `peachq.qHomeDirectoryWorkspace` at it. It answers the REPL handshake and
+  writes a `.transcript.log` next to the directory each REPL runs in.
 - `qserver.ts`, a kdb+ IPC server the connection tests run in process. It uses
   the same codec as `node-q`, and the suite adds and removes its connection
   itself, so no connection has to be prepared beforehand.
@@ -98,14 +111,14 @@ what it is sent, which is what the tests assert on:
   scratchpad log websocket. Which endpoints the extension picks depends on the
   version the instance reports, so `version` and `queryEnvironments` are
   settings on it and a test can stand up an older instance by changing them.
-- the browser the OAuth code flow opens, replaced in `insights.ts` by a
-  function that walks the authorization redirect back to the extension's own
-  local server. It exists because there is no one in a test window to open the
-  URL — the code flow, the token request and the certificate handling all still
-  run for real.
+- the browser the OAuth code flow opens, replaced in `insights.ts` by a function
+  that walks the authorization redirect back to the extension's own local
+  server. It exists because there is no one in a test window to open the URL —
+  the code flow, the token request and the certificate handling all still run
+  for real.
 - the person a notification is addressed to, replaced in `prompt.ts`. A
-  notification's buttons are drawn by the workbench and no API presses one, so
-  a command that asks before it acts could otherwise not be driven to either
+  notification's buttons are drawn by the workbench and no API presses one, so a
+  command that asks before it acts could otherwise not be driven to either
   answer. Every notification is recorded, and one is answered only when a test
   has said what to answer it with.
 - the person a dialog is addressed to, replaced in `dialog.ts` — the file
@@ -140,10 +153,9 @@ front of a test: `files.simpleDialog.enable` replaces the system file dialog
 with a quick pick, so a dialog `dialog.ts` has not been told how to answer
 leaves the window usable rather than blocking it behind a native sheet, and the
 `explorer.confirm*` settings drop the confirmations the explorer raises before
-it deletes or moves a file.
-`window.dialogStyle` is deliberately not among them — it is application scoped,
-so a workspace file cannot set it, and modal messages are answered through
-`prompt.ts` rather than by their style.
+it deletes or moves a file. `window.dialogStyle` is deliberately not among them
+— it is application scoped, so a workspace file cannot set it, and modal
+messages are answered through `prompt.ts` rather than by their style.
 
 Both suites can be debugged with the `E2E Tests` and `E2E Test Selected File`
 targets in the run and debug tab.
@@ -153,25 +165,35 @@ These tests are macOS and Linux only for now: the REPL spawns q through
 
 ## q Testing
 
-To run the tests non-interactively, you can just run `npm run q-test` and they will be run in the q-build container.
+To run the tests non-interactively, you can just run `npm run q-test` and they
+will be run in the q-build container.
 
 To run the tests interactively, you need to
-1. Install Python version 3.12 installed, as the tests rely on an old version of pykx that doesn't support the latest Python
+
+1. Install Python version 3.12 installed, as the tests rely on an old version of
+   pykx that doesn't support the latest Python
+
 ```
 ~/kx-vscode $ brew install python@3.12
 ~/kx-vscode $ python3.12 -m venv venv
 ~/kx-vscode $ source venv/bin/activate
 ```
 
-2. Install pykx by running the following. If you aren't running the right Python version, PyKX 2.5 won't be available. More detailed instructions are available [here](https://code.kx.com/pykx/pykx-under-q/intro.html)
+2. Install pykx by running the following. If you aren't running the right Python
+   version, PyKX 2.5 won't be available. More detailed instructions are
+   available [here](https://code.kx.com/pykx/pykx-under-q/intro.html)
+
 ```
 ~/kx-vscode $ zsh ./test/q/preTest.sh
 ```
 
 3. kdb+ installed, with the `q` executable in the system path
-4. [AxLibraries](https://code.kx.com/developer/getting-started/) should be installed, according to its readme.
+4. [AxLibraries](https://code.kx.com/developer/getting-started/) should be
+   installed, according to its readme.
 
-To debug the tests, create a file with a username and password to secure the q process, then start a q process using that authentication.
+To debug the tests, create a file with a username and password to secure the q
+process, then start a q process using that authentication.
+
 ```
 $ echo "myusername:mypassword" >> users.txt
 $ q -u users.txt -p 1234
@@ -194,6 +216,7 @@ source venv/bin/activate
 ```
 
 Then install matplotlib
+
 ```sh
 pip install --upgrade matplotlib
 ```
@@ -215,16 +238,25 @@ npm exec ncu
 
 ## Releasing a new version
 
-Let the doc writer, or the #docs channel if they're unavailable, know that a release is about to go out so they can publish the docs concurrently.
+Let the doc writer, or the #docs channel if they're unavailable, know that a
+release is about to go out so they can publish the docs concurrently.
 
-Check out the branch to release, update the version number in package.json, then run
+Check out the branch to release, update the version number in package.json, then
+run
+
 ```
 git tag v1.2.3
 git push origin v1.2.3
 ```
-Then, in the [Actions](https://github.com/KxSystems/kx-vscode/actions) tab, open the pipeline that was just created, and give manual approval once the action reaches that point. It can take 10 minutes for the version number to be updated in the extension marketplace, even after it updates the timestamp to reflect the new release.
+
+Then, in the [Actions](https://github.com/KxSystems/kx-vscode/actions) tab, open
+the pipeline that was just created, and give manual approval once the action
+reaches that point. It can take 10 minutes for the version number to be updated
+in the extension marketplace, even after it updates the timestamp to reflect the
+new release.
 
 Announce the release in #kx-product-releases, using the template
+
 ```
 :rocket: VSCode Extension x.y.z has been released
 

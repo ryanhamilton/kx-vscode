@@ -32,9 +32,9 @@ import { webviewReset } from "../utils/webviewPage";
 const logger = "setupTools";
 
 const VIEW_SETTINGS = [
-  "kdb.qHomeDirectory",
-  "kdb.qHomeDirectoryWorkspace",
-  "kdb.neverShowQInstallAgain",
+  "peachq.qHomeDirectory",
+  "peachq.qHomeDirectoryWorkspace",
+  "peachq.neverShowQInstallAgain",
 ];
 
 let panel: vscode.WebviewPanel | undefined;
@@ -58,7 +58,7 @@ export async function showSetupError(workspace?: vscode.WorkspaceFolder) {
     if (res === "Set q Home Directory") {
       await vscode.commands.executeCommand(
         "workbench.action.openSettings",
-        "kdb.qHomeDirectory",
+        "peachq.qHomeDirectory",
       );
     }
     return;
@@ -100,17 +100,17 @@ export function showWelcome(folder?: vscode.WorkspaceFolder) {
     panel.webview.onDidReceiveMessage((msg) => {
       if (msg === "install") installKdbX();
       else if (msg === "repl") {
-        vscode.commands.executeCommand("kdb.repl.start");
+        vscode.commands.executeCommand("peachq.repl.start");
       } else if (msg === "qhome") {
         vscode.commands.executeCommand(
           "workbench.action.openSettings",
-          "kdb.qHomeDirectory",
+          "peachq.qHomeDirectory",
         );
       } else if (msg === true || msg === false) {
         vscode.workspace
           .getConfiguration()
           .update(
-            "kdb.neverShowQInstallAgain",
+            "peachq.neverShowQInstallAgain",
             !msg,
             vscode.ConfigurationTarget.Global,
           );
@@ -314,7 +314,7 @@ async function parseOutput(execution: vscode.TerminalShellExecution) {
 
 async function setHome(home: string, folder?: vscode.WorkspaceFolder) {
   /* c8 ignore start */
-  const config = vscode.workspace.getConfiguration("kdb", folder);
+  const config = vscode.workspace.getConfiguration("peachq", folder);
   await config.update(
     folder ? "qHomeDirectoryWorkspace" : "qHomeDirectory",
     home,
@@ -349,7 +349,7 @@ function getShowWelcome() {
   /* c8 ignore start */
   return !vscode.workspace
     .getConfiguration()
-    .get<boolean>("kdb.neverShowQInstallAgain", false);
+    .get<boolean>("peachq.neverShowQInstallAgain", false);
   /* c8 ignore stop */
 }
 

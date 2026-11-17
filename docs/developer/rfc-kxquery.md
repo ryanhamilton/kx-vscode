@@ -81,8 +81,8 @@ are VS Code's rather than the webview's.
   than a guess.
 - **Values are saved with the query.** A `.kxquery` is a re-runnable request,
   which is what datasources were used for anyway.
-- **The connection is not in the file.** It stays in `kdb.connectionMap`, as for
-  workbooks and notebooks, so a file can be shared without carrying someone
+- **The connection is not in the file.** It stays in `peachq.connectionMap`, as
+  for workbooks and notebooks, so a file can be shared without carrying someone
   else's connection name.
 - **A new extension**, so the editor binds by filename rather than sniffing
   content, and the file inherits no JSON editor behaviour.
@@ -108,7 +108,7 @@ before connecting.
 `ParamFieldType.Code`, a query-sized monospace textarea, and the `targets`
 `ParamSource`, a dropdown filled from the DAPs the connection reports.
 
-The qSQL `target` lives in the file rather than in `kdb.targetMap`, unlike a
+The qSQL `target` lives in the file rather than in `peachq.targetMap`, unlike a
 workbook's: it is an argument to this request, and the QSQL datasource held it
 the same way. Distinguished parameters are added to deployed UDAs only — getData
 declares them all already, and they mean nothing to a text query.
@@ -167,7 +167,7 @@ datasource editor did.
 
 `DataSourceConverterProvider` is the custom editor for `*.kdb.json`: opening one
 converts it, opens the result and closes itself.
-`KX: Convert datasources to queries` does the same across a workspace.
+`peachq: Convert datasources to queries` does the same across a workspace.
 
 | Datasource    | Becomes                                                                                       |
 | :------------ | :-------------------------------------------------------------------------------------------- |
@@ -187,13 +187,13 @@ on every repository that merely gets opened.
 
 ## Surface changes
 
-- View **Datasources** → **Queries** (`kdb-datasource-explorer` →
-  `kdb-query-explorer`).
-- `kdb.datasource.create`, `kdb.datasource.refreshDataSourceExplorer`,
-  `kdb.datasource.import` → `kdb.query.create`, `kdb.query.refresh`,
-  `kdb.query.convert`.
-- Custom editor `kdb.dataSourceEditor` (`*.kdb.json`) → `kdb.queryEditor`
-  (`*.kxquery`), plus `kdb.dataSourceConverter` for `*.kdb.json`.
+- View **Datasources** → **Queries** (`peachq-datasource-explorer` →
+  `peachq-query-explorer`).
+- `peachq.datasource.create`, `peachq.datasource.refreshDataSourceExplorer`,
+  `peachq.datasource.import` → `peachq.query.create`, `peachq.query.refresh`,
+  `peachq.query.convert`.
+- Custom editor `peachq.dataSourceEditor` (`*.kdb.json`) → `peachq.queryEditor`
+  (`*.kxquery`), plus `peachq.dataSourceConverter` for `*.kdb.json`.
 - Language `kdbdatasource` / `.kdb.json` → `kxquery` / `.kxquery`.
 - Deleted: `kdbDataSourceView.ts` (1,916), its tests (1,208),
   `panels/datasource.ts` (181), `date-time-nano-picker.ts` (161),
@@ -201,17 +201,17 @@ on every repository that merely gets opened.
 
 ## Alternatives considered
 
-| Alternative                                               | Rejected because                                                                                                                               |
-| :-------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- |
-| Keep the datasource editor for QSQL and SQL only          | the tab machinery — most of the cost — would have stayed; two entries in the query list add none                                               |
-| Leave qSQL and SQL out of the query editor                | they are two of the answers to what to run on this connection, and run, populate, history and telemetry already carried them                   |
-| Convert QSQL and SQL datasources to workbooks             | what the first cut did; a workbook cannot hold a saved request — `agg` and `labels` were dropped and the target split off into `kdb.targetMap` |
-| Put the qSQL target in `kdb.targetMap`                    | it is an argument to the request; splitting a two-field query across a file and a setting is worse than either                                 |
-| Keep `.kdb.json` and replace only the editor              | the union-of-four shape is what forces dead branches, and it would invite the next editor to support all four again                            |
-| Migrate every datasource on activation                    | an unrequested, irreversible write to the user's workspace                                                                                     |
-| Give getData its own model and view                       | that is what the API and UDA tabs already were                                                                                                 |
-| Read getData's parameters from the meta                   | it makes an endpoint-fixed contract look deployment-dependent, and leaves the editor useless while disconnected                                |
-| Model `filter`/`agg` as structured types rather than rows | more type machinery than two parameters justify; `rows` is data, and the view stays generic                                                    |
+| Alternative                                               | Rejected because                                                                                                                                  |
+| :-------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Keep the datasource editor for QSQL and SQL only          | the tab machinery — most of the cost — would have stayed; two entries in the query list add none                                                  |
+| Leave qSQL and SQL out of the query editor                | they are two of the answers to what to run on this connection, and run, populate, history and telemetry already carried them                      |
+| Convert QSQL and SQL datasources to workbooks             | what the first cut did; a workbook cannot hold a saved request — `agg` and `labels` were dropped and the target split off into `peachq.targetMap` |
+| Put the qSQL target in `peachq.targetMap`                 | it is an argument to the request; splitting a two-field query across a file and a setting is worse than either                                    |
+| Keep `.kdb.json` and replace only the editor              | the union-of-four shape is what forces dead branches, and it would invite the next editor to support all four again                               |
+| Migrate every datasource on activation                    | an unrequested, irreversible write to the user's workspace                                                                                        |
+| Give getData its own model and view                       | that is what the API and UDA tabs already were                                                                                                    |
+| Read getData's parameters from the meta                   | it makes an endpoint-fixed contract look deployment-dependent, and leaves the editor useless while disconnected                                   |
+| Model `filter`/`agg` as structured types rather than rows | more type machinery than two parameters justify; `rows` is data, and the view stays generic                                                       |
 
 ## Risks and open questions
 

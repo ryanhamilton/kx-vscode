@@ -45,7 +45,7 @@ describe("ChartEditorProvider", () => {
     it("should resolve", async () => {
       const provider = new ChartEditorProvider(context);
       const document = await vscode.workspace.openTextDocument({
-        language: "kdbplot",
+        language: "peachqplot",
         content: "{}",
       });
       sinon.stub(utils, "getUri").value(() => "");

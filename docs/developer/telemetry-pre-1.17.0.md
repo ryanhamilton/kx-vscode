@@ -1,7 +1,9 @@
 ---
 type: Reference
 title: Telemetry (Pre 1.17.0)
-description: Legacy telemetry event names and the functions that emitted them, prior to extension version 1.17.0.
+description:
+  Legacy telemetry event names and the functions that emitted them, prior to
+  extension version 1.17.0.
 tags: [kdb, vscode, telemetry, legacy]
 timestamp: 2026-07-10
 ---
@@ -59,13 +61,13 @@ timestamp: 2026-07-10
 | Connection.Failed.KDB+.Local                 | ConnectionManagementService.connectFailBehaviour |
 | Connection.Disconnected.Insights             | ConnectionManagementService.disconnectBehaviour  |
 | Connection.Disconnected.KDB                  | ConnectionManagementService.disconnectBehaviour  |
-| Connections.Export.All                       | command kdb.connections.export.all               |
-| Connections.Export.Single                    | command kdb.connections.export.single            |
-| Connections.Import                           | command kdb.connections.import                   |
-| Help&Feedback.Open.ExtensionDocumentation    | command kdb.help.openDocumentation               |
-| Help&Feedback.Open.ReportBug                 | command kdb.help.reportBug                       |
-| Help&Feedback.Open.SuggestFeature            | command kdb.help.suggestFeature                  |
-| Help&Feedback.Open.Survey                    | command kdb.help.provideFeedback                 |
+| Connections.Export.All                       | command peachq.connections.export.all            |
+| Connections.Export.Single                    | command peachq.connections.export.single         |
+| Connections.Import                           | command peachq.connections.import                |
+| Help&Feedback.Open.ExtensionDocumentation    | command peachq.help.openDocumentation            |
+| Help&Feedback.Open.ReportBug                 | command peachq.help.reportBug                    |
+| Help&Feedback.Open.SuggestFeature            | command peachq.help.suggestFeature               |
+| Help&Feedback.Open.Survey                    | command peachq.help.provideFeedback              |
 | Help&Feedback.Hide.Survey                    | feedbackSurveyUtils.showSurveyDialog             |
 | Label.Assign.Connection                      | connLabel.addConnToLabel                         |
 | Label.Cleanup.NoLabels                       | connLabel.clearWorkspaceLabels                   |

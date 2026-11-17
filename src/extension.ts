@@ -129,7 +129,7 @@ import { addWorkspaceFile, openWith, setUriContent } from "./utils/workspace";
 
 const logger = "extension";
 
-// Sets where query results are written — the kdb Results View (true) or the
+// Sets where query results are written — the peachq Results View (true) or the
 // connection's output console/Terminal (false) — and mirrors it into a context
 // key so the editor-toolbar selector reflects the current destination. When
 // switching to the Results View, reveal it so results are immediately visible.
@@ -137,7 +137,7 @@ function setResultsDestination(showInView: boolean) {
   ext.isResultsTabVisible = showInView;
   vscode.commands.executeCommand(
     "setContext",
-    "kdb.showResultsInView",
+    "peachq.showResultsInView",
     showInView,
   );
   if (showInView) {
@@ -149,7 +149,9 @@ let client: LanguageClient;
 
 export async function activate(context: vscode.ExtensionContext) {
   ext.context = context;
-  ext.outputChannel = vscode.window.createOutputChannel("kdb", { log: true });
+  ext.outputChannel = vscode.window.createOutputChannel("peachq", {
+    log: true,
+  });
   ext.openSslVersion = await checkOpenSslInstalled();
 
   const extensionPackage = context.extension.packageJSON;
@@ -167,10 +169,14 @@ export async function activate(context: vscode.ExtensionContext) {
   getWorkspaceLabels();
 
   // clear necessary contexts
-  vscode.commands.executeCommand("setContext", "kdb.connected.active", false);
-  vscode.commands.executeCommand("setContext", "kdb.pythonEnabled", false);
-  vscode.commands.executeCommand("setContext", "kdb.connected", []);
-  vscode.commands.executeCommand("setContext", "kdb.kdbQHCopyList", []);
+  vscode.commands.executeCommand(
+    "setContext",
+    "peachq.connected.active",
+    false,
+  );
+  vscode.commands.executeCommand("setContext", "peachq.pythonEnabled", false);
+  vscode.commands.executeCommand("setContext", "peachq.connected", []);
+  vscode.commands.executeCommand("setContext", "peachq.kdbQHCopyList", []);
 
   // Default query results to the output console (Terminal), not the view.
   setResultsDestination(false);
@@ -192,25 +198,25 @@ export async function activate(context: vscode.ExtensionContext) {
     "datasource",
   );
 
-  vscode.commands.executeCommand("setContext", "kdb.QHOME", env.QHOME);
+  vscode.commands.executeCommand("setContext", "peachq.QHOME", env.QHOME);
 
-  vscode.window.registerTreeDataProvider("kdb-servers", ext.serverProvider);
+  vscode.window.registerTreeDataProvider("peachq-servers", ext.serverProvider);
 
   vscode.window.registerTreeDataProvider(
-    "kdb-query-history",
+    "peachq-query-history",
     ext.queryHistoryProvider,
   );
   vscode.window.registerTreeDataProvider(
-    "kdb-scratchpad-explorer",
+    "peachq-scratchpad-explorer",
     ext.scratchpadTreeProvider,
   );
   vscode.window.registerTreeDataProvider(
-    "kdb-query-explorer",
+    "peachq-query-explorer",
     ext.queryTreeProvider,
   );
 
   vscode.window.registerTreeDataProvider(
-    "kdb-help-feedback-view",
+    "peachq-help-feedback-view",
     new HelpFeedbackProvider(),
   );
 
@@ -242,14 +248,14 @@ export async function activate(context: vscode.ExtensionContext) {
     ),
     ext.diagnosticCollection,
     vscode.workspace.onDidChangeConfiguration((event) => {
-      if (event.affectsConfiguration("kdb.connectionMap")) {
+      if (event.affectsConfiguration("peachq.connectionMap")) {
         ext.queryTreeProvider.reload();
         ext.scratchpadTreeProvider.reload();
       }
-      if (event.affectsConfiguration("kdb.connectionLabelsMap")) {
+      if (event.affectsConfiguration("peachq.connectionLabelsMap")) {
         ext.serverProvider.reload();
       }
-      if (event.affectsConfiguration("kdb.connectionLabels")) {
+      if (event.affectsConfiguration("peachq.connectionLabels")) {
         ext.serverProvider.reload();
       }
     }),
@@ -286,7 +292,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.workspace.registerNotebookSerializer(
-      "kx-notebook",
+      "peachq-notebook",
       new KxNotebookSerializer(),
     ),
     (ext.notebookController = new KxNotebookController()),
@@ -294,7 +300,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.notebooks.registerNotebookCellStatusBarItemProvider(
-      "kx-notebook",
+      "peachq-notebook",
       new KxNotebookTargetActionProvider(),
     ),
   );
@@ -305,10 +311,10 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(trackNotebookOnRepl());
   context.subscriptions.push(trackNotebookRowLimit());
 
-  // Make the KDB Results view discoverable from a connection console: the
-  // console prints an "Open KDB Results View" hint, which this provider turns
+  // Make the peachq Results view discoverable from a connection console: the
+  // console prints an "Open peachq Results View" hint, which this provider turns
   // into a clickable link (terminals disallow command: hyperlinks directly)
-  // that reveals the KDB Results view in the bottom panel.
+  // that reveals the peachq Results view in the bottom panel.
   const resultsLinkProvider: vscode.TerminalLinkProvider = {
     provideTerminalLinks: (linkContext: vscode.TerminalLinkContext) => {
       const index = linkContext.line.indexOf(OPEN_RESULTS_HINT);
@@ -319,7 +325,7 @@ export async function activate(context: vscode.ExtensionContext) {
         {
           startIndex: index,
           length: OPEN_RESULTS_HINT.length,
-          tooltip: "Open kdb Results View",
+          tooltip: "Open peachq Results View",
         },
       ];
     },
@@ -351,7 +357,7 @@ export async function activate(context: vscode.ExtensionContext) {
       },
       {
         language: "q",
-        notebook: { notebookType: "kx-notebook" },
+        notebook: { notebookType: "peachq-notebook" },
       },
     ],
     synchronize: {
@@ -364,8 +370,8 @@ export async function activate(context: vscode.ExtensionContext) {
   };
 
   client = new LanguageClient(
-    "kdb LangServer",
-    "kdb Language Server",
+    "peachq LangServer",
+    "peachq Language Server",
     serverOptions,
     clientOptions,
   );
@@ -424,7 +430,7 @@ export async function activate(context: vscode.ExtensionContext) {
     checkLocalInstall();
   }, 500);
 
-  notify("kdb extension is now active.", MessageKind.DEBUG, {
+  notify("peachq extension is now active.", MessageKind.DEBUG, {
     logger,
     telemetry: "Extension.Activated",
   });
@@ -432,8 +438,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
 function registerSetupCommands(): CommandRegistration[] {
   const setupCommands: CommandRegistration[] = [
-    { command: "kdb.show.welcome", callback: () => showWelcome() },
-    { command: "kdb.install.kdbx", callback: () => installKdbX() },
+    { command: "peachq.show.welcome", callback: () => showWelcome() },
+    { command: "peachq.install.kdbx", callback: () => installKdbX() },
   ];
 
   return setupCommands;
@@ -442,24 +448,24 @@ function registerSetupCommands(): CommandRegistration[] {
 function registerHelpCommands(): CommandRegistration[] {
   const helpCommands: CommandRegistration[] = [
     {
-      command: "kdb.help.openDocumentation",
+      command: "peachq.help.openDocumentation",
       callback: () => {
         vscode.commands
           .executeCommand(
             "workbench.extensions.action.showExtensionDetails",
-            "KX.kdb",
+            "peachq.peachq",
           )
           .then(undefined, () => {
             notify("Help&Feedback documentation selected.", MessageKind.DEBUG, {
               logger,
               telemetry: "Help.Open.Documentation",
             });
-            vscode.commands.executeCommand("extension.open", "KX.kdb");
+            vscode.commands.executeCommand("extension.open", "peachq.peachq");
           });
       },
     },
     {
-      command: "kdb.help.suggestFeature",
+      command: "peachq.help.suggestFeature",
       callback: () => {
         notify("Help&Feedback suggest a feature selected.", MessageKind.DEBUG, {
           logger,
@@ -469,7 +475,7 @@ function registerHelpCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.help.reportBug",
+      command: "peachq.help.reportBug",
       callback: () => {
         notify("Help&Feedback report a bug selected.", MessageKind.DEBUG, {
           logger,
@@ -486,7 +492,7 @@ function registerHelpCommands(): CommandRegistration[] {
 function registerResultsPanelCommands(): CommandRegistration[] {
   const resultsCommands: CommandRegistration[] = [
     {
-      command: "kdb.resultsPanel.update",
+      command: "peachq.resultsPanel.update",
       callback: (
         results: any,
         isInsights: boolean,
@@ -502,22 +508,22 @@ function registerResultsPanelCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.resultsPanel.clear",
+      command: "peachq.resultsPanel.clear",
       callback: () => ext.resultsViewProvider.updateResults(""),
     },
     {
-      command: "kdb.resultsPanel.export.csv",
+      command: "peachq.resultsPanel.export.csv",
       callback: () => ext.resultsViewProvider.exportToCsv(),
     },
     {
       // Editor-toolbar selector: route query results to the connection's
       // output console (Terminal).
-      command: "kdb.results.destination.terminal",
+      command: "peachq.results.destination.terminal",
       callback: () => setResultsDestination(false),
     },
     {
-      // Editor-toolbar selector: route query results to the kdb Results View.
-      command: "kdb.results.destination.view",
+      // Editor-toolbar selector: route query results to the peachq Results View.
+      command: "peachq.results.destination.view",
       callback: () => setResultsDestination(true),
     },
   ];
@@ -528,7 +534,7 @@ function registerResultsPanelCommands(): CommandRegistration[] {
 function registerQueryCommands(): CommandRegistration[] {
   const queryCommands: CommandRegistration[] = [
     {
-      command: "kdb.query.create",
+      command: "peachq.query.create",
       callback: async (item: FileTreeItem) => {
         if (hasWorkspaceOrShowOption("adding queries")) {
           const uri = await addWorkspaceFile(
@@ -551,11 +557,11 @@ function registerQueryCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.query.convert",
+      command: "peachq.query.convert",
       callback: async () => await convertDataSources(),
     },
     {
-      command: "kdb.query.refresh",
+      command: "peachq.query.refresh",
       callback: () => ext.queryTreeProvider.reload(),
     },
   ];
@@ -566,26 +572,26 @@ function registerQueryCommands(): CommandRegistration[] {
 function registerScratchpadCommands(): CommandRegistration[] {
   const scratchpadCommands: CommandRegistration[] = [
     {
-      command: "kdb.scratchpad.run",
+      command: "peachq.scratchpad.run",
       callback: async () => {
         await runActiveEditor();
       },
     },
     {
-      command: "kdb.scratchpad.reset",
+      command: "peachq.scratchpad.reset",
       callback: async (viewItem?: InsightsNode) => {
         const connLabel = viewItem ? viewItem.label : undefined;
         await resetScratchpad(connLabel);
       },
     },
     {
-      command: "kdb.scratchpad.editor.reset",
+      command: "peachq.scratchpad.editor.reset",
       callback: async () => {
         await resetScratchpadFromEditor();
       },
     },
     {
-      command: "kdb.scratchpad.create",
+      command: "peachq.scratchpad.create",
       callback: async (item: FileTreeItem) => {
         if (hasWorkspaceOrShowOption("adding workbooks")) {
           const uri = await addWorkspaceFile(
@@ -604,19 +610,19 @@ function registerScratchpadCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.scratchpad.python.run",
+      command: "peachq.scratchpad.python.run",
       callback: async () => {
         await runActiveEditor(ExecutionTypes.PythonQuerySelection);
       },
     },
     {
-      command: "kdb.scratchpad.python.run.file",
+      command: "peachq.scratchpad.python.run.file",
       callback: async () => {
         await runActiveEditor(ExecutionTypes.PythonQueryFile);
       },
     },
     {
-      command: "kdb.scratchpad.python.create",
+      command: "peachq.scratchpad.python.create",
       callback: async (item: FileTreeItem) => {
         if (hasWorkspaceOrShowOption("adding workbooks")) {
           const uri = await addWorkspaceFile(
@@ -635,7 +641,7 @@ function registerScratchpadCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.scratchpad.sql.create",
+      command: "peachq.scratchpad.sql.create",
       callback: async (item: FileTreeItem) => {
         if (hasWorkspaceOrShowOption("adding workbooks")) {
           const uri = await addWorkspaceFile(
@@ -654,7 +660,7 @@ function registerScratchpadCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.scratchpad.explorer.refresh",
+      command: "peachq.scratchpad.explorer.refresh",
       callback: () => {
         ext.scratchpadTreeProvider.reload();
       },
@@ -667,7 +673,7 @@ function registerScratchpadCommands(): CommandRegistration[] {
 function registerQueryHistoryCommands(): CommandRegistration[] {
   const queryHistoryCommands: CommandRegistration[] = [
     {
-      command: "kdb.queryHistory.clear",
+      command: "peachq.queryHistory.clear",
       callback: () => {
         ext.kdbQueryHistoryList.length = 0;
         ext.kdbQueryHistoryNodes.length = 0;
@@ -675,13 +681,13 @@ function registerQueryHistoryCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.queryHistory.rerun",
+      command: "peachq.queryHistory.rerun",
       callback: async (viewItem: QueryHistoryTreeItem) => {
         rerunQuery(viewItem.details);
       },
     },
     {
-      command: "kdb.queryHistory.copyQuery",
+      command: "peachq.queryHistory.copyQuery",
       callback: async (viewItem: QueryHistoryTreeItem) => {
         copyQuery(viewItem.details);
       },
@@ -694,7 +700,7 @@ function registerQueryHistoryCommands(): CommandRegistration[] {
 function registerConnectionsCommands(): CommandRegistration[] {
   const connectionCommands: CommandRegistration[] = [
     {
-      command: "kdb.connections.connect",
+      command: "peachq.connections.connect",
       callback: async (viewItem?: KdbNode | InsightsNode) => {
         if (!viewItem?.label) {
           return;
@@ -703,13 +709,13 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.connect.via.dialog",
+      command: "peachq.connections.connect.via.dialog",
       callback: async (connLabel: string) => {
         await connect(connLabel);
       },
     },
     {
-      command: "kdb.connections.setActive",
+      command: "peachq.connections.setActive",
       callback: async (viewItem?: KdbNode) => {
         if (!viewItem) {
           return;
@@ -718,7 +724,7 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.addAuthentication",
+      command: "peachq.connections.addAuthentication",
       callback: async (viewItem?: KdbNode) => {
         if (!viewItem?.children?.[0]) {
           return;
@@ -740,7 +746,7 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.enableTLS",
+      command: "peachq.connections.enableTLS",
       callback: async (viewItem?: KdbNode) => {
         if (!viewItem?.children?.[0]) {
           return;
@@ -749,7 +755,7 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.remove.insights",
+      command: "peachq.connections.remove.insights",
       callback: async (viewItem?: InsightsNode) => {
         if (!viewItem) {
           return;
@@ -758,7 +764,7 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.remove.kdb",
+      command: "peachq.connections.remove.kdb",
       callback: async (viewItem?: KdbNode) => {
         if (!viewItem) {
           return;
@@ -767,7 +773,7 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.disconnect",
+      command: "peachq.connections.disconnect",
       callback: async (viewItem?: InsightsNode | KdbNode | string) => {
         const connLabel =
           typeof viewItem === "string" ? viewItem : viewItem?.label;
@@ -778,7 +784,7 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.export.all",
+      command: "peachq.connections.export.all",
       callback: () => {
         notify("Export all conections.", MessageKind.DEBUG, {
           logger,
@@ -788,7 +794,7 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.export.single",
+      command: "peachq.connections.export.single",
       callback: async (viewItem?: KdbNode | InsightsNode) => {
         if (!viewItem?.label) {
           return;
@@ -801,7 +807,7 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.import",
+      command: "peachq.connections.import",
       callback: async () => {
         notify("Import conections.", MessageKind.DEBUG, {
           logger,
@@ -811,7 +817,7 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.content.selectView",
+      command: "peachq.connections.content.selectView",
       callback: async (viewItem) => {
         const connLabel = viewItem?.connLabel;
         if (connLabel) {
@@ -833,7 +839,7 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.open.meta",
+      command: "peachq.connections.open.meta",
       callback: async (viewItem?: InsightsMetaNode | MetaObjectPayloadNode) => {
         if (!viewItem) {
           return;
@@ -842,13 +848,13 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.add",
+      command: "peachq.connections.add",
       callback: async () => {
         await addNewConnection();
       },
     },
     {
-      command: "kdb.connections.edit",
+      command: "peachq.connections.edit",
       callback: async (viewItem?: KdbNode | InsightsNode) => {
         if (!viewItem) {
           return;
@@ -857,19 +863,19 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.add.insights",
+      command: "peachq.connections.add.insights",
       callback: async (insightsData: InsightDetails, labels: string[]) => {
         await addInsightsConnection(insightsData, labels);
       },
     },
     {
-      command: "kdb.connections.add.kdb",
+      command: "peachq.connections.add.kdb",
       callback: async (kdbData: ServerDetails, labels: string[]) => {
         await addKdbConnection(kdbData, labels);
       },
     },
     {
-      command: "kdb.connections.edit.insights",
+      command: "peachq.connections.edit.insights",
       callback: async (
         insightsData: InsightDetails,
         oldAlias: string,
@@ -879,7 +885,7 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.edit.kdb",
+      command: "peachq.connections.edit.kdb",
       callback: async (
         kdbData: ServerDetails,
         oldAlias: string,
@@ -890,7 +896,7 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.refresh.serverObjects",
+      command: "peachq.connections.refresh.serverObjects",
       callback: async () => {
         const runner = Runner.create(() => {
           ext.serverProvider.reload();
@@ -902,7 +908,7 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.refresh.meta",
+      command: "peachq.connections.refresh.meta",
       callback: async (viewItem?: InsightsNode) => {
         const runner = Runner.create(() => refreshGetMeta(viewItem?.label));
         runner.location = vscode.ProgressLocation.Notification;
@@ -911,13 +917,13 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.labels.add",
+      command: "peachq.connections.labels.add",
       callback: async (name: string, colorName: string) => {
         await createNewLabel(name, colorName);
       },
     },
     {
-      command: "kdb.connections.labels.rename",
+      command: "peachq.connections.labels.rename",
       callback: async (item) => {
         if (item) {
           const name = await vscode.window.showInputBox({
@@ -931,7 +937,7 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.labels.edit",
+      command: "peachq.connections.labels.edit",
       callback: async (item) => {
         if (item) {
           const colors = ext.labelColors.map((color) => ({
@@ -949,7 +955,7 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.labels.delete",
+      command: "peachq.connections.labels.delete",
       callback: (item) => {
         if (item) {
           deleteLabel(item.label);
@@ -964,7 +970,7 @@ function registerConnectionsCommands(): CommandRegistration[] {
 function registerExecuteCommands(): CommandRegistration[] {
   const editorCommands: CommandRegistration[] = [
     {
-      command: "kdb.execute.selectedQuery",
+      command: "peachq.execute.selectedQuery",
       callback: async () => {
         const editor = vscode.window.activeTextEditor;
         const cell = ext.notebookController.findCell(editor);
@@ -976,7 +982,7 @@ function registerExecuteCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.execute.fileQuery",
+      command: "peachq.execute.fileQuery",
       callback: async () => {
         await runActiveEditor(ExecutionTypes.QueryFile);
       },
@@ -989,7 +995,7 @@ function registerExecuteCommands(): CommandRegistration[] {
 function registerFileCommands(): CommandRegistration[] {
   const fileCommands: CommandRegistration[] = [
     {
-      command: "kdb.file.rename",
+      command: "peachq.file.rename",
       callback: async (item: FileTreeItem) => {
         if (item && item.resourceUri) {
           if (item.resourceUri.path.endsWith(".kxquery")) {
@@ -1006,7 +1012,7 @@ function registerFileCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.file.delete",
+      command: "peachq.file.delete",
       callback: async (item: FileTreeItem) => {
         if (item && item.resourceUri) {
           if (item.resourceUri.path.endsWith(".kxquery")) {
@@ -1023,7 +1029,7 @@ function registerFileCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.file.pickConnection",
+      command: "peachq.file.pickConnection",
       callback: async (context?: unknown) => {
         const uri = getActiveFileUri(context);
         if (uri) {
@@ -1032,7 +1038,7 @@ function registerFileCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.file.pickTarget",
+      command: "peachq.file.pickTarget",
       callback: async (cell?: vscode.NotebookCell) => {
         const uri = cell ? cell.notebook.uri : getActiveFileUri();
         if (uri) {
@@ -1041,7 +1047,7 @@ function registerFileCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.file.pickTimeout",
+      command: "peachq.file.pickTimeout",
       callback: async () => {
         const uri = getActiveFileUri();
         if (uri) {
@@ -1050,13 +1056,13 @@ function registerFileCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.file.inputVariable",
+      command: "peachq.file.inputVariable",
       callback: async (cell: vscode.NotebookCell) => {
         await inputVariable(cell);
       },
     },
     {
-      command: "kdb.file.populateScratchpad",
+      command: "peachq.file.populateScratchpad",
       callback: async () => {
         await runActiveEditor(ExecutionTypes.PopulateScratchpad);
       },
@@ -1069,7 +1075,7 @@ function registerFileCommands(): CommandRegistration[] {
 function registerLSCommands(): CommandRegistration[] {
   const lsCommands: CommandRegistration[] = [
     {
-      command: "kdb.ls.q.lint",
+      command: "peachq.ls.q.lint",
       callback: async () => {
         const editor = ext.activeTextEditor;
         if (editor) {
@@ -1085,10 +1091,10 @@ function registerLSCommands(): CommandRegistration[] {
 function registerNotebookCommands(): CommandRegistration[] {
   const notebookCommands: CommandRegistration[] = [
     {
-      command: "kdb.createNotebook",
+      command: "peachq.createNotebook",
       callback: async () => {
         const notebook = await vscode.workspace.openNotebookDocument(
-          "kx-notebook",
+          "peachq-notebook",
           {
             cells: [
               {
@@ -1104,13 +1110,13 @@ function registerNotebookCommands(): CommandRegistration[] {
     },
     // The toolbar shows the current setting as the button label, so each
     // value has its own command; they all open the same picker.
-    ...["kdb.notebook.rowLimit"]
+    ...["peachq.notebook.rowLimit"]
       .concat(
-        ROW_LIMIT_PRESETS.map((limit) => `kdb.notebook.rowLimit.${limit}`),
+        ROW_LIMIT_PRESETS.map((limit) => `peachq.notebook.rowLimit.${limit}`),
       )
       .map((command) => ({ command, callback: () => pickRowLimit() })),
     ...["first", "last"].map((from) => ({
-      command: `kdb.notebook.rowLimitFrom.${from}`,
+      command: `peachq.notebook.rowLimitFrom.${from}`,
       callback: () => pickRowLimitFrom(),
     })),
   ];
@@ -1121,13 +1127,13 @@ function registerNotebookCommands(): CommandRegistration[] {
 function registerReplCommands(): CommandRegistration[] {
   const replCommands: CommandRegistration[] = [
     {
-      command: "kdb.repl.start",
+      command: "peachq.repl.start",
       callback: () => {
         startRepl();
       },
     },
     {
-      command: "kdb.repl.openFolder",
+      command: "peachq.repl.openFolder",
       callback: (uri?: vscode.Uri) => {
         startReplInFolder(uri);
       },

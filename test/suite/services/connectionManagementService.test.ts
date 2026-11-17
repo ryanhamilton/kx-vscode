@@ -440,7 +440,7 @@ describe("ConnectionManagementService", () => {
       sinon.assert.calledWith(
         executeCommandStub,
         "setContext",
-        "kdb.connected",
+        "peachq.connected",
         [insightNode.label],
       );
     });

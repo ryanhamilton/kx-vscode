@@ -20,10 +20,10 @@ import * as vscode from "vscode";
 import { activate, focus, mark, reveal, since, terminal, until } from "./utils";
 import { kdb, SERVER, start } from "./utils/connection";
 
-const REPL = "KX REPL";
+const REPL = "peachq REPL";
 
 // Deliberately not under the folder VS Code was opened on: assignments for
-// these cannot go into kdb.connectionMap, which is keyed by workspace relative
+// these cannot go into peachq.connectionMap, which is keyed by workspace relative
 // path, so the extension keeps them in memory for the session instead.
 const OUTSIDE = fs.mkdtempSync(path.join(os.tmpdir(), "kx-e2e-"));
 const OUTSIDE_FILE = vscode.Uri.file(path.join(OUTSIDE, "outside.q"));
@@ -31,7 +31,7 @@ const QUERY = '"OUTSIDE_WORKSPACE"';
 
 // The picker's items, in the order pickConnection builds them.
 function items() {
-  const configuration = vscode.workspace.getConfiguration("kdb");
+  const configuration = vscode.workspace.getConfiguration("peachq");
   const servers = configuration.get<{
     [key: string]: { serverAlias: string };
   }>("servers", {});
@@ -41,7 +41,7 @@ function items() {
   );
 
   const repls = vscode.window.terminals
-    .map((found) => /^KX REPL \((.+)\)$/s.exec(found.name)?.[1])
+    .map((found) => /^peachq REPL \((.+)\)$/s.exec(found.name)?.[1])
     .filter((label): label is string => !!label)
     .sort((a, b) => a.localeCompare(b))
     .map((label) => `REPL (${label})`);
@@ -61,7 +61,7 @@ async function pick(label: string) {
   const index = items().indexOf(label);
   assert.notStrictEqual(index, -1, `${label} is not offered by the picker`);
 
-  const picking = vscode.commands.executeCommand("kdb.file.pickConnection");
+  const picking = vscode.commands.executeCommand("peachq.file.pickConnection");
   await new Promise((resolve) => setTimeout(resolve, 300));
 
   for (let step = 0; step < index; step++) {
@@ -79,7 +79,7 @@ async function pick(label: string) {
 function assigned() {
   const map =
     vscode.workspace
-      .getConfiguration("kdb")
+      .getConfiguration("peachq")
       .get<{ [key: string]: string }>("connectionMap") ?? {};
   return Object.keys(map);
 }
@@ -94,7 +94,7 @@ describe("A file outside the workspace", () => {
       `/ Outside the workspace on purpose.\n\n${QUERY}\n`,
     );
 
-    await vscode.commands.executeCommand("kdb.repl.start");
+    await vscode.commands.executeCommand("peachq.repl.start");
     await until(() => !!terminal(REPL), "the REPL terminal to open");
   });
 
@@ -109,7 +109,7 @@ describe("A file outside the workspace", () => {
 
     kdb.clear();
     const from = mark();
-    await vscode.commands.executeCommand("kdb.execute.fileQuery");
+    await vscode.commands.executeCommand("peachq.execute.fileQuery");
 
     assert.ok(
       since(from).includes(QUERY),
@@ -130,7 +130,7 @@ describe("A file outside the workspace", () => {
     // in memory, keyed by uri.
     assert.ok(
       !assigned().some((key) => key.includes("outside")),
-      `the assignment was written to kdb.connectionMap:\n${assigned().join("\n")}`,
+      `the assignment was written to peachq.connectionMap:\n${assigned().join("\n")}`,
     );
   });
 
@@ -140,7 +140,7 @@ describe("A file outside the workspace", () => {
 
     kdb.clear();
     const from = mark();
-    await vscode.commands.executeCommand("kdb.execute.fileQuery");
+    await vscode.commands.executeCommand("peachq.execute.fileQuery");
 
     await until(
       () => kdb.queries().length > 0,

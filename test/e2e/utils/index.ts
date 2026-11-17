@@ -142,7 +142,7 @@ export async function until(condition: () => boolean, what: string) {
 }
 
 export async function activate() {
-  const extension = vscode.extensions.getExtension("KX.kdb");
+  const extension = vscode.extensions.getExtension("peachq.peachq");
   assert.ok(extension, "the kdb extension is not installed in this window");
   await extension.activate();
 }
@@ -232,8 +232,8 @@ export async function waitForLanguageServer(uri: vscode.Uri) {
 export async function executeNotebook(notebook: vscode.NotebookDocument) {
   await vscode.window.showNotebookDocument(notebook);
   await vscode.commands.executeCommand("notebook.selectKernel", {
-    id: "kx-notebook-1",
-    extension: "KX.kdb",
+    id: "peachq-notebook-1",
+    extension: "peachq.peachq",
   });
   await vscode.commands.executeCommand("notebook.clearAllCellsOutputs");
   await until(

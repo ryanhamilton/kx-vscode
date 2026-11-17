@@ -1,41 +1,54 @@
 ---
 type: Guide
 title: Use PyKX Within REPL
-description: Installation steps for enabling PyKX and q/Python integration inside the KX REPL.
+description:
+  Installation steps for enabling PyKX and q/Python integration inside the
+  peachq REPL.
 tags: [kdb, vscode, pykx, python, repl]
 timestamp: 2026-09-30
 ---
 
 ## Installation Steps
 
-1. Install [kdb](https://marketplace.visualstudio.com/items?itemName=KX.kdb) and [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python) extensions in VS Code. The Python extension installs [Python Environments](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-python-envs) with it, which is where the REPL finds your environment.
-2. Install [KDB-X](https://code.kx.com/kdb-x/get_started/kdb-x-install.html) from welcome page.
-3. Open a [workspace](https://code.visualstudio.com/docs/editing/workspaces/workspaces) folder in VS Code.
-4. Create or select a Python environment for the folder through the command palette or the Python Environments view.
+1. Install [kdb](https://marketplace.visualstudio.com/items?itemName=KX.kdb) and
+   [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
+   extensions in VS Code. The Python extension installs
+   [Python Environments](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-python-envs)
+   with it, which is where the REPL finds your environment.
+2. Install [KDB-X](https://code.kx.com/kdb-x/get_started/kdb-x-install.html)
+   from welcome page.
+3. Open a
+   [workspace](https://code.visualstudio.com/docs/editing/workspaces/workspaces)
+   folder in VS Code.
+4. Create or select a Python environment for the folder through the command
+   palette or the Python Environments view.
 
 ![Select virtual environment](../images/pykx-select-venv.png)
 
-5. Start a VS Code terminal and install PyKX and q integration in the selected environment:
+5. Start a VS Code terminal and install PyKX and q integration in the selected
+   environment:
 
 ```
 pip install --upgrade pykx
 ```
+
 ```
 python -c "import pykx;pykx.install_into_QHOME(to_local_folder='$HOME/.kx')"
 ```
 
-6. Start KX REPL and test your installation:
+6. Start peachq REPL and test your installation:
 
 ```
 \l pykx.q
 ```
+
 ![PyKX REPL test](../images/pykx-repl-test.png)
 
 ## How the REPL uses the environment
 
 When a REPL starts, it asks Python Environments for the environment selected for
-its folder: the workspace folder for **KX: Start REPL**, the folder you picked
-for **KX: Start REPL Here**, so each project folder can have its own.
+its folder: the workspace folder for **peachq: Start REPL**, the folder you
+picked for **peachq: Start REPL Here**, so each project folder can have its own.
 
 - The environment is activated before q starts, the way a VS Code terminal
   activates it, and its name is shown before the prompt. An environment with
@@ -91,4 +104,8 @@ PYKX_USE_FIND_LIBPYTHON="true"
 
 ## Documentation
 
-For more information see [KDB-X](https://code.kx.com/kdb-x), [PyKX](https://code.kx.com/kdb-x/get_started/kdb-x-python-install.html#make-kdb-x-python-available-within-kdb-x) and [VS Code](https://code.visualstudio.com/docs/python/environments#_environment-variables) documentation.
+For more information see [KDB-X](https://code.kx.com/kdb-x),
+[PyKX](https://code.kx.com/kdb-x/get_started/kdb-x-python-install.html#make-kdb-x-python-available-within-kdb-x)
+and
+[VS Code](https://code.visualstudio.com/docs/python/environments#_environment-variables)
+documentation.

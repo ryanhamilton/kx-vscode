@@ -42,7 +42,7 @@ async function opened() {
 
 async function open(label: string, connLabel?: string) {
   await vscode.commands.executeCommand(
-    "kdb.connections.open.meta",
+    "peachq.connections.open.meta",
     node(label, connLabel),
   );
 }

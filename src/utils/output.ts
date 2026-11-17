@@ -39,7 +39,7 @@ export class Output {
   }
 
   public static _outputChannel: OutputChannel =
-    window.createOutputChannel("kdb-telemetry");
+    window.createOutputChannel("peachq-telemetry");
 
   private static formatMessage(label = "", message = ""): string {
     return `${label ? `[${label}] ` : ""}${message}`;

@@ -194,11 +194,11 @@ export class ConnectionManagementService {
     if (!connection) {
       return;
     }
-    commands.executeCommand("setContext", "kdb.connected.active", [
+    commands.executeCommand("setContext", "peachq.connected.active", [
       `${node.label}`,
     ]);
     notify("Connection activated.", MessageKind.DEBUG, { logger });
-    commands.executeCommand("setContext", "kdb.pythonEnabled", true);
+    commands.executeCommand("setContext", "peachq.pythonEnabled", true);
 
     if (ext.activeConnection) {
       ext.activeConnection.setInactive();
@@ -221,8 +221,8 @@ export class ConnectionManagementService {
     ext.activeConnection.setInactive();
     ext.activeConnection = undefined;
     ext.connectionNode = undefined;
-    commands.executeCommand("setContext", "kdb.connected.active", false);
-    commands.executeCommand("setContext", "kdb.pythonEnabled", false);
+    commands.executeCommand("setContext", "peachq.connected.active", false);
+    commands.executeCommand("setContext", "peachq.pythonEnabled", false);
     ext.serverProvider.reload();
   }
 
@@ -292,7 +292,7 @@ export class ConnectionManagementService {
     ext.connectedContextStrings.push(connNode.label);
     commands.executeCommand(
       "setContext",
-      "kdb.connected",
+      "peachq.connected",
       ext.connectedContextStrings,
     );
     this.createConnectionConsole(connNode.label);
@@ -334,15 +334,15 @@ export class ConnectionManagementService {
     );
     commands.executeCommand(
       "setContext",
-      "kdb.connected",
+      "peachq.connected",
       ext.connectedContextStrings,
     );
     if (ext.activeConnection === connection) {
       ext.activeConnection.setInactive();
       ext.activeConnection = undefined;
       ext.connectionNode = undefined;
-      commands.executeCommand("setContext", "kdb.connected.active", false);
-      commands.executeCommand("setContext", "kdb.pythonEnabled", false);
+      commands.executeCommand("setContext", "peachq.connected.active", false);
+      commands.executeCommand("setContext", "peachq.pythonEnabled", false);
     }
     notify(`Connection closed: ${connection.connLabel}`, MessageKind.DEBUG, {
       logger,

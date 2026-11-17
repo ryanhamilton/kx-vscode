@@ -203,7 +203,9 @@ describe("core", () => {
 
   /* eslint-disable @typescript-eslint/no-unused-expressions */
   describe("coreLogs", () => {
-    ext.outputChannel = vscode.window.createOutputChannel("kdb", { log: true });
+    ext.outputChannel = vscode.window.createOutputChannel("peachq", {
+      log: true,
+    });
     let appendLineSpy, showErrorMessageSpy: sinon.SinonSpy;
     beforeEach(() => {
       appendLineSpy = sinon.spy(
@@ -316,7 +318,7 @@ describe("core", () => {
     });
 
     it("getServers should skip entries without a string serverAlias", () => {
-      getStub.withArgs("kdb.servers").returns({
+      getStub.withArgs("peachq.servers").returns({
         bad1: { serverName: "x" },
         bad2: null,
         bad3: { serverAlias: 5 },
@@ -330,14 +332,14 @@ describe("core", () => {
     });
 
     it("getServers should return {} when the setting is not an object", () => {
-      getStub.withArgs("kdb.servers").returns(["not", "an", "object"]);
+      getStub.withArgs("peachq.servers").returns(["not", "an", "object"]);
 
       assert.deepStrictEqual(coreUtils.getServers(), {});
       assert.ok(notifyStub.calledOnce);
     });
 
     it("getServers should report the same problem only once", () => {
-      getStub.withArgs("kdb.servers").returns({ dup: { serverName: "x" } });
+      getStub.withArgs("peachq.servers").returns({ dup: { serverName: "x" } });
 
       coreUtils.getServers();
       coreUtils.getServers();
@@ -347,22 +349,22 @@ describe("core", () => {
 
     it("getServers should report a problem again after it was fixed", () => {
       const broken = { again: { serverName: "x" } };
-      getStub.withArgs("kdb.servers").returns(broken);
+      getStub.withArgs("peachq.servers").returns(broken);
       coreUtils.getServers();
 
       getStub
-        .withArgs("kdb.servers")
+        .withArgs("peachq.servers")
         .returns({ again: { serverAlias: "again" } });
       coreUtils.getServers();
 
-      getStub.withArgs("kdb.servers").returns(broken);
+      getStub.withArgs("peachq.servers").returns(broken);
       coreUtils.getServers();
 
       assert.strictEqual(notifyStub.callCount, 2);
     });
 
     it("getInsights should skip entries without a string alias", () => {
-      getStub.withArgs("kdb.insightsEnterpriseConnections").returns({
+      getStub.withArgs("peachq.insightsEnterpriseConnections").returns({
         bad: { server: "https://x" },
         good: { alias: "good", server: "https://good" },
       });
@@ -374,7 +376,7 @@ describe("core", () => {
     });
 
     it("getInsights should return {} when the setting is a string", () => {
-      getStub.withArgs("kdb.insightsEnterpriseConnections").returns("oops");
+      getStub.withArgs("peachq.insightsEnterpriseConnections").returns("oops");
 
       assert.deepStrictEqual(coreUtils.getInsights(), {});
       assert.ok(notifyStub.calledOnce);
@@ -382,7 +384,7 @@ describe("core", () => {
 
     it("updateServers should keep the invalid entries it was not given", async () => {
       const bad = { serverName: "x" };
-      getStub.withArgs("kdb.servers").returns({
+      getStub.withArgs("peachq.servers").returns({
         bad,
         old: { serverAlias: "old" },
       });
@@ -390,7 +392,7 @@ describe("core", () => {
       await coreUtils.updateServers({ added: { serverAlias: "added" } as any });
 
       assert.ok(updateStub.calledOnce);
-      assert.strictEqual(updateStub.firstCall.args[0], "kdb.servers");
+      assert.strictEqual(updateStub.firstCall.args[0], "peachq.servers");
       assert.deepStrictEqual(updateStub.firstCall.args[1], {
         bad,
         added: { serverAlias: "added" },
@@ -400,7 +402,7 @@ describe("core", () => {
     it("updateInsights should keep the invalid entries it was not given", async () => {
       const bad = { server: "https://x" };
       getStub
-        .withArgs("kdb.insightsEnterpriseConnections")
+        .withArgs("peachq.insightsEnterpriseConnections")
         .returns({ bad, good: { alias: "good" } });
 
       await coreUtils.updateInsights({ good: { alias: "good2" } as any });
@@ -413,16 +415,16 @@ describe("core", () => {
 
     it("getInsights should not migrate legacy data over invalid entries", () => {
       getStub
-        .withArgs("kdb.insightsEnterpriseConnections")
+        .withArgs("peachq.insightsEnterpriseConnections")
         .returns({ bad: { server: "https://x" } });
-      getStub.withArgs("kdb.insights").returns({ l: { alias: "l" } });
+      getStub.withArgs("peachq.insights").returns({ l: { alias: "l" } });
 
       assert.deepStrictEqual(coreUtils.getInsights(), {});
       assert.ok(updateStub.notCalled);
     });
 
     it("getInsights should migrate legacy entries but keep the legacy setting when some are invalid", () => {
-      getStub.withArgs("kdb.insights").returns({
+      getStub.withArgs("peachq.insights").returns({
         l: { alias: "l" },
         bad: { server: "https://x" },
       });
@@ -430,19 +432,19 @@ describe("core", () => {
       assert.deepStrictEqual(Object.keys(coreUtils.getInsights()), ["l"]);
       assert.ok(
         updateStub.calledWith(
-          "kdb.insightsEnterpriseConnections",
+          "peachq.insightsEnterpriseConnections",
           sinon.match({ l: { alias: "l" } }),
         ),
       );
-      assert.ok(updateStub.neverCalledWith("kdb.insights"));
+      assert.ok(updateStub.neverCalledWith("peachq.insights"));
     });
 
     it("getInsights should clear the legacy setting once all entries migrate", () => {
-      getStub.withArgs("kdb.insights").returns({ l: { alias: "l" } });
+      getStub.withArgs("peachq.insights").returns({ l: { alias: "l" } });
 
       coreUtils.getInsights();
 
-      assert.ok(updateStub.calledWith("kdb.insights", undefined));
+      assert.ok(updateStub.calledWith("peachq.insights", undefined));
     });
   });
 
@@ -500,7 +502,7 @@ describe("core", () => {
 
       assert.ok(typeof result === "object");
       assert.strictEqual(Object.keys(result).length, 0);
-      assert.ok(getStub.calledWith("kdb.servers"));
+      assert.ok(getStub.calledWith("peachq.servers"));
     });
 
     it("should return servers sorted alphabetically by serverAlias", () => {
@@ -674,7 +676,7 @@ describe("core", () => {
       coreUtils.getServers();
 
       assert.ok(getStub.calledOnce);
-      assert.ok(getStub.calledWith("kdb.servers"));
+      assert.ok(getStub.calledWith("peachq.servers"));
     });
   });
 
@@ -720,15 +722,17 @@ describe("core", () => {
     });
 
     it("should return undefined when no insights are configured", () => {
-      getStub.withArgs("kdb.insightsEnterpriseConnections").returns(undefined);
-      getStub.withArgs("kdb.insights").returns(undefined);
+      getStub
+        .withArgs("peachq.insightsEnterpriseConnections")
+        .returns(undefined);
+      getStub.withArgs("peachq.insights").returns(undefined);
 
       const result = coreUtils.getInsights();
 
       assert.ok(typeof result === "object");
       assert.strictEqual(Object.keys(result).length, 0);
-      assert.ok(getStub.calledWith("kdb.insightsEnterpriseConnections"));
-      assert.ok(getStub.calledWith("kdb.insights"));
+      assert.ok(getStub.calledWith("peachq.insightsEnterpriseConnections"));
+      assert.ok(getStub.calledWith("peachq.insights"));
     });
 
     it("should return insightsEnterpriseConnections when available and not empty", () => {
@@ -756,9 +760,9 @@ describe("core", () => {
       };
 
       getStub
-        .withArgs("kdb.insightsEnterpriseConnections")
+        .withArgs("peachq.insightsEnterpriseConnections")
         .returns(mockInsights);
-      getStub.withArgs("kdb.insights").returns(undefined);
+      getStub.withArgs("peachq.insights").returns(undefined);
 
       const result = coreUtils.getInsights();
 
@@ -780,11 +784,11 @@ describe("core", () => {
       assert.strictEqual(result[insightKeys[1]].realm, "beta-realm");
       assert.strictEqual(result[insightKeys[2]].insecure, false);
 
-      assert.ok(getStub.calledWith("kdb.insightsEnterpriseConnections"));
-      assert.ok(!getStub.calledWith("kdb.insights"));
+      assert.ok(getStub.calledWith("peachq.insightsEnterpriseConnections"));
+      assert.ok(!getStub.calledWith("peachq.insights"));
     });
 
-    it("should fallback to kdb.insights when insightsEnterpriseConnections is empty", () => {
+    it("should fallback to peachq.insights when insightsEnterpriseConnections is empty", () => {
       const mockFallbackInsights = {
         fallback2: {
           alias: "Fallback Beta",
@@ -798,8 +802,8 @@ describe("core", () => {
         },
       };
 
-      getStub.withArgs("kdb.insightsEnterpriseConnections").returns({});
-      getStub.withArgs("kdb.insights").returns(mockFallbackInsights);
+      getStub.withArgs("peachq.insightsEnterpriseConnections").returns({});
+      getStub.withArgs("peachq.insights").returns(mockFallbackInsights);
 
       const result = coreUtils.getInsights();
 
@@ -812,11 +816,11 @@ describe("core", () => {
         "Fallback Beta",
       ]);
 
-      assert.ok(getStub.calledWith("kdb.insightsEnterpriseConnections"));
-      assert.ok(getStub.calledWith("kdb.insights"));
+      assert.ok(getStub.calledWith("peachq.insightsEnterpriseConnections"));
+      assert.ok(getStub.calledWith("peachq.insights"));
     });
 
-    it("should fallback to kdb.insights when insightsEnterpriseConnections is undefined", () => {
+    it("should fallback to peachq.insights when insightsEnterpriseConnections is undefined", () => {
       const mockFallbackInsights = {
         single: {
           alias: "Single Fallback",
@@ -826,8 +830,10 @@ describe("core", () => {
         },
       };
 
-      getStub.withArgs("kdb.insightsEnterpriseConnections").returns(undefined);
-      getStub.withArgs("kdb.insights").returns(mockFallbackInsights);
+      getStub
+        .withArgs("peachq.insightsEnterpriseConnections")
+        .returns(undefined);
+      getStub.withArgs("peachq.insights").returns(mockFallbackInsights);
 
       const result = coreUtils.getInsights();
 
@@ -836,20 +842,20 @@ describe("core", () => {
       assert.strictEqual(insightKeys.length, 1);
       assert.strictEqual(result[insightKeys[0]].alias, "Single Fallback");
 
-      assert.ok(getStub.calledWith("kdb.insightsEnterpriseConnections"));
-      assert.ok(getStub.calledWith("kdb.insights"));
+      assert.ok(getStub.calledWith("peachq.insightsEnterpriseConnections"));
+      assert.ok(getStub.calledWith("peachq.insights"));
     });
 
     it("should return undefined when both sources are empty", () => {
-      getStub.withArgs("kdb.insightsEnterpriseConnections").returns({});
-      getStub.withArgs("kdb.insights").returns({});
+      getStub.withArgs("peachq.insightsEnterpriseConnections").returns({});
+      getStub.withArgs("peachq.insights").returns({});
 
       const result = coreUtils.getInsights();
 
       assert.ok(typeof result === "object");
       assert.strictEqual(Object.keys(result).length, 0);
-      assert.ok(getStub.calledWith("kdb.insightsEnterpriseConnections"));
-      assert.ok(getStub.calledWith("kdb.insights"));
+      assert.ok(getStub.calledWith("peachq.insightsEnterpriseConnections"));
+      assert.ok(getStub.calledWith("peachq.insights"));
     });
 
     it("should handle single insight correctly", () => {
@@ -864,7 +870,7 @@ describe("core", () => {
       };
 
       getStub
-        .withArgs("kdb.insightsEnterpriseConnections")
+        .withArgs("peachq.insightsEnterpriseConnections")
         .returns(mockInsights);
 
       const result = coreUtils.getInsights();
@@ -894,7 +900,7 @@ describe("core", () => {
       };
 
       getStub
-        .withArgs("kdb.insightsEnterpriseConnections")
+        .withArgs("peachq.insightsEnterpriseConnections")
         .returns(mockInsights);
 
       const result = coreUtils.getInsights();
@@ -928,7 +934,7 @@ describe("core", () => {
       };
 
       getStub
-        .withArgs("kdb.insightsEnterpriseConnections")
+        .withArgs("peachq.insightsEnterpriseConnections")
         .returns(mockInsights);
 
       const result = coreUtils.getInsights();
@@ -960,9 +966,9 @@ describe("core", () => {
       };
 
       getStub
-        .withArgs("kdb.insightsEnterpriseConnections")
+        .withArgs("peachq.insightsEnterpriseConnections")
         .returns(mockPrimaryInsights);
-      getStub.withArgs("kdb.insights").returns(mockFallbackInsights);
+      getStub.withArgs("peachq.insights").returns(mockFallbackInsights);
 
       const result = coreUtils.getInsights();
 
@@ -972,13 +978,15 @@ describe("core", () => {
       assert.strictEqual(result[insightKeys[0]].alias, "Primary Insight");
       assert.strictEqual(result[insightKeys[0]].server, "https://primary.com");
 
-      assert.ok(getStub.calledWith("kdb.insightsEnterpriseConnections"));
-      assert.ok(!getStub.calledWith("kdb.insights"));
+      assert.ok(getStub.calledWith("peachq.insightsEnterpriseConnections"));
+      assert.ok(!getStub.calledWith("peachq.insights"));
     });
 
     it("should call workspace.getConfiguration without parameters", () => {
-      getStub.withArgs("kdb.insightsEnterpriseConnections").returns(undefined);
-      getStub.withArgs("kdb.insights").returns(undefined);
+      getStub
+        .withArgs("peachq.insightsEnterpriseConnections")
+        .returns(undefined);
+      getStub.withArgs("peachq.insights").returns(undefined);
 
       coreUtils.getInsights();
 
@@ -987,13 +995,15 @@ describe("core", () => {
     });
 
     it("should call get method with correct parameters", () => {
-      getStub.withArgs("kdb.insightsEnterpriseConnections").returns(undefined);
-      getStub.withArgs("kdb.insights").returns(undefined);
+      getStub
+        .withArgs("peachq.insightsEnterpriseConnections")
+        .returns(undefined);
+      getStub.withArgs("peachq.insights").returns(undefined);
 
       coreUtils.getInsights();
 
-      assert.ok(getStub.calledWith("kdb.insightsEnterpriseConnections"));
-      assert.ok(getStub.calledWith("kdb.insights"));
+      assert.ok(getStub.calledWith("peachq.insightsEnterpriseConnections"));
+      assert.ok(getStub.calledWith("peachq.insights"));
     });
 
     it("should handle insights with optional properties", () => {
@@ -1013,7 +1023,7 @@ describe("core", () => {
       };
 
       getStub
-        .withArgs("kdb.insightsEnterpriseConnections")
+        .withArgs("peachq.insightsEnterpriseConnections")
         .returns(mockInsights);
 
       const result = coreUtils.getInsights();
@@ -1231,7 +1241,7 @@ describe("core", () => {
 
     it("should return if 'neverShowQInstallAgain' is true", async () => {
       getConfigurationStub()
-        .get.withArgs("kdb.neverShowQInstallAgain")
+        .get.withArgs("peachq.neverShowQInstallAgain")
         .returns(true);
 
       await coreUtils.checkLocalInstall();

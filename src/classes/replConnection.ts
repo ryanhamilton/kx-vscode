@@ -105,7 +105,7 @@ const NS = {
 
 const CONF = {
   DEFAULT: "default",
-  TITLE: `KX ${ext.REPL}`,
+  TITLE: `peachq ${ext.REPL}`,
   PROMPT: ")",
   MAX_INPUT: 80 * 40,
 };

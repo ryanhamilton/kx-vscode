@@ -287,7 +287,7 @@ export class ExecutionConsole {
         logger,
       });
       sink.appendError(`Please connect to a KDB or Insights server`);
-      commands.executeCommand("kdb.connections.disconnect");
+      commands.executeCommand("peachq.connections.disconnect");
       addQueryHistory(
         query,
         executorName,

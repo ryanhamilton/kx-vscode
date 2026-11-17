@@ -38,7 +38,9 @@ import { getMetaResponse } from "../../fixtures/api/getMeta";
 import { createMockDatasource } from "../../fixtures/config/datasource";
 
 describe("dataSourceCommand", () => {
-  ext.outputChannel = vscode.window.createOutputChannel("kdb", { log: true });
+  ext.outputChannel = vscode.window.createOutputChannel("peachq", {
+    log: true,
+  });
   const localConn = new LocalConnection("localhost:5001", "test", []);
   const insightsNode = new InsightsNode(
     [],
@@ -487,7 +489,9 @@ describe("dataSourceCommand", () => {
     let writeQueryResultsToConsoleStub: sinon.SinonStub;
     let windowMock: sinon.SinonMock;
 
-    ext.outputChannel = vscode.window.createOutputChannel("kdb", { log: true });
+    ext.outputChannel = vscode.window.createOutputChannel("peachq", {
+      log: true,
+    });
 
     beforeEach(() => {
       retrieveConnStub = sinon.stub(

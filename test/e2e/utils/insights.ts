@@ -19,7 +19,7 @@ import { until } from "./index";
 import { FakeInsights, Request } from "./insightsServer";
 
 // What the extension is told about an Insights instance, i.e. the arguments
-// kdb.connections.add.insights takes.
+// peachq.connections.add.insights takes.
 export interface Instance {
   alias: string;
   server: string;
@@ -43,7 +43,7 @@ export const instanceAt = (port: number, alias: string): Instance => ({
 // doubles as the connection label and, prefixed, as its console name.
 export const INSIGHTS = instanceAt(PORT, "TESTINSIGHTS");
 export const CONNECTION = INSIGHTS.alias;
-export const CONSOLE = `KX ${INSIGHTS.alias}`;
+export const CONSOLE = `peachq ${INSIGHTS.alias}`;
 
 // One instance and one connection for the whole window, for the same reason
 // the kdb+ stand-in has one: an alias removed from the settings lingers in
@@ -112,7 +112,7 @@ function declared(alias: string) {
   const instances =
     vscode.workspace.getConfiguration().get<{
       [key: string]: { alias?: string };
-    }>("kdb.insightsEnterpriseConnections") ?? {};
+    }>("peachq.insightsEnterpriseConnections") ?? {};
   return Object.values(instances).some((instance) => instance?.alias === alias);
 }
 
@@ -125,7 +125,7 @@ export async function ensure(instance: Instance) {
     return;
   }
   await vscode.commands.executeCommand(
-    "kdb.connections.add.insights",
+    "peachq.connections.add.insights",
     instance,
     [],
   );
@@ -134,7 +134,7 @@ export async function ensure(instance: Instance) {
 
   // Connecting by label looks the connection up in the list the tree builds
   // when it renders, so make sure it has been rebuilt with the new entry.
-  await vscode.commands.executeCommand("kdb-servers.focus");
+  await vscode.commands.executeCommand("peachq-servers.focus");
 }
 
 // The command can still arrive before the tree has caught up, so keep asking.
@@ -145,7 +145,7 @@ export async function dial(alias: string, target: FakeInsights) {
     attempt++
   ) {
     await vscode.commands.executeCommand(
-      "kdb.connections.connect.via.dialog",
+      "peachq.connections.connect.via.dialog",
       alias,
     );
     await new Promise((resolve) => setTimeout(resolve, 250));
@@ -177,7 +177,7 @@ export async function start() {
 after(async () => {
   if (started) {
     await vscode.commands.executeCommand(
-      "kdb.connections.disconnect",
+      "peachq.connections.disconnect",
       CONNECTION,
     );
     await insights.close();
@@ -188,7 +188,7 @@ after(async () => {
     const configuration = vscode.workspace.getConfiguration();
     const instances = {
       ...(configuration.get<{ [key: string]: { alias?: string } }>(
-        "kdb.insightsEnterpriseConnections",
+        "peachq.insightsEnterpriseConnections",
       ) ?? {}),
     };
     for (const [key, instance] of Object.entries(instances)) {
@@ -197,7 +197,7 @@ after(async () => {
       }
     }
     await configuration.update(
-      "kdb.insightsEnterpriseConnections",
+      "peachq.insightsEnterpriseConnections",
       instances,
       vscode.ConfigurationTarget.Global,
     );
