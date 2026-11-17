@@ -1160,7 +1160,7 @@
         },
         {
           "command": "peachq.connections.edit",
-          "when": "view == peachq-servers && viewItem not in peachq.kdbQuickNodes && (viewItem in peachq.rootNodes || viewItem in peachq.insightsNodes)",
+          "when": "view == peachq-servers && viewItem not in peachq.builtinNodes && viewItem not in peachq.kdbQuickNodes && (viewItem in peachq.rootNodes || viewItem in peachq.insightsNodes)",
           "group": "connection@4"
         },
         {
@@ -1170,12 +1170,12 @@
         },
         {
           "command": "peachq.connections.addAuthentication",
-          "when": "view == peachq-servers && viewItem not in peachq.kdbQuickNodes &&  viewItem not in peachq.insightsNodes && viewItem in peachq.kdbNodesWithoutAuth && viewItem not in peachq.local",
+          "when": "view == peachq-servers && viewItem not in peachq.builtinNodes && viewItem not in peachq.kdbQuickNodes &&  viewItem not in peachq.insightsNodes && viewItem in peachq.kdbNodesWithoutAuth && viewItem not in peachq.local",
           "group": "connection@3"
         },
         {
           "command": "peachq.connections.enableTLS",
-          "when": "view == peachq-servers && viewItem not in peachq.kdbQuickNodes &&  viewItem not in peachq.insightsNodes && viewItem in peachq.kdbNodesWithoutTls && viewItem not in peachq.local",
+          "when": "view == peachq-servers && viewItem not in peachq.builtinNodes && viewItem not in peachq.kdbQuickNodes &&  viewItem not in peachq.insightsNodes && viewItem in peachq.kdbNodesWithoutTls && viewItem not in peachq.local",
           "group": "connection@4"
         },
         {
@@ -1195,12 +1195,12 @@
         },
         {
           "command": "peachq.connections.remove.kdb",
-          "when": "view == peachq-servers && viewItem in peachq.rootNodes",
+          "when": "view == peachq-servers && viewItem not in peachq.builtinNodes && viewItem in peachq.rootNodes",
           "group": "connection@5"
         },
         {
           "command": "peachq.connections.export.single",
-          "when": "view == peachq-servers && viewItem not in peachq.kdbQuickNodes &&  (viewItem in peachq.rootNodes || viewItem in peachq.insightsNodes)",
+          "when": "view == peachq-servers && viewItem not in peachq.builtinNodes && viewItem not in peachq.kdbQuickNodes &&  (viewItem in peachq.rootNodes || viewItem in peachq.insightsNodes)",
           "group": "connection@6"
         },
         {
@@ -1488,6 +1488,7 @@
     "build": "npm run -S esbuild-base -- --sourcemap",
     "vscode:prepublish": "npm run -S esbuild-base -- --minify",
     "package": "vsce package",
+    "package:targets": "node tools/package-targets.mjs",
     "publish": "vsce publish",
     "pretest": "rimraf out-test && tsc --outdir out-test --strict false",
     "test": "node ./out-test/test/runTest.js",
@@ -1496,6 +1497,7 @@
     "pretest:e2e": "npm run build && npm run pretest",
     "test:e2e": "node ./out-test/test/runE2E.js",
     "test:e2e:kx": "cross-env E2E_FAKE_KX=1 TEST_FILE=kx npm run test:e2e",
+    "test:e2e:bare": "node tools/fetch-peachq.mjs && cross-env E2E_BARE=1 TEST_FILE=builtin npm run test:e2e",
     "coverage": "rimraf out && c8 -o coverage-reports -r lcov -r cobertura -r html npm run test",
     "q-test": "bash tools/q-test.sh"
   },

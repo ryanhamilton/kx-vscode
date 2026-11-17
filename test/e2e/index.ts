@@ -45,7 +45,11 @@ export async function run(): Promise<void> {
     console.log(`🧪 Running specific end to end file: ${testFile}.test.js`);
   }
 
-  const files = await glob(pattern, { cwd: testsRoot });
+  // builtin.test.ts needs the bare window test/runE2E.ts opens for E2E_BARE.
+  const files = await glob(pattern, {
+    cwd: testsRoot,
+    ignore: testFile ? [] : ["e2e/**/builtin.test.js"],
+  });
 
   if (files.length === 0) {
     throw new Error(

@@ -24,6 +24,7 @@ import {
 } from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
 
+import { BuiltinServer } from "./classes/builtinServer";
 import { ConnectionConsole } from "./classes/connectionConsole";
 import { InsightsConnection } from "./classes/insightsConnection";
 import { LocalConnection } from "./classes/localConnection";
@@ -81,6 +82,7 @@ export namespace ext {
   export const rowLimit = 150000000;
 
   export let activeConnection: LocalConnection | InsightsConnection | undefined;
+  export let builtinServer: BuiltinServer | undefined;
   export const connectedConnectionList: Array<
     LocalConnection | InsightsConnection
   > = [];

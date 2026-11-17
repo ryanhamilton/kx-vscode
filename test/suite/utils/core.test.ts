@@ -12,6 +12,8 @@
  */
 
 import * as assert from "assert";
+import * as fs from "node:fs";
+import * as os from "node:os";
 import path from "node:path";
 import { env } from "node:process";
 import * as sinon from "sinon";
@@ -1205,6 +1207,90 @@ describe("core", () => {
     it("should have qBinKdbX variable", () => {
       const env = coreUtils.getEnvironment();
       assert.notStrictEqual(env.qBinKdbX, undefined);
+    });
+  });
+
+  describe("bundled peachq", () => {
+    let root: string;
+    let savedContext: vscode.ExtensionContext;
+    let saved: { [key: string]: string | undefined };
+    let settings: { [key: string]: string };
+    let onPath: string[];
+
+    const host = `${process.platform}-${process.arch}`;
+    const binary = process.platform === "win32" ? "q.exe" : "q";
+    const touch = (...parts: string[]) => {
+      const target = path.join(root, ...parts);
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.writeFileSync(target, "");
+      return target;
+    };
+
+    beforeEach(() => {
+      root = fs.mkdtempSync(path.join(os.tmpdir(), "bundled-"));
+      savedContext = ext.context;
+      saved = {
+        QHOME: env.QHOME,
+        HOME: env.HOME,
+        USERPROFILE: env.USERPROFILE,
+      };
+      delete env.QHOME;
+      env.HOME = env.USERPROFILE = path.join(root, "home");
+      ext.context = <any>{ extensionPath: path.join(root, "extension") };
+      settings = {};
+      onPath = [];
+      sinon.stub(shellUtils, "which").callsFake(() => onPath);
+      sinon.stub(vscode.workspace, "getConfiguration").returns(<any>{
+        get: (key: string, fallback: string) => settings[key] ?? fallback,
+      });
+    });
+
+    afterEach(() => {
+      sinon.restore();
+      ext.context = savedContext;
+      for (const [key, value] of Object.entries(saved)) {
+        if (value === undefined) delete env[key];
+        else env[key] = value;
+      }
+      fs.rmSync(root, { recursive: true, force: true });
+    });
+
+    it("looks for bin/peachq/<platform>-<arch>/q in the extension", () => {
+      const extension = path.join(root, "extension");
+      const exists = () => true;
+      assert.strictEqual(
+        coreUtils.bundledQ(extension, "win32", "x64", exists),
+        path.join(extension, "bin", "peachq", "win32-x64", "q.exe"),
+      );
+      assert.strictEqual(
+        coreUtils.bundledQ(extension, "linux", "arm64", exists),
+        path.join(extension, "bin", "peachq", "linux-arm64", "q"),
+      );
+      assert.strictEqual(
+        coreUtils.bundledQ(extension, "linux", "x64", () => false),
+        undefined,
+      );
+    });
+
+    it("is the q found when there is no other", () => {
+      const bundled = touch("extension", "bin", "peachq", host, binary);
+      const found = coreUtils.getEnvironment();
+      assert.strictEqual(found.qBinPath, bundled);
+      assert.strictEqual(found.QHOME, path.dirname(bundled));
+    });
+
+    it("never displaces peachq.qHomeDirectory's q", () => {
+      touch("extension", "bin", "peachq", host, binary);
+      const own = touch("own", "bin", "q");
+      settings.qHomeDirectory = path.join(root, "own");
+      assert.strictEqual(coreUtils.getEnvironment().qBinPath, own);
+    });
+
+    it("never displaces a q on the PATH", () => {
+      touch("extension", "bin", "peachq", host, binary);
+      const own = touch("path", "bin", "q");
+      onPath = [own];
+      assert.strictEqual(coreUtils.getEnvironment().qBinPath, own);
     });
   });
 

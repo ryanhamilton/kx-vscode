@@ -39,7 +39,9 @@ timestamp: 2026-10-20
 last used, and each open REPL by name, such as `REPL (folderA)`, which always
 runs on that REPL, starting it in its folder if it is not running. A file
 already assigned `REPL` keeps running on the REPL last started or focused. The
-status bar names the REPL a file runs on.
+status bar names the REPL a file runs on. In a package that bundles peachq it
+also offers `peachq (built-in)`, which starts that peachq on `127.0.0.1` when
+connected.
 
 In a peachq notebook cell, **Execute Current Selection** runs the selection, or
 the current line when nothing is selected, and shows its result in the cell's

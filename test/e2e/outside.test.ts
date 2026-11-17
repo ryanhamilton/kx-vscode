@@ -46,9 +46,19 @@ function items() {
     .sort((a, b) => a.localeCompare(b))
     .map((label) => `REPL (${label})`);
 
+  const extension = vscode.extensions.getExtension("peachq.peachq")!;
+  const bundled = path.join(
+    extension.extensionPath,
+    "bin",
+    "peachq",
+    `${process.platform}-${process.arch}`,
+    process.platform === "win32" ? "q.exe" : "q",
+  );
+
   return [
     "(active)",
     ...repls,
+    ...(fs.existsSync(bundled) ? ["peachq (built-in)"] : []),
     ...Object.keys(servers).map((key) => servers[key].serverAlias),
     ...Object.keys(insights).map((key) => insights[key].alias),
   ];

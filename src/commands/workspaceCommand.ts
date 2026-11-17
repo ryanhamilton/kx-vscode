@@ -51,6 +51,7 @@ import { ConnectionManagementService } from "../services/connectionManagerServic
 import { InsightsNode, KdbNode, LabelNode } from "../services/kdbTreeProvider";
 import { updateCellMetadata } from "../services/notebookProviders";
 import {
+  BUILTIN_ALIAS,
   calculateSeconds,
   formatSeconds,
   getBasename,
@@ -241,6 +242,7 @@ function getServers() {
   );
 
   return [
+    ...(ext.builtinServer ? [BUILTIN_ALIAS] : []),
     ...Object.values(servers)
       .filter((server) => typeof server?.serverAlias === "string")
       .map(({ serverAlias }) => serverAlias)

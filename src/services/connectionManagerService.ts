@@ -14,6 +14,7 @@
 import { commands, window } from "vscode";
 
 import { setActiveTarget } from "../classes/activeTarget";
+import { BuiltinServer } from "../classes/builtinServer";
 import { ConnectionConsole } from "../classes/connectionConsole";
 import { LocalConnection } from "../classes/localConnection";
 import { ext } from "../extensionVariables";
@@ -35,6 +36,7 @@ import {
   getServers,
   updateInsights,
   updateServers,
+  isBuiltinAlias,
   isQuickAlias,
 } from "../utils/core";
 import { MessageKind, notify } from "../utils/notifications";
@@ -45,6 +47,8 @@ import {
 } from "../validators/kdbValidator";
 
 const logger = "connectionManagerService";
+
+let builtinConnecting = false;
 
 export class ConnectionManagementService {
   public retrieveConnection(
@@ -175,7 +179,13 @@ export class ConnectionManagementService {
         );
         return;
       }
-      if (connection instanceof KdbNode) {
+      if (
+        connection instanceof KdbNode &&
+        ext.builtinServer &&
+        isBuiltinAlias(connection.details.serverAlias)
+      ) {
+        await this.connectBuiltin(connection, ext.builtinServer);
+      } else if (connection instanceof KdbNode) {
         const connectionString = this.retrieveLocalConnectionString(connection);
         const authCredentials = connection.details.auth
           ? await this.retrieveAuthData(connection)
@@ -230,6 +240,38 @@ export class ConnectionManagementService {
     /* c8 ignore stop */
   }
 
+  private async connectBuiltin(
+    connection: KdbNode,
+    server: BuiltinServer,
+  ): Promise<void> {
+    if (
+      builtinConnecting ||
+      this.retrieveConnectedConnection(connection.label)
+    ) {
+      return;
+    }
+    builtinConnecting = true;
+    try {
+      const { connectionString, credentials } = await server.start();
+      const localConnection = new LocalConnection(
+        connectionString,
+        connection.label,
+        [],
+        credentials,
+      );
+      try {
+        await localConnection.connect();
+      } catch (error) {
+        server.stop();
+        throw error;
+      }
+      ext.connectedConnectionList.push(localConnection);
+      this.connectSuccessBehaviour(connection);
+    } finally {
+      builtinConnecting = false;
+    }
+  }
+
   public setActiveConnection(node: KdbNode | InsightsNode): void {
     const connection = this.retrieveConnectedConnection(node.label);
     if (!connection) {
@@ -274,6 +316,9 @@ export class ConnectionManagementService {
     }
     connection.disconnect();
     this.disconnectBehaviour(connection);
+    if (isBuiltinAlias(connLabel)) {
+      ext.builtinServer?.stop();
+    }
   }
 
   public async removeConnection(
@@ -610,7 +655,10 @@ export class ConnectionManagementService {
         return "";
       }
       if (connection instanceof KdbNode) {
-        if (!isQuickAlias(connection.details.serverAlias))
+        if (
+          !isQuickAlias(connection.details.serverAlias) &&
+          !isBuiltinAlias(connection.details.serverAlias)
+        )
           exportedContent.connections.KDB.push(connection.details);
       } else {
         exportedContent.connections.Insights.push(connection.details);
@@ -618,7 +666,10 @@ export class ConnectionManagementService {
     } else {
       ext.connectionsList.forEach((connection) => {
         if (connection instanceof KdbNode) {
-          if (!isQuickAlias(connection.details.serverAlias))
+          if (
+            !isQuickAlias(connection.details.serverAlias) &&
+            !isBuiltinAlias(connection.details.serverAlias)
+          )
             exportedContent.connections.KDB.push(connection.details);
         } else {
           exportedContent.connections.Insights.push(connection.details);

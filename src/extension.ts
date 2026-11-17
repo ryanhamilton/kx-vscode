@@ -22,6 +22,7 @@ import {
 } from "vscode-languageclient/node";
 
 import { initActiveTargetTracking } from "./classes/activeTargetTracker";
+import { BuiltinServer } from "./classes/builtinServer";
 import { OPEN_RESULTS_HINT } from "./classes/connectionConsole";
 import { connectBuildTools, lintCommand } from "./commands/buildToolsCommand";
 import { connectClientCommands } from "./commands/clientCommand";
@@ -115,6 +116,8 @@ import {
   setLabelColor,
 } from "./utils/connLabel";
 import {
+  BUILTIN_ALIAS,
+  bundledQ,
   checkLocalInstall,
   checkOpenSslInstalled,
   getInsights,
@@ -192,6 +195,19 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Default query results to the output console (Terminal), not the view.
   setResultsDestination(false);
+
+  const bundled = bundledQ();
+  if (bundled) {
+    ext.builtinServer = new BuiltinServer(
+      bundled,
+      context.globalStorageUri.fsPath,
+    );
+  }
+  vscode.commands.executeCommand(
+    "setContext",
+    "peachq.builtinNodes",
+    bundled ? [BUILTIN_ALIAS] : [],
+  );
 
   const servers: Server | undefined = getServers();
   const insights: Insights | undefined = getInsights();
@@ -1209,6 +1225,7 @@ function registerAllExtensionCommands(): void {
 }
 
 export async function deactivate(): Promise<void> {
+  ext.builtinServer?.stop();
   await ext.telemetry.dispose();
 
   if (ext.client) {

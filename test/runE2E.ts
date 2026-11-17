@@ -12,7 +12,38 @@
  */
 
 import { runTests } from "@vscode/test-electron";
+import * as fs from "fs";
+import * as os from "os";
 import * as path from "path";
+
+// E2E_BARE runs test/e2e/builtin.test.ts on a machine that has no q at all: an
+// empty HOME, PATH and workspace, so only the bundled peachq can answer.
+function bare() {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "peachq-bare-"));
+  const workspace = path.join(root, "workspace");
+  for (const dir of ["home", "path", path.join("workspace", ".vscode")]) {
+    fs.mkdirSync(path.join(root, dir), { recursive: true });
+  }
+  fs.writeFileSync(path.join(workspace, "builtin.q"), "1+1\n");
+  fs.writeFileSync(
+    path.join(workspace, ".vscode", "settings.json"),
+    JSON.stringify({
+      "peachq.connectionMap": { "builtin.q": "peachq (built-in)" },
+    }),
+  );
+  return {
+    root,
+    workspace,
+    env: {
+      E2E_BARE: "1",
+      HOME: path.join(root, "home"),
+      PATH: path.join(root, "path"),
+      QHOME: undefined,
+      QLIC: undefined,
+      PEACHQ_Q: undefined,
+    },
+  };
+}
 
 // A second VS Code window, opened on test/e2e/workspace so the extension sees
 // real workspace settings (including the stand-in q) and real files.
@@ -31,11 +62,14 @@ async function main() {
     const fakeKx = process.env.E2E_FAKE_KX
       ? [path.join(extensionDevelopmentPath, "test", "e2e", "fakekx")]
       : [];
+    const empty = process.env.E2E_BARE ? bare() : undefined;
     await runTests({
       extensionDevelopmentPath: [extensionDevelopmentPath, ...fakeKx],
       extensionTestsPath: path.join(__dirname, "./e2e/index"),
+      extensionTestsEnv: empty?.env,
       launchArgs: [
-        path.join(extensionDevelopmentPath, "test", "e2e", "workspace"),
+        empty?.workspace ??
+          path.join(extensionDevelopmentPath, "test", "e2e", "workspace"),
         "--disable-workspace-trust",
         // Everything but the extension under development, which VS Code keeps
         // loading, so nothing the developer or the runner happens to have
@@ -49,6 +83,9 @@ async function main() {
           : []),
       ],
     });
+    if (empty) {
+      fs.rmSync(empty.root, { recursive: true, force: true });
+    }
   } catch (err) {
     console.error(err);
     process.exit(1);

@@ -206,6 +206,22 @@ pip install --upgrade matplotlib
 and PyKX, following the steps here
 https://code.kx.com/pykx/getting-started/installing.html#1-install-kdb-x-python
 
+## Bundled peachq
+
+`node tools/fetch-peachq.mjs` downloads the peachq release pinned in
+`.peachq-version` for the host (or `--all`, or named vsce targets) into
+`bin/peachq/<target>/`, and fails if it does not match the release's `.sha256`.
+`npm run package:targets` fetches all four and writes to `dist/` one vsix per
+target (`linux-x64`, `linux-arm64`, `darwin-arm64`, `win32-x64`), each with only
+its own `q` and peachq's `LICENSE` and `NOTICE`, plus a universal vsix without
+any. It builds files only and publishes nothing; CI uploads them as an artifact.
+
+`npm run test:e2e:bare` runs `test/e2e/builtin.test.ts` in a window with an
+empty `HOME`, `PATH` and workspace, where the bundled peachq is the only q: the
+built-in connection answers `1+1`, listens on `127.0.0.1` only, and stops on
+disconnect. `node smoke.ts --builtin` in `tools/manual-test` is the same
+walkthrough as `node smoke.ts` on that connection.
+
 ## Restart Extension Host
 
 `ctrl`/`⌘`+`r` will restart extension host.
