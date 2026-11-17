@@ -21,11 +21,11 @@
     "Snippets"
   ],
   "keywords": [
-    "kdb",
-    "kdb+",
-    "kdb-x",
     "q",
-    "kdb Insights"
+    "kdb+",
+    "peachq",
+    "qlang",
+    "kdb"
   ],
   "activationEvents": [
     "onLanguage:python",
@@ -189,7 +189,7 @@
       {
         "category": "peachq",
         "command": "peachq.show.welcome",
-        "title": "Welcome to KDB-X"
+        "title": "Welcome"
       },
       {
         "category": "peachq",

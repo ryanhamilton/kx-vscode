@@ -41,7 +41,7 @@ export function kdbOutputLog(
   if (type === "ERROR" && !supressDialog) {
     vscode.window
       .showErrorMessage(
-        `Error occured, check kdb output log for details.`,
+        `Error occured, check the peachq output log for details.`,
         "Check",
       )
       .then((res) => {

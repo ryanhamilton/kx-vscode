@@ -65,7 +65,7 @@ describe("Welcome", () => {
     it("opens the welcome panel", async () => {
       const panel = await open();
 
-      assert.strictEqual(panel.label, "Welcome to KDB-X");
+      assert.strictEqual(panel.label, "Welcome to peachq");
       assert.strictEqual(panel.isActive, true);
     });
 
@@ -131,7 +131,7 @@ describe("Welcome", () => {
       }, VIEW);
 
       assert.deepStrictEqual(shown, {
-        heading: "Welcome to KDB-X",
+        heading: "Welcome to peachq",
         steps: [
           "Log in or create an account",
           "Retrieve your license key",
@@ -140,6 +140,23 @@ describe("Welcome", () => {
         ],
         image: IMAGE,
       });
+    });
+
+    it("links to the peachq docs and download", async () => {
+      await show();
+
+      const links = await view.eval(
+        (root: string) =>
+          [...__find(`${root}.peachq`).querySelectorAll("a")].map((a: any) =>
+            a.getAttribute("href"),
+          ),
+        VIEW,
+      );
+
+      assert.deepStrictEqual(links, [
+        "https://peachq.org/docs/",
+        "https://peachq.org/download",
+      ]);
     });
 
     // The panel rebuilds the page whenever the color theme changes, and the

@@ -3,7 +3,7 @@ type: Reference
 title: Reference Card
 description:
   Command palette entries, keybindings, settings, execution matrix and telemetry
-  events for the kdb VS Code extension.
+  events for the peachq VS Code extension.
 tags: [kdb, vscode, reference, keybindings, settings, telemetry]
 timestamp: 2026-10-20
 ---
@@ -12,7 +12,7 @@ timestamp: 2026-10-20
 
 | Command                                                       | Command                                                | Command                                 |
 | :------------------------------------------------------------ | :----------------------------------------------------- | :-------------------------------------- |
-| peachq: Welcome to KDB-X                                      | peachq: New Connection                                 | peachq: Focus on Connections view       |
+| peachq: Welcome                                               | peachq: New Connection                                 | peachq: Focus on Connections view       |
 | peachq: Install KDB-X                                         | peachq: New Notebook                                   | peachq: Focus on Queries view           |
 | peachq: Start REPL                                            | peachq: New Workbook (q)                               | peachq: Focus on Workbooks view         |
 | peachq: Import Connections                                    | peachq: New Workbook (Python)                          | peachq: Focus on Query History view     |

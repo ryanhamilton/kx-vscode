@@ -142,6 +142,25 @@ export class KdbWelcomeView extends LitElement {
     >`;
   }
 
+  private renderPeachq() {
+    return html`
+      <h2>Run q with peachq</h2>
+      <p>
+        peachq runs q on your machine, with no licence key and no server to set
+        up.
+      </p>
+      <div class="row middle peachq">
+        <a href="https://peachq.org/docs/" class="nowrap"
+          >peachq Documentation
+          <span class="icon-inline">${renderIcon5()}</span></a
+        >
+        <a href="https://peachq.org/download" class="nowrap"
+          >Download peachq <span class="icon-inline">${renderIcon5()}</span></a
+        >
+      </div>
+    `;
+  }
+
   private renderCommand(message: string, label: string) {
     return html`<a
       href="#"
@@ -200,9 +219,11 @@ export class KdbWelcomeView extends LitElement {
     return html`
       <div class="container">
         <div class="col">
-          <h1>Welcome to KDB-X</h1>
+          <h1>Welcome to peachq</h1>
           <div class="row">
             <div>
+              ${this.renderPeachq()}
+              <h2>KDB-X</h2>
               <p>
                 KDB-X is the next generation of kdb+, optimized for modern
                 analytics and AI workflows. Let’s get you ready to code.

@@ -283,10 +283,10 @@ export class ExecutionConsole {
         );
       }
     } else {
-      notify(`Please connect to a KDB or Insights server`, MessageKind.ERROR, {
+      notify(`Please connect to a q or Insights server`, MessageKind.ERROR, {
         logger,
       });
-      sink.appendError(`Please connect to a KDB or Insights server`);
+      sink.appendError(`Please connect to a q or Insights server`);
       commands.executeCommand("peachq.connections.disconnect");
       addQueryHistory(
         query,

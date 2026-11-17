@@ -345,7 +345,7 @@ export class KdbNewConnectionView extends LitElement {
           type="checkbox"
           ${checked(this.kdbServer.tls)}
           @change="${() => this.changeTLS()}" />
-        Enable TLS Encryption on the kdb connection
+        Enable TLS Encryption on the q connection
       </label>
     </div>`;
   }
@@ -551,8 +551,8 @@ export class KdbNewConnectionView extends LitElement {
             <div class="row option-description">
               <span>
                 If you are running a q process then use <b>“My q”</b>. Please
-                ensure your q process is running before connecting it to the kdb
-                VS Code extension otherwise you will get a connection
+                ensure your q process is running before connecting it to the
+                peachq VS Code extension otherwise you will get a connection
                 error.</span
               >
             </div>
@@ -561,8 +561,8 @@ export class KdbNewConnectionView extends LitElement {
               <span>
                 If you are an Insights user, then use an
                 <b>“Insights connection”.</b> You will be required to
-                authenticate the connection prior to its availability in the kdb
-                VS Code extension.</span
+                authenticate the connection prior to its availability in the
+                peachq VS Code extension.</span
               >
             </div>
           </div>
@@ -718,7 +718,7 @@ export class KdbNewConnectionView extends LitElement {
                       type="checkbox"
                       ${checked(this.editAuth)}
                       @change="${() => this.editAuthOfConn()}" />
-                    Edit existing auth on the kdb connection
+                    Edit existing auth on the q connection
                   </label>
                 </div>
                 ${this.editAuth

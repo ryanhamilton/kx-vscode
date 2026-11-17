@@ -13,14 +13,14 @@
 
 import { QuickPickItem } from "vscode";
 
-export const serverEndpointPlaceHolder = "Select the kdb type";
-export const kdbEndpoint = "Enter a kdb endpoint";
+export const serverEndpointPlaceHolder = "Select the connection type";
+export const kdbEndpoint = "Enter a q endpoint";
 export const kdbInsightsEndpoint = "Connect to kdb Insights Enterprise";
 
 export const serverEndpoints: QuickPickItem[] = [
   {
     label: kdbEndpoint,
-    detail: "Enter the url, ip address, and port to connect to a kdb instance",
+    detail: "Enter the url, ip address, and port to connect to a q instance",
   },
   {
     label: kdbInsightsEndpoint,
@@ -45,12 +45,12 @@ export const connectionAliasInput = {
 };
 
 export const connectionHostnameInput = {
-  prompt: "Enter the hostname or ip address of the kdb server",
+  prompt: "Enter the hostname or ip address of the q server",
   placeholder: "0.0.0.0",
 };
 
 export const connectionPortInput = {
-  prompt: "Enter the port number of the kdb server",
+  prompt: "Enter the port number of the q server",
   placeholder: "5001",
 };
 
@@ -65,7 +65,7 @@ export const connectionPasswordInput = {
 };
 
 export const connnectionTls = {
-  prompt: "Enable TLS encryption on KDB connection (optional)",
+  prompt: "Enable TLS encryption on the q connection (optional)",
   placeholder: "false",
 };
 

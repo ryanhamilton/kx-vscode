@@ -68,7 +68,7 @@ function getRuntime() {
     .get<string>("qHomeDirectory", "");
 
   if (!home) {
-    throw new Error("kdb q runtime not found");
+    throw new Error("q runtime not found");
   }
 
   const platform =

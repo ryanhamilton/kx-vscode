@@ -410,7 +410,7 @@ export function checkIfIsPropVal(columns: string[]): boolean {
 export function getConnectionType(type: ServerType): string {
   switch (type) {
     case ServerType.KDB:
-      return "kdb";
+      return "q";
     case ServerType.INSIGHTS:
       return "insights";
     default:

@@ -2,7 +2,7 @@
 type: Index
 title: Developer Notes
 description:
-  Architecture and contributor notes for the kdb VS Code extension — setup,
+  Architecture and contributor notes for the peachq VS Code extension — setup,
   notifications, execution flow, telemetry.
 tags: [kdb, vscode, developer]
 timestamp: 2026-07-10
@@ -10,11 +10,11 @@ timestamp: 2026-07-10
 
 # Developer Notes
 
-Architecture and contributor notes for the kdb VS Code extension. See also the
-[user notes](../user/index.md).
+Architecture and contributor notes for the peachq VS Code extension. See also
+the [user notes](../user/index.md).
 
-> The end-user product documentation is hosted separately at
-> <https://code.kx.com/vscode/>.
+> The q language is documented at <https://peachq.org/docs/>. The upstream KX
+> extension's documentation is at <https://code.kx.com/vscode/>.
 
 - [Development](development.md) — setup, recommended extensions, scripts,
   debugging, releasing.

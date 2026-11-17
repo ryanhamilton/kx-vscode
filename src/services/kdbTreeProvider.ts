@@ -200,7 +200,7 @@ export class KdbTreeProvider
     if (conn instanceof InsightsConnection) {
       // For Insights connections, namespaces are not applicable for now
       notify(
-        "Please connect to a KDB instance to view the objects",
+        "Please connect to a q instance to view the objects",
         MessageKind.INFO,
       );
       return new Array<QNamespaceNode>();
@@ -287,7 +287,7 @@ export class KdbTreeProvider
     if (conn instanceof InsightsConnection) {
       // For Insights connections server objects are not applicable now
       notify(
-        "Please connect to a KDB instance to view the objects",
+        "Please connect to a q instance to view the objects",
         MessageKind.INFO,
       );
       return null;

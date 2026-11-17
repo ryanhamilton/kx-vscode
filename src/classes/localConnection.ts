@@ -257,7 +257,7 @@ export class LocalConnection {
   public async loadServerObjects(): Promise<ServerObject[]> {
     if (!this.connection) {
       notify(
-        "Please connect to a KDB instance to view the objects",
+        "Please connect to a q instance to view the objects",
         MessageKind.INFO,
       );
       return new Array<ServerObject>();

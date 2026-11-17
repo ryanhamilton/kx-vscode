@@ -399,7 +399,7 @@ export async function enableTLS(serverKey: string): Promise<void> {
       "Cancel",
     ).then(async (result) => {
       if (result === "More Info") {
-        await openUrl("https://code.kx.com/q/kb/ssl/");
+        await openUrl("https://peachq.org/docs/basics/ipc/");
       }
     });
     return;
@@ -481,7 +481,7 @@ export async function addKdbConnection(
         ext.latestLblsChanged.push(...labels);
         await handleLabelsConnMap(labels, kdbData.serverAlias);
       }
-      notify("Created kdb connection.", MessageKind.DEBUG, {
+      notify("Created q connection.", MessageKind.DEBUG, {
         logger,
         telemetry: "Connection.Create.kdb",
       });
@@ -491,7 +491,7 @@ export async function addKdbConnection(
       addAuthConnection(key, kdbData.username!, kdbData.password!);
     }
 
-    notify(`Added kdb connection: ${kdbData.serverAlias}`, MessageKind.INFO, {
+    notify(`Added q connection: ${kdbData.serverAlias}`, MessageKind.INFO, {
       logger,
     });
 
@@ -536,7 +536,7 @@ export async function editKdbConnection(
         : undefined;
     if (newAliasExists) {
       notify(
-        `KDB instance named ${kdbData.serverAlias} already exists.`,
+        `q instance named ${kdbData.serverAlias} already exists.`,
         MessageKind.ERROR,
         { logger },
       );
@@ -544,7 +544,7 @@ export async function editKdbConnection(
     } else {
       if (!oldServer) {
         notify(
-          `KDB instance named ${oldAlias} does not exist.`,
+          `q instance named ${oldAlias} does not exist.`,
           MessageKind.ERROR,
           { logger },
         );
@@ -604,7 +604,7 @@ export async function editKdbConnection(
             removeConnFromLabels(kdbData.serverAlias);
           }
           ext.serverProvider.refresh(newServers);
-          notify("Edited kdb connection.", MessageKind.DEBUG, {
+          notify("Edited q connection.", MessageKind.DEBUG, {
             logger,
             telemetry: "Connection.Edit.kdb",
           });
@@ -615,7 +615,7 @@ export async function editKdbConnection(
         }
 
         notify(
-          `Edited KDB connection: ${kdbData.serverAlias}`,
+          `Edited q connection: ${kdbData.serverAlias}`,
           MessageKind.INFO,
           { logger },
         );
@@ -673,7 +673,7 @@ export async function importConnections() {
     importedConnections.connections.Insights.length === 0
   ) {
     notify(
-      "There is no KDB or Insights connections to import in this JSON file.",
+      "There are no q or Insights connections to import in this JSON file.",
       MessageKind.ERROR,
       { logger },
     );
@@ -833,7 +833,7 @@ export async function connect(connLabel: string): Promise<void> {
           "Cancel",
         ).then(async (result) => {
           if (result === "More Info") {
-            await openUrl("https://code.kx.com/q/kb/ssl/");
+            await openUrl("https://peachq.org/docs/basics/ipc/");
           }
         });
       }
