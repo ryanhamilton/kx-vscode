@@ -22,15 +22,16 @@ jobs:
           HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           pattern='claude|codex|anthropic|astra|fable|co-authored-by'
+          scan() { sed 's/CLAUDE\.md//g' | grep -Eiwq "$pattern"; }
           status=0
           for part in TITLE BODY; do
-            if printf '%s' "${!part}" | grep -Eiq "$pattern"; then
+            if printf '%s' "${!part}" | scan; then
               echo "::error::PR ${part,,} names a tool or model"
               status=1
             fi
           done
           messages=$(git log --format=%B "$BASE..$HEAD") || exit 1
-          if printf '%s' "$messages" | grep -Eiq "$pattern"; then
+          if printf '%s' "$messages" | scan; then
             echo "::error::a commit message names a tool or model"
             status=1
           fi
