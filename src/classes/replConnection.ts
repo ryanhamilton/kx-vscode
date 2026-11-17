@@ -195,10 +195,7 @@ export class ReplConnection {
   private readonly terminal: vscode.Terminal;
   private readonly executions: Execution[] = [];
 
-  private messages? = [
-    `${CONF.TITLE} Copyright (C) 1993-${new Date().getFullYear()} KX Systems` +
-      ANSI.CRLF.repeat(2),
-  ];
+  private messages? = [CONF.TITLE + ANSI.CRLF.repeat(2)];
 
   private env: { [key: string]: string } = {};
   private process: ChildProcessWithoutNullStreams;

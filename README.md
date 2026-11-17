@@ -1,34 +1,29 @@
-# kdb Visual Studio Code Extension
+# peachq for Visual Studio Code
 
-[![KX VScode CI Main Testing](https://github.com/KxSystems/kx-vscode/actions/workflows/main.yml/badge.svg)](https://github.com/KxSystems/kx-vscode/actions/workflows/main.yml)
-[![KX VScode Release](https://github.com/KxSystems/kx-vscode/actions/workflows/release.yml/badge.svg)](https://github.com/KxSystems/kx-vscode/actions/workflows/release.yml)
+q language support: run, chart and lint q against any kdb+ process, or with
+built-in peachq — no licence needed.
 
-The **kdb Visual Studio Code Extension** provides developers with an extensive
-set of features that enables them to create and edit q files, connect to
-multiple kdb processes, and execute queries.
+Create and edit q files, connect to multiple q processes over kdb+ IPC, run
+queries and view results as text, grids or charts.
 
-This extension serves as an IDE for [KDB-X](https://code.kx.com/kdb-x/) and can
-also be used with
-[kdb Insights Enterprise](https://code.kx.com/insights/enterprise/index.html).
-In addition, it supports the kdb+ Personal Edition and kdb Insights SDK, working
-with any q executable.
+This extension is a fork of the KX extension, published as `peachq.peachq`.
 
-## Documentation
+## Beside the KX extension
 
-All guides, setup instructions, and feature documentation are available at:
-
-👉 https://code.kx.com/vscode
-
-Project Wiki is available at:
-
-👉 https://kxsystems.github.io/kx-vscode
+If the KX extension is also enabled, peachq pauses its q features (language
+server and keybindings) in that window and asks once whether to keep KX or to
+use peachq there instead. To move over, run **peachq: Import Connections and
+Settings from the KX Extension**: it copies your user-level connections and
+settings. Passwords stay in the KX extension's secret storage, so peachq asks
+for each one on first connect.
 
 ## Reference
 
-- [Reference Card](https://kxsystems.github.io/kx-vscode/user/reference-card.html)
+- [Reference Card](https://github.com/ryanhamilton/kx-vscode/blob/dev/docs/user/reference-card.md)
   for a list of all commands, shortcuts, and settings
-- [Contribution Guide](https://github.com/KxSystems/kx-vscode/blob/-/.github/CONTRIBUTING.md)
-  for details on how to help improve the extension
+- [Developer notes](https://github.com/ryanhamilton/kx-vscode/blob/dev/docs/developer/index.md),
+  including
+  [merging upstream](https://github.com/ryanhamilton/kx-vscode/blob/dev/docs/developer/upstream.md)
 
 ## Data and Telemetry
 
