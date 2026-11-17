@@ -8,7 +8,7 @@ Open q extension (`peachq.peachq`), carved from the KX fork. Staged PRs into `de
 4. `tools/manual-test` pointed at peachq, headless — PR #4 (done, 4fef5c98)
 5. Documentation links to peachq docs instead of code.kx.com, wording and a fresh CHANGELOG — PR #5 (done, 26f5eafb)
 6. Bundle peachq in the vsix (per-platform packages) — PR #6 (done, 06ee445d)
-7. REPL on peachq: contract suite against real peachq, quiet start, errors no longer stall the REPL — PR #7
+7. REPL on peachq: contract suite against real peachq, quiet start, errors no longer stall the REPL — PR #7 (done, 96f284d5)
 8. Release: upload to timestored.com/peachq.org (dry-run default, GO=1) and the MS marketplace
 9. Results text view: reuse qStudio/peachq toString renderings
 10. Import from jshinonome's vscode-q: read its server list (format from the MIT 2.4.6 code, e.g. Yanpas/vscode-q), offered like the KX import. Its marketplace listing has the most installs of any q extension (15k).
