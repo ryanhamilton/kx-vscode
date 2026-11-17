@@ -1,39 +1,24 @@
-# kdb Visual Studio Code Extension
+# peachq for Visual Studio Code (probe)
 
-[![KX VScode CI Main Testing](https://github.com/KxSystems/kx-vscode/actions/workflows/main.yml/badge.svg)](https://github.com/KxSystems/kx-vscode/actions/workflows/main.yml)
-[![KX VScode Release](https://github.com/KxSystems/kx-vscode/actions/workflows/release.yml/badge.svg)](https://github.com/KxSystems/kx-vscode/actions/workflows/release.yml)
+An open-source VS Code extension for the q language, aimed at
+peachq, a clean-room q engine that needs no licence.
+"peachq" is a placeholder name for this probe.
 
-The **kdb Visual Studio Code Extension** provides developers with an extensive
-set of features that enables them to create and edit q files, connect to
-multiple kdb processes, and execute queries.
+It is a modified fork of the Apache-2.0 kdb VS Code extension by KX Systems (see `NOTICE` and `LICENSE`).
+The fork removes telemetry, Insights Enterprise support and every call to KX-hosted services, and renames the extension.
+It is not affiliated with or endorsed by KX Systems Inc.
 
-This extension serves as an IDE for [KDB-X](https://code.kx.com/kdb-x/) and can
-also be used with
-[kdb Insights Enterprise](https://code.kx.com/insights/enterprise/index.html).
-In addition, it supports the kdb+ Personal Edition and kdb Insights SDK, working
-with any q executable.
+Features kept: q/kdb+ IPC connections, the results grid, the chart viewer, workbooks, notebooks, query history,
+the REPL, and the q language server (completion, linting, navigation).
 
-## Documentation
+The probe report is in [PEACHQ-PROBE.md](https://github.com/ryanhamilton/kx-vscode/blob/peachq/strip-probe/PEACHQ-PROBE.md).
 
-All guides, setup instructions, and feature documentation are available at:
+## Build and test
 
-👉 https://code.kx.com/vscode
+```bash
+npm ci
+npm run build
+npm run pretest && npm run test:headless   # unit suite in a headless VS Code (no display needed)
+```
 
-Project Wiki is available at:
-
-👉 https://kxsystems.github.io/kx-vscode
-
-## Reference
-
-- [Reference Card](https://kxsystems.github.io/kx-vscode/user/reference-card.html)
-  for a list of all commands, shortcuts, and settings
-- [Contribution Guide](https://github.com/KxSystems/kx-vscode/blob/-/.github/CONTRIBUTING.md)
-  for details on how to help improve the extension
-
-## Data and Telemetry
-
-The KX kdb Extension for Visual Studio Code collects usage data and sends it to
-KX to help improve our products and services. Read our
-[privacy statement](https://kx.com/privacy-policy/) to learn more. This
-extension respects the telemetry settings. To learn more, see the
-[Visual Studio Code telemetry documentation](https://code.visualstudio.com/docs/supporting/faq#_how-to-disable-telemetry-reporting).
+This extension sends no telemetry.

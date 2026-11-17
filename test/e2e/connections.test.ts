@@ -383,7 +383,11 @@ describe("Connections panel", () => {
     before(async () => {
       prompt.clear();
       dialog.clear();
-      exported = await exportTo("peachq.connections.export.all", EXPORTED, false);
+      exported = await exportTo(
+        "peachq.connections.export.all",
+        EXPORTED,
+        false,
+      );
       offered = [...dialog.requests];
     });
 

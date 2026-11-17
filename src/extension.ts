@@ -244,7 +244,7 @@ export async function activate(context: vscode.ExtensionContext) {
         {
           startIndex: index,
           length: OPEN_RESULTS_HINT.length,
-          tooltip: "Open kdb Results View",
+          tooltip: "Open peachq Results View",
         },
       ];
     },

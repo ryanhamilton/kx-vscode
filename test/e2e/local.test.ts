@@ -450,6 +450,9 @@ describe("Executing on a kdb+ connection", () => {
   describe("the connection console", () => {
     it("shows what the process sent back", async () => {
       await focus(Q_FILE);
+      await vscode.commands.executeCommand(
+        "peachq.results.destination.terminal",
+      );
       await run("peachq.execute.fileQuery");
 
       const shown = await terminalText(CONSOLE);
@@ -505,7 +508,9 @@ describe("Executing on a kdb+ connection", () => {
   describe("the results destination", () => {
     // Terminal is the default; put it back for whatever runs next.
     after(async () => {
-      await vscode.commands.executeCommand("peachq.results.destination.terminal");
+      await vscode.commands.executeCommand(
+        "peachq.results.destination.terminal",
+      );
     });
 
     const printed = (text: string) => text.split(RESULT).length - 1;
@@ -524,7 +529,9 @@ describe("Executing on a kdb+ connection", () => {
     }
 
     it("asks for text and prints to the console for the terminal", async () => {
-      await vscode.commands.executeCommand("peachq.results.destination.terminal");
+      await vscode.commands.executeCommand(
+        "peachq.results.destination.terminal",
+      );
       await focus(Q_FILE);
 
       const before = printed(await terminalText(CONSOLE));
@@ -550,21 +557,6 @@ describe("Executing on a kdb+ connection", () => {
         printed(await terminalText(CONSOLE)),
         before,
         "the console printed the result as well",
-      );
-    });
-  });
-
-  describe("what a kdb+ connection cannot do", () => {
-    it("does not populate a scratchpad", async () => {
-      await focus(Q_FILE);
-
-      kdb.clear();
-      await vscode.commands.executeCommand("peachq.file.populateScratchpad");
-
-      assert.deepStrictEqual(
-        kdb.queries().map((request) => request.args?.code),
-        [],
-        "the file was sent anyway",
       );
     });
   });

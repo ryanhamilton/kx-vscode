@@ -40,6 +40,9 @@ async function main() {
         // A profile of its own, thrown away afterwards, so a run neither reads
         // the developer's settings nor leaves anything of its own behind.
         "--profile-temp",
+        ...(process.env.HEADLESS
+          ? ["--ozone-platform=headless", "--disable-gpu"]
+          : []),
       ],
     });
   } catch (err) {

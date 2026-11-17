@@ -41,7 +41,7 @@ const KEY = {
  * TerminalLinkProvider (see extension.ts) matches this text and opens the KDB
  * Results view — terminals do not allow `command:` hyperlinks directly.
  */
-export const OPEN_RESULTS_HINT = "kdb Results View";
+export const OPEN_RESULTS_HINT = "peachq Results View";
 
 const CUT = "..";
 

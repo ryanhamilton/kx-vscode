@@ -629,15 +629,6 @@ describe("Executing on the REPL", () => {
     });
   });
 
-  describe("what the REPL cannot do", () => {
-    it("does not populate a scratchpad", async () => {
-      await focus(Q_FILE);
-      const sent = await run("peachq.file.populateScratchpad");
-
-      assert.strictEqual(sent, "", `the file was sent anyway:\n${sent}`);
-    });
-  });
-
   // Last, because starting a REPL here leaves it as the active one.
   describe("with several REPLs", () => {
     const FOLDER_A_FILE = file(path.join("folderA", "a.q"));
