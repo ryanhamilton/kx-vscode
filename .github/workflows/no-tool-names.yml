@@ -29,7 +29,8 @@ jobs:
               status=1
             fi
           done
-          if git log --format='%H %B' "$BASE..$HEAD" | grep -Ei "$pattern"; then
+          messages=$(git log --format=%B "$BASE..$HEAD") || exit 1
+          if printf '%s' "$messages" | grep -Eiq "$pattern"; then
             echo "::error::a commit message names a tool or model"
             status=1
           fi
