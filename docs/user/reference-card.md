@@ -94,9 +94,7 @@ to them. Whether a right click pastes is VS Code's
 | kdb.insightsEnterpriseConnections                  | machine             | `object`  | `{}`          |
 | kdb.connectionLabels                               | machine             | `array`   | `[]`          |
 | kdb.labelsConnectionMap                            | machine             | `array`   | `[]`          |
-| kdb.hideSurvey                                     | machine             | `boolean` | `false`       |
 | kdb.hideSourceExpressions                          | machine             | `boolean` | `true`        |
-| kdb.hideSubscribeRegistrationNotification          | machine             | `boolean` | `false`       |
 | kdb.neverShowQInstallAgain                         | machine             | `boolean` | `false`       |
 | kdb.autoFocusOutputOnEntry                         | machine             | `boolean` | `true`        |
 | kdb.notebookRowLimit                               | machine-overridable | `number`  | `100`         |
@@ -137,6 +135,10 @@ Code restarts.
 whole file run.
 
 ## Telemetry
+
+No telemetry leaves the machine: the extension has no reporter. The events
+below are only written to the `telemetry-client-test` output channel when
+`CODE_TEST` is set.
 
 | Telemetry                         | Measurements | Source                                   |
 | :-------------------------------- | :----------: | :--------------------------------------- |
@@ -254,5 +256,3 @@ whole file run.
 | Help.Open.Documentation           |              | src/extension.ts                         |
 | Help.Open.ReportBug               |              | src/extension.ts                         |
 | Help.Open.SuggestFeature          |              | src/extension.ts                         |
-| Help.Open.Survey                  |              | src/extension.ts                         |
-| Help.Hide.Survey                  |              | src/utils/feedbackSurveyUtils.ts         |

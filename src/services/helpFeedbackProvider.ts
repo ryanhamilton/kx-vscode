@@ -38,11 +38,6 @@ export class HelpFeedbackProvider implements vscode.TreeDataProvider<HelpItem> {
         "kdb.help.suggestFeature",
         "feature.svg",
       ),
-      new HelpItem(
-        "Provide Feedback",
-        "kdb.help.provideFeedback",
-        "feedback.svg",
-      ),
       new HelpItem("Report a Bug", "kdb.help.reportBug", "bug.svg"),
     ];
   }

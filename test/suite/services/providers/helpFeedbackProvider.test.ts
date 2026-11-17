@@ -27,12 +27,11 @@ describe("HelpFeedbackProvider", () => {
 
   it("should return all help items in getChildren", () => {
     const children = provider.getChildren();
-    assert.strictEqual(children.length, 4);
+    assert.strictEqual(children.length, 3);
     assert.ok(children[0] instanceof vscode.TreeItem);
     assert.strictEqual(children[0].label, "Extension Documentation");
     assert.strictEqual(children[1].label, "Suggest a Feature");
-    assert.strictEqual(children[2].label, "Provide Feedback");
-    assert.strictEqual(children[3].label, "Report a Bug");
+    assert.strictEqual(children[2].label, "Report a Bug");
   });
 
   it("should return the same item in getTreeItem", () => {
@@ -55,11 +54,6 @@ describe("HelpFeedbackProvider", () => {
         label: "Suggest a Feature",
         command: "kdb.help.suggestFeature",
         icon: "feature.svg",
-      },
-      {
-        label: "Provide Feedback",
-        command: "kdb.help.provideFeedback",
-        icon: "feedback.svg",
       },
       {
         label: "Report a Bug",
