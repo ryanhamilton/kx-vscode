@@ -12,7 +12,7 @@ setUp:{
     .test.namespace:enlist[`]!enlist(::);
     .test.otherNs.var:1 2 3;
     };
-tearDown:{![`.;();0b;`test`ignore`a`b`testview`noDot`var1 inter key `.]};
+tearDown:{.qunit.removeVar each `test`ignore`a`b`testview`noDot`var1};
 
 listMem:{[extra] value fnStr,blacklist,extra};
 withViews:{value each ("a:: 1";"b:: 2";"testview:: a + b"); listMem ""};

@@ -7,63 +7,60 @@ system "d .evaluateQTest";
 .test.precision:system "P";
 .test.attrLines:("dict: `s#`a`b`c`d`e`f`g!enlist each 7?0"; "dict[`e] : dict[`e] , 1"; "attr dict");
 
-compare:{[a; e] .qunit.assertEquals[a; e; "compare"]; 1b};
-/ a functional delete given no names empties the namespace, so only names that exist are passed
-drop:{[ns; names] if[count n:names inter key ns; ![ns;();0b;n]]};
 tearDown:{
     .qunit.setConsole .test.dims;
     system "P ",string .test.precision;
-    drop[`.; `dict`myVal1`myVal2];
+    .qunit.removeVar each `dict`myVal1`myVal2;
     };
 
 testSimpleExpressionOf33ToReturn6:{
-    .qunit.assertTrue[compare[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "3+3"; ::; "serialized")]`data; 6]; "simple expression of 3+3 to return 6"]
+    .qunit.assertEquals[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "3+3"; ::; "serialized")]`data; 6; "simple expression of 3+3 to return 6"]
     };
 skipProjectionNullToReturnAsGenericNull:{
-    .qunit.assertTrue[compare[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "last value (;;)"; "serialized")]`data; (::)]; "projection null to return as generic null"]
+    .qunit.assertEquals[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "last value (;;)"; "serialized")]`data; (::); "projection null to return as generic null"]
     };
 skipFunctionDefinitionToWork:{
-    .qunit.assertTrue[compare[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; ".test.fn333: {: 333}"; ::; "serialized")]`data; {: 333}]; "function definition to work"]
+    .qunit.assertEquals[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; ".test.fn333: {: 333}"; ::; "serialized")]`data; {: 333}; "function definition to work"]
     };
 testFunctionCallToWorkAndReturn333:{
     .test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; ".test.fn333: {: 333}"; ::; "serialized")];
-    .qunit.assertTrue[compare[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; ".test.fn333 []"; ::; "serialized")]`data; 333]; "function call to work and return 333"]
+    .qunit.assertEquals[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; ".test.fn333 []"; ::; "serialized")]`data; 333; "function call to work and return 333"]
     };
 skipEachRightAndEachLeftOfSimilarExpressionsToBeEqual:{
     .qunit.assertTrue[.com_kx_edi.dropIrrelevantRecords[.com_kx_ediNoCoverage.evaluate["1 2 3 +\\: 10"; "."]] ~ .com_kx_edi.dropIrrelevantRecords  .com_kx_ediNoCoverage.evaluate["10 +/: 1 2 3"; "."]; "each right and each left of similar expressions to be equal"]
     };
 testScanToWorkAndReturn111316:{
-    .qunit.assertTrue[compare[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "10 +\\ 1 2 3"; ::; "serialized")]`data; 11 13 16]; "scan to work and return 11 13 16"]
+    .qunit.assertEquals[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "10 +\\ 1 2 3"; ::; "serialized")]`data; 11 13 16; "scan to work and return 11 13 16"]
     };
 testOverToWorkAndReturn16:{
-    .qunit.assertTrue[compare[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "10 +/ 1 2 3"; ::; "serialized")]`data; 16]; "over to work and return 16"]
+    .qunit.assertEquals[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "10 +/ 1 2 3"; ::; "serialized")]`data; 16; "over to work and return 16"]
     };
 testAListCreatedByEDIToBeEqualToTheList:{
-    .qunit.assertTrue[compare[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "1 2 3 4 5 6 7 8"; ::; "serialized")]`data; 1 2 3 4 5 6 7 8]; "a list created by EDI to be equal to the list"]
+    .qunit.assertEquals[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "1 2 3 4 5 6 7 8"; ::; "serialized")]`data; 1 2 3 4 5 6 7 8; "a list created by EDI to be equal to the list"]
     };
 testAnExpressionThatCreatesAListToReturnTheCorrectList:{
-    .qunit.assertTrue[compare[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "`char$97+til 26"; ::; "serialized")]`data; "abcdefghijklmnopqrstuvwxyz"]; "an expression that creates a list to return the correct list"]
+    .qunit.assertEquals[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "`char$97+til 26"; ::; "serialized")]`data; "abcdefghijklmnopqrstuvwxyz"; "an expression that creates a list to return the correct list"]
     };
 testTheConcatOfTwoListsToBeTheSame:{
-    .qunit.assertTrue[compare[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "(til 100),(til 100)"; ::; "serialized")]`data; (til[100], til 100)]; "the concat of two lists to be the same"]
+    .qunit.assertEquals[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "(til 100),(til 100)"; ::; "serialized")]`data; (til[100], til 100); "the concat of two lists to be the same"]
     };
 skipSimpleKExpressionsToWork336:{
-    .qunit.assertTrue[compare[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "k) 3 + 3"; ::; "serialized")]`data; 6]; "simple k expressions to work, 3+3=6"]
+    .qunit.assertEquals[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "k) 3 + 3"; ::; "serialized")]`data; 6; "simple k expressions to work, 3+3=6"]
     };
 skipMoreComplicatedKExpressionsToWorkSuchAsOver:{
-    .qunit.assertTrue[compare[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "k) +/1 2 3 4"; ::; "serialized")]`data; 10]; "more complicated k expressions to work such as over"]
+    .qunit.assertEquals[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "k) +/1 2 3 4"; ::; "serialized")]`data; 10; "more complicated k expressions to work such as over"]
     };
 skipMoreComplicatedKExpressionsToWorkSuchAsDyadicFunctionOver:{
-    .qunit.assertTrue[compare[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "k) {x+2*y}/1 2 3 4"; ::; "serialized")]`data; 19]; "more complicated k expressions to work such as dyadic function over"]
+    .qunit.assertEquals[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "k) {x+2*y}/1 2 3 4"; ::; "serialized")]`data; 19; "more complicated k expressions to work such as dyadic function over"]
     };
 skipMoreComplicatedKExpressionsToWorkSuchAsMonadicEachBoth:{
-    .qunit.assertTrue[compare[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "k) (-':)1 2 3 4"; ::; "serialized")]`data; 1 1 1 1]; "more complicated k expressions to work such as monadic each both"]
+    .qunit.assertEquals[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "k) (-':)1 2 3 4"; ::; "serialized")]`data; 1 1 1 1; "more complicated k expressions to work such as monadic each both"]
     };
 skipMoreComplicatedKExpressionsToWorkSuchAsMonadicEachBoth2:{
-    .qunit.assertTrue[compare[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "k) +\\1 2 3 4"; ::; "serialized")]`data; 1 3 6 10]; "more complicated k expressions to work such as monadic each both"]
+    .qunit.assertEquals[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "k) +\\1 2 3 4"; ::; "serialized")]`data; 1 3 6 10; "more complicated k expressions to work such as monadic each both"]
     };
 skipAStringToBeAStringInK:{
-    .qunit.assertTrue[compare[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "k) \"hello\\\\there\""; ::; "serialized")]`data; "hello\\there"]; "a string to be a string in k"]
+    .qunit.assertEquals[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "k) \"hello\\\\there\""; ::; "serialized")]`data; "hello\\there"; "a string to be a string in k"]
     };
 testItToReturnTimingInformation:{
     / this fails intermittently on windows for some reason ...
@@ -76,7 +73,7 @@ testSimpleExpressionInTToWorkCorrectly:{
     .qunit.assertTrue[(.test.zz ~ 4) and (10 > .test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "\\t .test.zz: 1 + 1 + 1 + 1"; ::; "serialized")]`data); "simple expression in t to work correctly"]
     };
 testTsToReturnTimeAndSpace:{
-    .qunit.assertTrue[compare[count .test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "\\ts til 10000"; ::; "serialized")]`data; 2]; "ts to return time and space"]
+    .qunit.assertEquals[count .test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "\\ts til 10000"; ::; "serialized")]`data; 2; "ts to return time and space"]
     };
 testWorkspaceInformationToReturnCorrectly:{
     .qunit.assertTrue[(last system "w") ~ last .test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "\\w"; ::; "serialized")]`data; "workspace information to return correctly (should usually work but may fail)"]
@@ -132,7 +129,7 @@ testTheTestToNotBeRemoved:{
     .qunit.assertTrue[trim[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "\\echo /test"; ::; "serialized")]`data] ~ enlist "/test"; "the /test to not be removed"]
     };
 testThisToBeTreatedAsASingleExpression:{
-    .qunit.assertTrue[compare[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "(1\r\n\r\n    2 3)"; ::; "serialized")]`data; 1 2 3]; "this to be treated as a single expression"]
+    .qunit.assertEquals[.test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "(1\r\n\r\n    2 3)"; ::; "serialized")]`data; 1 2 3; "this to be treated as a single expression"]
     };
 testAnAttributeWithNoSemiColons:{
     .qunit.assertTrue[`s ~ .test.evaluateQ[`ctx`code`sampleFn`returnFormat!("."; "\n" sv .test.attrLines; ::; "serialized")]`data; "an attribute with no semi colons"]

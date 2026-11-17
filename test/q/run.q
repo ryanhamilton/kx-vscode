@@ -29,9 +29,8 @@ report:{[ns; t]
         if[x[`status] in `fail`error;
             -1 ("    ",str[x`msg]," result: ",str x`result; "    expected: ",-3!x`expected; "    actual:   ",-3!x`actual)]} each t;
     .qunit.setConsole c;
-    n:{sum x=y}[t`status];
-    -1 string[ns],": ",", " sv {string[x y]," ",string y}[n each s!s] each s:`pass`fail`error`skip;
-    exit `int$(0=count t) or 0<n[`fail]+n`error};
+    -1 string[ns]," ",.qunit.verdict[t]," ",string[sum `skip=t`status]," skipped";
+    exit `int$(0=count t) or any t[`status] in `fail`error};
 
 runOne:{[file]
     system "l pq/qunit.q";

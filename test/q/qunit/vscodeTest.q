@@ -4,9 +4,7 @@ system "d .vscodeTest";
 
 src:read0 `:test/q/qunit/vscodeTest.q;
 
-/ a functional delete given no names empties the namespace, so only names that exist are passed
-drop:{[ns; names] if[count n:names inter key ns; ![ns;();0b;n]]};
-tearDown:{drop[`.vscode; enlist `customQEvaluator]; drop[`.; `foo`bar`myView]};
+tearDown:{.qunit.removeVar each `.vscode.customQEvaluator`foo`bar`myView};
 
 query:{[code; ctx; fmt] .vscode.runQQuery `code`ctx`returnFormat`sampleFn`sampleSize!(code; ctx; fmt; ::; ::)};
 / a frame of a lambda defined in test fn: where quke named its own file and line, this file and the lambda's line
