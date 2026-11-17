@@ -43,7 +43,7 @@ import {
 import { FAILURE, FakeQ } from "./utils/qserver";
 
 // Copies of the main fixtures, under the paths the workspace settings assign
-// to TESTLOCAL. They need their own paths because kdb.connectionMap is keyed
+// to TESTLOCAL. They need their own paths because peachq.connectionMap is keyed
 // by path: main.q has to stay unassigned so it still runs on the REPL.
 const Q_FILE = file("local.q");
 const SQL_FILE = file("local.sql");
@@ -134,7 +134,7 @@ describe("Executing on a kdb+ connection", () => {
   function qCases(target: () => vscode.Uri) {
     it("runs the whole file", async () => {
       await focus(target());
-      const code = await run("kdb.execute.fileQuery");
+      const code = await run("peachq.execute.fileQuery");
 
       assert.ok(code.includes(TWO_STATEMENTS), `two statements:\n${code}`);
       assert.ok(code.includes(JOINED), `joined expression:\n${code}`);
@@ -142,7 +142,7 @@ describe("Executing on a kdb+ connection", () => {
 
     it("sends the file with its comments intact", async () => {
       await focus(target());
-      const code = await run("kdb.execute.fileQuery");
+      const code = await run("peachq.execute.fileQuery");
 
       // Unlike the REPL, a connection is sent the file as written: the process
       // parses it, so comments and the exit marker travel with it.
@@ -158,14 +158,14 @@ describe("Executing on a kdb+ connection", () => {
 
     it("sends only the selection", async () => {
       await selectionOf(target(), SELECTABLE);
-      const code = await run("kdb.execute.selectedQuery");
+      const code = await run("peachq.execute.selectedQuery");
 
       assert.strictEqual(code, SELECTABLE);
     });
 
     it("sends the current line when nothing is selected", async () => {
       await caretAt(target(), TWO_STATEMENTS);
-      const code = await run("kdb.execute.selectedQuery");
+      const code = await run("peachq.execute.selectedQuery");
 
       assert.ok(code.includes(TWO_STATEMENTS), `line:\n${code}`);
       assert.ok(!code.includes(JOINED), `${JOINED} also sent:\n${code}`);
@@ -173,7 +173,7 @@ describe("Executing on a kdb+ connection", () => {
 
     it("sends the whole multi-line expression for a block", async () => {
       await caretAt(target(), OPENS_JOINED);
-      const code = await run("kdb.execute.block");
+      const code = await run("peachq.execute.block");
 
       assert.ok(code.includes(JOINED), `continuation line:\n${code}`);
       assert.ok(
@@ -184,7 +184,7 @@ describe("Executing on a kdb+ connection", () => {
 
     it("sends nothing when the caret is on the trailing empty line", async () => {
       await lastLineOf(target());
-      const code = await run("kdb.execute.selectedQuery");
+      const code = await run("peachq.execute.selectedQuery");
 
       assert.strictEqual(code, "", `an empty line was sent:\n${code}`);
     });
@@ -193,7 +193,7 @@ describe("Executing on a kdb+ connection", () => {
   function sqlCases(target: () => vscode.Uri) {
     it("wraps the whole file for sql", async () => {
       await focus(target());
-      const code = await run("kdb.execute.fileQuery");
+      const code = await run("peachq.execute.fileQuery");
 
       assert.ok(code.startsWith("s)"), `no sql wrapper:\n${code}`);
       assert.ok(/where px > 200/.test(code), `first query:\n${code}`);
@@ -202,7 +202,7 @@ describe("Executing on a kdb+ connection", () => {
 
     it("runs only the selected query", async () => {
       await selectionOf(target(), SQL_FIRST_QUERY);
-      const code = await run("kdb.execute.selectedQuery");
+      const code = await run("peachq.execute.selectedQuery");
 
       assert.ok(code.startsWith("s)"), `no sql wrapper:\n${code}`);
       assert.ok(code.includes(SQL_FIRST_QUERY), `selected query:\n${code}`);
@@ -216,7 +216,7 @@ describe("Executing on a kdb+ connection", () => {
   function pythonCases(target: () => vscode.Uri) {
     it("runs the whole file as python", async () => {
       await focus(target());
-      const code = await run("kdb.scratchpad.python.run.file");
+      const code = await run("peachq.scratchpad.python.run.file");
 
       assert.ok(code.includes(PY_MARKER), `${PY_MARKER}:\n${code}`);
       assert.ok(code.includes(PY_OTHER), `${PY_OTHER}:\n${code}`);
@@ -224,7 +224,7 @@ describe("Executing on a kdb+ connection", () => {
 
     it("runs only the selection as python", async () => {
       await selectionOf(target(), PY_SELECTABLE);
-      const code = await run("kdb.scratchpad.python.run");
+      const code = await run("peachq.scratchpad.python.run");
 
       assert.ok(code.includes(PY_MARKER), `selection:\n${code}`);
       assert.ok(!code.includes(PY_OTHER), `${PY_OTHER} also sent:\n${code}`);
@@ -258,7 +258,7 @@ describe("Executing on a kdb+ connection", () => {
   describe("from a quke file", () => {
     it("sends only the selection", async () => {
       await selectionOf(QUKE_FILE, QUKE_SELECTED);
-      const code = await run("kdb.execute.selectedQuery");
+      const code = await run("peachq.execute.selectedQuery");
 
       assert.ok(code.includes(QUKE_SELECTED), `selection:\n${code}`);
       assert.ok(
@@ -269,7 +269,7 @@ describe("Executing on a kdb+ connection", () => {
 
     it("sends the current line when nothing is selected", async () => {
       await caretAt(QUKE_FILE, QUKE_LINE);
-      const code = await run("kdb.execute.selectedQuery");
+      const code = await run("peachq.execute.selectedQuery");
 
       assert.ok(code.includes(QUKE_LINE), `line:\n${code}`);
       assert.ok(
@@ -284,8 +284,8 @@ describe("Executing on a kdb+ connection", () => {
       const notebook = await vscode.workspace.openNotebookDocument(NOTEBOOK);
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
-        id: "kx-notebook-1",
-        extension: "KX.kdb",
+        id: "peachq-notebook-1",
+        extension: "peachq.peachq",
       });
 
       kdb.clear();
@@ -323,8 +323,8 @@ describe("Executing on a kdb+ connection", () => {
       const notebook = await vscode.workspace.openNotebookDocument(NOTEBOOK);
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
-        id: "kx-notebook-1",
-        extension: "KX.kdb",
+        id: "peachq-notebook-1",
+        extension: "peachq.peachq",
       });
       await vscode.commands.executeCommand("notebook.clearAllCellsOutputs");
 
@@ -334,7 +334,7 @@ describe("Executing on a kdb+ connection", () => {
 
       try {
         kdb.clear();
-        await vscode.commands.executeCommand("kdb.execute.selectedQuery");
+        await vscode.commands.executeCommand("peachq.execute.selectedQuery");
         await until(() => kdb.queries().length > 0, "the line to run");
 
         const [q] = kdb.queries();
@@ -366,7 +366,7 @@ describe("Executing on a kdb+ connection", () => {
     async function contextOf(line: string) {
       await caretAt(CONTEXT_FILE, line);
       kdb.clear();
-      await vscode.commands.executeCommand("kdb.execute.selectedQuery");
+      await vscode.commands.executeCommand("peachq.execute.selectedQuery");
       await until(() => kdb.queries().length > 0, `${line} to run`);
       const [query] = kdb.queries();
       assert.ok(query.args?.code?.includes(line), `line:\n${query.args?.code}`);
@@ -391,7 +391,7 @@ describe("Executing on a kdb+ connection", () => {
       await focus(PLAIN_FILE);
 
       plain.clear();
-      await vscode.commands.executeCommand("kdb.execute.fileQuery");
+      await vscode.commands.executeCommand("peachq.execute.fileQuery");
       await until(() => plain.queries().length > 0, "the query to arrive");
 
       const [query] = plain.queries();
@@ -419,8 +419,8 @@ describe("Executing on a kdb+ connection", () => {
         await vscode.workspace.openNotebookDocument(ERROR_NOTEBOOK);
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
-        id: "kx-notebook-1",
-        extension: "KX.kdb",
+        id: "peachq-notebook-1",
+        extension: "peachq.peachq",
       });
 
       kdb.clear();
@@ -450,7 +450,7 @@ describe("Executing on a kdb+ connection", () => {
   describe("the connection console", () => {
     it("shows what the process sent back", async () => {
       await focus(Q_FILE);
-      await run("kdb.execute.fileQuery");
+      await run("peachq.execute.fileQuery");
 
       const shown = await terminalText(CONSOLE);
 
@@ -494,7 +494,7 @@ describe("Executing on a kdb+ connection", () => {
 
     it("closes the console on disconnect", async () => {
       await vscode.commands.executeCommand(
-        "kdb.connections.disconnect",
+        "peachq.connections.disconnect",
         CONNECTION,
       );
 
@@ -505,7 +505,7 @@ describe("Executing on a kdb+ connection", () => {
   describe("the results destination", () => {
     // Terminal is the default; put it back for whatever runs next.
     after(async () => {
-      await vscode.commands.executeCommand("kdb.results.destination.terminal");
+      await vscode.commands.executeCommand("peachq.results.destination.terminal");
     });
 
     const printed = (text: string) => text.split(RESULT).length - 1;
@@ -524,24 +524,24 @@ describe("Executing on a kdb+ connection", () => {
     }
 
     it("asks for text and prints to the console for the terminal", async () => {
-      await vscode.commands.executeCommand("kdb.results.destination.terminal");
+      await vscode.commands.executeCommand("peachq.results.destination.terminal");
       await focus(Q_FILE);
 
       const before = printed(await terminalText(CONSOLE));
       kdb.clear();
-      await vscode.commands.executeCommand("kdb.execute.fileQuery");
+      await vscode.commands.executeCommand("peachq.execute.fileQuery");
 
       assert.strictEqual(kdb.queries()[0].args?.returnFormat, "text");
       await untilPrinted(before + 1);
     });
 
     it("asks for structured text and leaves the console alone for the view", async () => {
-      await vscode.commands.executeCommand("kdb.results.destination.view");
+      await vscode.commands.executeCommand("peachq.results.destination.view");
       await focus(Q_FILE);
 
       const before = printed(await terminalText(CONSOLE));
       kdb.clear();
-      await vscode.commands.executeCommand("kdb.execute.fileQuery");
+      await vscode.commands.executeCommand("peachq.execute.fileQuery");
 
       // Structured text is what the results view renders from; the console is
       // left as it was.
@@ -559,7 +559,7 @@ describe("Executing on a kdb+ connection", () => {
       await focus(Q_FILE);
 
       kdb.clear();
-      await vscode.commands.executeCommand("kdb.file.populateScratchpad");
+      await vscode.commands.executeCommand("peachq.file.populateScratchpad");
 
       assert.deepStrictEqual(
         kdb.queries().map((request) => request.args?.code),
@@ -587,7 +587,7 @@ describe("Executing on a kdb+ connection", () => {
     after(async () => {
       for (const label of [labelOf(LATE), labelOf(AUTH)]) {
         await vscode.commands.executeCommand(
-          "kdb.connections.disconnect",
+          "peachq.connections.disconnect",
           label,
         );
       }
@@ -598,14 +598,14 @@ describe("Executing on a kdb+ connection", () => {
     it("opens no console when nothing is listening", async () => {
       await ensure(LATE);
       await vscode.commands.executeCommand(
-        "kdb.connections.connect.via.dialog",
+        "peachq.connections.connect.via.dialog",
         labelOf(LATE),
       );
 
       // The attempt is reported and abandoned rather than left hanging.
       await new Promise((resolve) => setTimeout(resolve, 1000));
       assert.strictEqual(
-        terminal(`KX ${LATE.serverAlias}`),
+        terminal(`peachq ${LATE.serverAlias}`),
         undefined,
         "a console was opened for a connection that never came up",
       );
@@ -618,7 +618,7 @@ describe("Executing on a kdb+ connection", () => {
       // Which also shows the failure above was the process being down, not the
       // connection being unknown.
       await until(
-        () => !!terminal(`KX ${LATE.serverAlias}`),
+        () => !!terminal(`peachq ${LATE.serverAlias}`),
         "the console to open",
       );
     });

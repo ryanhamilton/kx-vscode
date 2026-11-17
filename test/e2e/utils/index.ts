@@ -142,7 +142,7 @@ export async function until(condition: () => boolean, what: string) {
 }
 
 export async function activate() {
-  const extension = vscode.extensions.getExtension("KX.kdb");
+  const extension = vscode.extensions.getExtension("peachq.peachq");
   assert.ok(extension, "the kdb extension is not installed in this window");
   await extension.activate();
 }

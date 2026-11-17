@@ -176,7 +176,7 @@ no longer offers `REPL`, which `(active)` already covers; a file already
 assigned `REPL` keeps following the active REPL. A pinned file runs on its REPL
 whichever is active, and a pinned REPL that is not running is started in its
 folder. The name is the workspace folder name and the path under it, so the
-assignment in `kdb.connectionMap` holds for everyone sharing the settings: where
+assignment in `peachq.connectionMap` holds for everyone sharing the settings: where
 the only workspace folder goes by another name, as in a clone under a different
 directory, the path is taken under that folder. Folders that share a name are
 numbered, `src` and `src [2]`, and a REPL whose folder has left the workspace is
@@ -186,7 +186,7 @@ connection. The status bar shows `REPL (<name>)` for a pinned file, and
 
 ### 10. KXI-73661 - Source expressions for the REPL
 
-The ticket is a screenshot of the `kdb.hideSourceExpressions` setting ("When
+The ticket is a screenshot of the `peachq.hideSourceExpressions` setting ("When
 disabled, the console shows all evaluated expressions, intermediate steps, and
 results from your query"). The ask is for the REPL to honour it too, as the
 output console does.

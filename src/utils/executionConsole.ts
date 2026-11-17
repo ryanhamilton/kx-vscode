@@ -208,7 +208,7 @@ export class ExecutionConsole {
         logger,
       });
       sink.appendLine(`Please connect to a q server`);
-      commands.executeCommand("kdb.connections.disconnect");
+      commands.executeCommand("peachq.connections.disconnect");
       addQueryHistory(
         query,
         executorName,

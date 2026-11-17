@@ -43,9 +43,9 @@ import {
 const logger = "notebookController";
 
 export class KxNotebookController {
-  readonly controllerId = "kx-notebook-1";
-  readonly notebookType = "kx-notebook";
-  readonly label = "KX Notebook";
+  readonly controllerId = "peachq-notebook-1";
+  readonly notebookType = "peachq-notebook";
+  readonly label = "peachq Notebook";
   readonly supportedLanguages = ["q", "python", "sql"];
 
   protected readonly controller: vscode.NotebookController;

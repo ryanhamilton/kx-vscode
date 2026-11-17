@@ -67,7 +67,7 @@ output. `ctrl`+`enter` runs the whole cell, as in any VS Code notebook.
 | Reset                               | `ctrl`+`d`        | `⌃`+`d`                |
 | Clear the REPL                      | `ctrl`+`l`        | `⌃`+`l`                |
 
-With `kdb.hideSourceExpressions` off, code the REPL runs from a file, a
+With `peachq.hideSourceExpressions` off, code the REPL runs from a file, a
 selection or a notebook cell is shown statement by statement, each at a prompt
 of its own before its output, the way a q console transcript reads. Python is
 shown as written.
@@ -82,25 +82,25 @@ to them. Whether a right click pastes is VS Code's
 
 | Setting                                            | Scope    | Type      | Default       |
 | :------------------------------------------------- | :------- | :-------- | :------------ |
-| [kdb.qHomeDirectory](q-home-directory.md)          | machine  | `string`  | `""`          |
-| kdb.servers                                        | machine  | `object`  | `{}`          |
-| kdb.insightsEnterpriseConnections                  | machine  | `object`  | `{}`          |
-| kdb.connectionLabels                               | machine  | `array`   | `[]`          |
-| kdb.labelsConnectionMap                            | machine  | `array`   | `[]`          |
-| kdb.hideSurvey                                     | machine  | `boolean` | `false`       |
-| kdb.hideSourceExpressions                          | machine  | `boolean` | `true`        |
-| kdb.hideSubscribeRegistrationNotification          | machine  | `boolean` | `false`       |
-| kdb.neverShowQInstallAgain                         | machine  | `boolean` | `false`       |
-| kdb.autoFocusOutputOnEntry                         | machine  | `boolean` | `true`        |
-| [kdb.qHomeDirectoryWorkspace](q-home-directory.md) | resource | `string`  | `""`          |
-| kdb.connectionMap                                  | resource | `object`  | `{}`          |
-| kdb.targetMap                                      | resource | `object`  | `{}`          |
-| kdb.timeoutMap                                     | resource | `object`  | `{}`          |
-| kdb.defaultTimeout                                 | resource | `number`  | `30`          |
-| kdb.linting                                        | resource | `boolean` | `false`       |
-| kdb.refactoring                                    | resource | `string`  | `"Workspace"` |
+| [peachq.qHomeDirectory](q-home-directory.md)          | machine  | `string`  | `""`          |
+| peachq.servers                                        | machine  | `object`  | `{}`          |
+| peachq.insightsEnterpriseConnections                  | machine  | `object`  | `{}`          |
+| peachq.connectionLabels                               | machine  | `array`   | `[]`          |
+| peachq.labelsConnectionMap                            | machine  | `array`   | `[]`          |
+| peachq.hideSurvey                                     | machine  | `boolean` | `false`       |
+| peachq.hideSourceExpressions                          | machine  | `boolean` | `true`        |
+| peachq.hideSubscribeRegistrationNotification          | machine  | `boolean` | `false`       |
+| peachq.neverShowQInstallAgain                         | machine  | `boolean` | `false`       |
+| peachq.autoFocusOutputOnEntry                         | machine  | `boolean` | `true`        |
+| [peachq.qHomeDirectoryWorkspace](q-home-directory.md) | resource | `string`  | `""`          |
+| peachq.connectionMap                                  | resource | `object`  | `{}`          |
+| peachq.targetMap                                      | resource | `object`  | `{}`          |
+| peachq.timeoutMap                                     | resource | `object`  | `{}`          |
+| peachq.defaultTimeout                                 | resource | `number`  | `30`          |
+| peachq.linting                                        | resource | `boolean` | `false`       |
+| peachq.refactoring                                    | resource | `string`  | `"Workspace"` |
 
-`kdb.connectionMap`, `kdb.targetMap` and `kdb.timeoutMap` are keyed by workspace
+`peachq.connectionMap`, `peachq.targetMap` and `peachq.timeoutMap` are keyed by workspace
 relative path, so they only cover files inside the workspace. Files opened from
 outside the workspace can still be assigned a connection, an execution target
 and a timeout, but those assignments are kept in memory and are lost when VS

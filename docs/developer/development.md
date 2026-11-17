@@ -85,7 +85,7 @@ Stand-ins take the place of everything outside the extension, and each records
 what it is sent, which is what the tests assert on:
 
 - `fakeq/bin/q`, spawned by the REPL because the workspace points
-  `kdb.qHomeDirectoryWorkspace` at it. It answers the REPL handshake and writes
+  `peachq.qHomeDirectoryWorkspace` at it. It answers the REPL handshake and writes
   a `.transcript.log` next to the directory each REPL runs in.
 - `qserver.ts`, a kdb+ IPC server the connection tests run in process. It uses
   the same codec as `node-q`, and the suite adds and removes its connection

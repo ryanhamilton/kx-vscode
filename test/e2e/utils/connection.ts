@@ -32,7 +32,7 @@ export const PORT = Number(SERVER.serverPort);
 export const CONNECTION = `${SERVER.serverAlias} [${SERVER.serverName}:${SERVER.serverPort}]`;
 
 // The console terminal opened for it, named by getConnShortName().
-export const CONSOLE = `KX ${SERVER.serverAlias}`;
+export const CONSOLE = `peachq ${SERVER.serverAlias}`;
 
 // One stand-in process and one connection for the whole window: adding and
 // removing it per suite trips validateServerAlias, which rejects a name still
@@ -64,7 +64,7 @@ function declared(alias: string) {
   const servers =
     vscode.workspace
       .getConfiguration()
-      .get<{ [key: string]: { serverAlias?: string } }>("kdb.servers") ?? {};
+      .get<{ [key: string]: { serverAlias?: string } }>("peachq.servers") ?? {};
   return Object.values(servers).some((server) => server?.serverAlias === alias);
 }
 
@@ -79,7 +79,7 @@ export async function ensure(server: typeof SERVER) {
   if (declared(server.serverAlias)) {
     return;
   }
-  await vscode.commands.executeCommand("kdb.connections.add.kdb", server, []);
+  await vscode.commands.executeCommand("peachq.connections.add.kdb", server, []);
   added.push(server.serverAlias);
   await until(
     () => declared(server.serverAlias),
@@ -88,14 +88,14 @@ export async function ensure(server: typeof SERVER) {
 
   // Connecting by label looks the connection up in the list the tree builds
   // when it renders, so make sure it has been rebuilt with the new entry.
-  await vscode.commands.executeCommand("kdb-servers.focus");
+  await vscode.commands.executeCommand("peachq-servers.focus");
 }
 
 // The command can still arrive before the tree has caught up, so keep asking.
 export async function dial(label: string, target: FakeQ) {
   for (let attempt = 0; attempt < 20 && target.connections === 0; attempt++) {
     await vscode.commands.executeCommand(
-      "kdb.connections.connect.via.dialog",
+      "peachq.connections.connect.via.dialog",
       label,
     );
     await new Promise((resolve) => setTimeout(resolve, 250));
@@ -113,7 +113,7 @@ export async function dial(label: string, target: FakeQ) {
 /**
  * Starts the stand-in process and connects the extension to it.
  *
- * kdb.servers is machine scoped, so it lives in whichever user profile the
+ * peachq.servers is machine scoped, so it lives in whichever user profile the
  * window happens to run under, and the window runs under a throwaway one that
  * starts empty. So the connection is added the way the UI adds it, and removed
  * again afterwards for whatever profile is in force.
@@ -148,7 +148,7 @@ export async function startPlain() {
 export async function redial() {
   const dialled = kdb.connections;
   await vscode.commands.executeCommand(
-    "kdb.connections.connect.via.dialog",
+    "peachq.connections.connect.via.dialog",
     CONNECTION,
   );
   await until(
@@ -166,7 +166,7 @@ after(async () => {
     if (!active) {
       continue;
     }
-    await vscode.commands.executeCommand("kdb.connections.disconnect", label);
+    await vscode.commands.executeCommand("peachq.connections.disconnect", label);
     await target.close();
   }
   started = false;
@@ -176,7 +176,7 @@ after(async () => {
     const configuration = vscode.workspace.getConfiguration();
     const servers = {
       ...(configuration.get<{ [key: string]: { serverAlias?: string } }>(
-        "kdb.servers",
+        "peachq.servers",
       ) ?? {}),
     };
     for (const [key, server] of Object.entries(servers)) {
@@ -185,7 +185,7 @@ after(async () => {
       }
     }
     await configuration.update(
-      "kdb.servers",
+      "peachq.servers",
       servers,
       vscode.ConfigurationTarget.Global,
     );

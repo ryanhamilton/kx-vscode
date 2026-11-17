@@ -1,0 +1,20 @@
+peachq VS Code extension (probe)
+
+This product is a modified version of the kdb VS Code extension,
+Copyright (c) 1998-2026 KX Systems Inc., licensed under the Apache License,
+Version 2.0 (see LICENSE). Original source: https://github.com/KxSystems/kx-vscode
+(release 1.21.0, commit 9ddec87c).
+
+Modifications by the peachq project, 2026 (branch peachq/strip-probe):
+- removed telemetry (Application Insights) and every call to KX-hosted services;
+- removed kdb Insights Enterprise support (connections, data sources, UDAs,
+  scratchpads, the query editor, meta views, OAuth sign-in);
+- removed the KDB-X welcome/installer, newsletter, survey and Help & Feedback links;
+- removed the qlint build-tool integration (a separately licensed KX component);
+- renamed the extension, its command ids, setting keys, view ids and titles,
+  and replaced the KX logos with neutral placeholders.
+
+Every source file carrying the KX copyright header that was modified is listed
+by `git diff --name-only 9ddec87c` on this branch. "kdb+", "KX" and related
+names are trademarks of KX Systems Inc.; this product is not affiliated with
+or endorsed by KX Systems Inc.

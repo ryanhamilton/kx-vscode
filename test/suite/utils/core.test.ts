@@ -188,7 +188,7 @@ describe("core", () => {
 
   /* eslint-disable @typescript-eslint/no-unused-expressions */
   describe("coreLogs", () => {
-    ext.outputChannel = vscode.window.createOutputChannel("kdb", { log: true });
+    ext.outputChannel = vscode.window.createOutputChannel("peachq", { log: true });
     let appendLineSpy, showErrorMessageSpy: sinon.SinonSpy;
     beforeEach(() => {
       appendLineSpy = sinon.spy(
@@ -314,7 +314,7 @@ describe("core", () => {
 
       assert.ok(typeof result === "object");
       assert.strictEqual(Object.keys(result).length, 0);
-      assert.ok(getStub.calledWith("kdb.servers"));
+      assert.ok(getStub.calledWith("peachq.servers"));
     });
 
     it("should return servers sorted alphabetically by serverAlias", () => {
@@ -488,7 +488,7 @@ describe("core", () => {
       coreUtils.getServers();
 
       assert.ok(getStub.calledOnce);
-      assert.ok(getStub.calledWith("kdb.servers"));
+      assert.ok(getStub.calledWith("peachq.servers"));
     });
   });
 

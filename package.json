@@ -1,13 +1,13 @@
 {
-  "name": "kdb",
-  "displayName": "kdb",
-  "description": "IDE support for kdb product suite including the q programming language",
-  "publisher": "KX",
+  "name": "peachq",
+  "displayName": "peachq",
+  "description": "IDE support for the q programming language with peachq",
+  "publisher": "peachq",
   "version": "1.21.0",
-  "icon": "resources/images/kx-logo-vs.png",
+  "icon": "resources/images/peachq-logo.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/KxSystems/kx-vscode.git"
+    "url": "https://github.com/ryanhamilton/kx-vscode.git"
   },
   "capabilities": {
     "untrustedWorkspaces": {
@@ -21,11 +21,8 @@
     "Snippets"
   ],
   "keywords": [
-    "kdb",
-    "kdb+",
-    "kdb-x",
     "q",
-    "kdb Insights"
+    "peachq"
   ],
   "activationEvents": [
     "onLanguage:python",
@@ -34,51 +31,51 @@
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {
-      "title": "kdb",
+      "title": "peachq",
       "properties": {
-        "kdb.servers": {
+        "peachq.servers": {
           "type": "object",
-          "description": "kdb servers for explorer",
+          "description": "q servers for explorer",
           "scope": "machine"
         },
-        "kdb.hideDetailedConsoleQueryOutput": {
+        "peachq.hideDetailedConsoleQueryOutput": {
           "type": "boolean",
           "description": "Hide detailed console query output",
           "default": true,
           "scope": "machine",
-          "deprecationMessage": "This setting is deprecated, use kdb.hideSourceExpressions instead"
+          "deprecationMessage": "This setting is deprecated, use peachq.hideSourceExpressions instead"
         },
-        "kdb.hideSourceExpressions": {
+        "peachq.hideSourceExpressions": {
           "type": "boolean",
           "description": "When disabled, the console shows all evaluated expressions, intermediate steps, and results from your query. Enable this to streamline logs and reduce visual clutter when running simple or production-ready queries.",
           "default": true,
           "scope": "machine"
         },
-        "kdb.autoFocusOutputOnEntry": {
+        "peachq.autoFocusOutputOnEntry": {
           "type": "boolean",
           "description": "Automatically focus the output console when running a query without an active results tab or receive log entry",
           "default": true,
           "scope": "machine"
         },
-        "kdb.qHomeDirectory": {
+        "peachq.qHomeDirectory": {
           "type": "string",
           "description": "QHOME directory for q runtime",
           "default": "",
           "scope": "machine"
         },
-        "kdb.qHomeDirectoryWorkspace": {
+        "peachq.qHomeDirectoryWorkspace": {
           "type": "string",
           "description": "QHOME directory for q runtime for the workspace",
           "default": "",
           "scope": "resource"
         },
-        "kdb.linting": {
+        "peachq.linting": {
           "type": "boolean",
           "description": "Enable linting",
           "default": false,
           "scope": "resource"
         },
-        "kdb.refactoring": {
+        "peachq.refactoring": {
           "type": "string",
           "enum": [
             "Workspace",
@@ -88,19 +85,19 @@
           "default": "Workspace",
           "scope": "resource"
         },
-        "kdb.connectionMap": {
+        "peachq.connectionMap": {
           "type": "object",
           "description": "Connection map for workspace files",
           "default": {},
           "scope": "resource"
         },
-        "kdb.connectionLabels": {
+        "peachq.connectionLabels": {
           "type": "array",
           "description": "List of label names and colorset",
           "default": [],
           "scope": "machine"
         },
-        "kdb.labelsConnectionMap": {
+        "peachq.labelsConnectionMap": {
           "type": "array",
           "description": "Labels connection map",
           "default": [],
@@ -110,29 +107,29 @@
     },
     "commands": [
       {
-        "category": "KX",
-        "command": "kdb.connections.export.all",
+        "category": "peachq",
+        "command": "peachq.connections.export.all",
         "title": "Export Connections"
       },
       {
-        "category": "KX",
-        "command": "kdb.connections.export.single",
+        "category": "peachq",
+        "command": "peachq.connections.export.single",
         "title": "Export connection"
       },
       {
-        "category": "KX",
-        "command": "kdb.connections.import",
+        "category": "peachq",
+        "command": "peachq.connections.import",
         "title": "Import Connections"
       },
       {
-        "category": "KX",
-        "command": "kdb.connections.refresh.serverObjects",
+        "category": "peachq",
+        "command": "peachq.connections.refresh.serverObjects",
         "title": "Refresh server objects",
         "icon": "$(refresh)"
       },
       {
-        "category": "KX",
-        "command": "kdb.scratchpad.create",
+        "category": "peachq",
+        "command": "peachq.scratchpad.create",
         "title": "New Workbook (q)",
         "icon": {
           "dark": "./resources/dark/add-scratchpad.svg",
@@ -140,8 +137,8 @@
         }
       },
       {
-        "category": "KX",
-        "command": "kdb.scratchpad.python.create",
+        "category": "peachq",
+        "command": "peachq.scratchpad.python.create",
         "title": "New Workbook (Python)",
         "icon": {
           "dark": "./resources/dark/add-scratchpad-python.svg",
@@ -149,8 +146,8 @@
         }
       },
       {
-        "category": "KX",
-        "command": "kdb.scratchpad.sql.create",
+        "category": "peachq",
+        "command": "peachq.scratchpad.sql.create",
         "title": "New Workbook (SQL)",
         "icon": {
           "dark": "./resources/dark/sql.svg",
@@ -158,8 +155,8 @@
         }
       },
       {
-        "category": "KX",
-        "command": "kdb.connections.content.selectView",
+        "category": "peachq",
+        "command": "peachq.connections.content.selectView",
         "title": "View contents",
         "icon": {
           "dark": "./resources/dark/select-view.svg",
@@ -167,223 +164,223 @@
         }
       },
       {
-        "category": "KX",
-        "command": "kdb.scratchpad.explorer.refresh",
+        "category": "peachq",
+        "command": "peachq.scratchpad.explorer.refresh",
         "title": "Refresh workbooks",
         "icon": "$(refresh)",
         "enablement": "workspaceFolderCount > 0"
       },
       {
-        "category": "KX",
-        "command": "kdb.file.pickConnection",
+        "category": "peachq",
+        "command": "peachq.file.pickConnection",
         "title": "Choose Connection",
         "shortTitle": "Connection",
         "icon": "$(cloud)"
       },
       {
-        "category": "KX",
-        "command": "kdb.scratchpad.run",
+        "category": "peachq",
+        "command": "peachq.scratchpad.run",
         "title": "Run workbook"
       },
       {
-        "category": "KX",
-        "command": "kdb.connections.add",
+        "category": "peachq",
+        "command": "peachq.connections.add",
         "title": "New Connection",
         "icon": "$(add)"
       },
       {
-        "category": "KX",
-        "command": "kdb.connections.edit",
+        "category": "peachq",
+        "command": "peachq.connections.edit",
         "title": "Edit connection"
       },
       {
-        "category": "KX",
-        "command": "kdb.connections.remove.kdb",
+        "category": "peachq",
+        "command": "peachq.connections.remove.kdb",
         "title": "Remove connection"
       },
       {
-        "category": "KX",
-        "command": "kdb.connections.connect",
+        "category": "peachq",
+        "command": "peachq.connections.connect",
         "title": "Connect server"
       },
       {
-        "category": "KX",
-        "command": "kdb.connections.connect.via.dialog",
+        "category": "peachq",
+        "command": "peachq.connections.connect.via.dialog",
         "title": "Connect server"
       },
       {
-        "category": "KX",
-        "command": "kdb.connections.setActive",
+        "category": "peachq",
+        "command": "peachq.connections.setActive",
         "title": "Active connection"
       },
       {
-        "category": "KX",
-        "command": "kdb.connections.addAuthentication",
+        "category": "peachq",
+        "command": "peachq.connections.addAuthentication",
         "title": "Add authentication",
         "position": "end"
       },
       {
-        "category": "KX",
-        "command": "kdb.connections.enableTLS",
+        "category": "peachq",
+        "command": "peachq.connections.enableTLS",
         "title": "Enable TLS"
       },
       {
-        "category": "KX",
-        "command": "kdb.connections.disconnect",
+        "category": "peachq",
+        "command": "peachq.connections.disconnect",
         "title": "Disconnect"
       },
       {
-        "category": "KX",
-        "command": "kdb.queryHistory.rerun",
+        "category": "peachq",
+        "command": "peachq.queryHistory.rerun",
         "title": "Rerun query"
       },
       {
-        "category": "KX",
-        "command": "kdb.queryHistory.copyQuery",
+        "category": "peachq",
+        "command": "peachq.queryHistory.copyQuery",
         "title": "Copy query"
       },
       {
-        "category": "KX",
-        "command": "kdb.queryHistory.clear",
+        "category": "peachq",
+        "command": "peachq.queryHistory.clear",
         "title": "Clear query history",
         "icon": "$(clear-all)"
       },
       {
-        "category": "KX",
-        "command": "kdb.resultsPanel.update",
+        "category": "peachq",
+        "command": "peachq.resultsPanel.update",
         "title": "Update Results View"
       },
       {
-        "category": "KX",
-        "command": "kdb.resultsPanel.clear",
+        "category": "peachq",
+        "command": "peachq.resultsPanel.clear",
         "title": "Clear Results View"
       },
       {
-        "category": "KX",
-        "command": "kdb.resultsPanel.export.csv",
+        "category": "peachq",
+        "command": "peachq.resultsPanel.export.csv",
         "title": "Export to CSV"
       },
       {
-        "category": "KX",
-        "command": "kdb.results.destination.terminal",
+        "category": "peachq",
+        "command": "peachq.results.destination.terminal",
         "title": "Terminal",
         "icon": "$(terminal)"
       },
       {
-        "category": "KX",
-        "command": "kdb.results.destination.view",
-        "title": "kdb Results View",
+        "category": "peachq",
+        "command": "peachq.results.destination.view",
+        "title": "peachq Results View",
         "icon": "$(table)"
       },
       {
-        "category": "KX",
-        "command": "kdb.repl.start",
+        "category": "peachq",
+        "command": "peachq.repl.start",
         "title": "Start REPL"
       },
       {
-        "command": "kdb.repl.openFolder",
-        "title": "KX: Start REPL Here"
+        "command": "peachq.repl.openFolder",
+        "title": "peachq: Start REPL Here"
       },
       {
-        "command": "kdb.execute.selectedQuery",
-        "title": "KX: Execute Current Selection",
+        "command": "peachq.execute.selectedQuery",
+        "title": "peachq: Execute Current Selection",
         "icon": "$(run-above)"
       },
       {
-        "command": "kdb.execute.fileQuery",
-        "title": "KX: Execute Entire File",
+        "command": "peachq.execute.fileQuery",
+        "title": "peachq: Execute Entire File",
         "icon": "$(run)"
       },
       {
-        "command": "kdb.scratchpad.python.run",
-        "title": "KX: Execute Current Selection",
+        "command": "peachq.scratchpad.python.run",
+        "title": "peachq: Execute Current Selection",
         "icon": "$(run-above)"
       },
       {
-        "command": "kdb.scratchpad.python.run.file",
-        "title": "KX: Execute Entire File",
+        "command": "peachq.scratchpad.python.run.file",
+        "title": "peachq: Execute Entire File",
         "icon": "$(run)"
       },
       {
-        "category": "KX",
-        "command": "kdb.file.rename",
+        "category": "peachq",
+        "command": "peachq.file.rename",
         "title": "Rename"
       },
       {
-        "category": "KX",
-        "command": "kdb.file.delete",
+        "category": "peachq",
+        "command": "peachq.file.delete",
         "title": "Delete"
       },
       {
-        "command": "kdb.execute.block",
-        "title": "KX: Execute Current Block",
+        "command": "peachq.execute.block",
+        "title": "peachq: Execute Current Block",
         "icon": "$(run-below)"
       },
       {
-        "category": "KX",
-        "command": "kdb.toggleParameterCache",
+        "category": "peachq",
+        "command": "peachq.toggleParameterCache",
         "title": "Toggle Parameter Cache"
       },
       {
-        "category": "KX",
-        "command": "kdb.connections.labels.rename",
+        "category": "peachq",
+        "command": "peachq.connections.labels.rename",
         "title": "Rename label"
       },
       {
-        "category": "KX",
-        "command": "kdb.connections.labels.edit",
+        "category": "peachq",
+        "command": "peachq.connections.labels.edit",
         "title": "Edit label color"
       },
       {
-        "category": "KX",
-        "command": "kdb.connections.labels.delete",
+        "category": "peachq",
+        "command": "peachq.connections.labels.delete",
         "title": "Delete label"
       },
       {
-        "category": "KX",
-        "command": "kdb.createNotebook",
+        "category": "peachq",
+        "command": "peachq.createNotebook",
         "title": "New Notebook"
       }
     ],
     "keybindings": [
       {
-        "command": "kdb.execute.selectedQuery",
+        "command": "peachq.execute.selectedQuery",
         "key": "ctrl+d",
         "mac": "cmd+d",
         "when": "resourceFilename =~ /\\.(?:q|quke|sql)$/i"
       },
       {
-        "command": "kdb.execute.selectedQuery",
+        "command": "peachq.execute.selectedQuery",
         "key": "ctrl+d",
         "mac": "cmd+d",
-        "when": "notebookType == 'kx-notebook' && notebookEditorFocused && editorTextFocus && notebookCellType == 'code'"
+        "when": "notebookType == 'peachq-notebook' && notebookEditorFocused && editorTextFocus && notebookCellType == 'code'"
       },
       {
-        "command": "kdb.execute.fileQuery",
+        "command": "peachq.execute.fileQuery",
         "key": "ctrl+shift+d",
         "mac": "cmd+shift+d",
         "when": "resourceFilename =~ /\\.(?:q|sql)$/i"
       },
       {
-        "command": "kdb.scratchpad.python.run",
+        "command": "peachq.scratchpad.python.run",
         "key": "ctrl+d",
         "mac": "cmd+d",
         "when": "resourceFilename =~ /\\.(?:py)$/i"
       },
       {
-        "command": "kdb.scratchpad.python.run.file",
+        "command": "peachq.scratchpad.python.run.file",
         "key": "ctrl+shift+d",
         "mac": "cmd+shift+d",
         "when": "resourceFilename =~ /\\.(?:py)$/i"
       },
       {
-        "command": "kdb.execute.block",
+        "command": "peachq.execute.block",
         "key": "ctrl+shift+e",
         "mac": "cmd+shift+e",
         "when": "resourceFilename =~ /\\.(?:q)$/i"
       },
       {
-        "command": "kdb.toggleParameterCache",
+        "command": "peachq.toggleParameterCache",
         "key": "ctrl+shift+y",
         "mac": "cmd+shift+y",
         "when": "resourceFilename =~ /\\.(?:q)$/i"
@@ -414,9 +411,9 @@
         "configuration": "./language-configuration.json"
       },
       {
-        "id": "kdbplot",
+        "id": "peachqplot",
         "aliases": [
-          "kdbplot"
+          "peachqplot"
         ],
         "extensions": [
           ".plot"
@@ -427,9 +424,9 @@
         }
       },
       {
-        "id": "kxnotebook",
+        "id": "peachqnotebook",
         "aliases": [
-          "kxnotebook"
+          "peachqnotebook"
         ],
         "extensions": [
           ".kxnb"
@@ -450,42 +447,42 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "kdb-explorer",
-          "title": "KX",
-          "icon": "resources/images/kx_logo.svg"
+          "id": "peachq-explorer",
+          "title": "peachq",
+          "icon": "resources/images/peachq-logo.svg"
         }
       ],
       "panel": [
         {
-          "id": "kdb-results",
-          "title": "KDB Results",
-          "icon": "resources/images/kx_logo.svg"
+          "id": "peachq-results",
+          "title": "peachq Results",
+          "icon": "resources/images/peachq-logo.svg"
         }
       ]
     },
     "views": {
-      "kdb-explorer": [
+      "peachq-explorer": [
         {
-          "id": "kdb-servers",
+          "id": "peachq-servers",
           "name": "Connections",
           "icon": "resources/images/server.svg"
         },
         {
-          "id": "kdb-scratchpad-explorer",
+          "id": "peachq-scratchpad-explorer",
           "name": "Workbooks",
           "icon": "resources/images/server.svg"
         },
         {
-          "id": "kdb-query-history",
+          "id": "peachq-query-history",
           "name": "Query History",
           "contextualTitle": "Query History",
           "icon": "resources/images/server.svg"
         }
       ],
-      "kdb-results": [
+      "peachq-results": [
         {
-          "id": "kdb-results",
-          "name": "KDB Results",
+          "id": "peachq-results",
+          "name": "peachq Results",
           "type": "webview",
           "icon": "resources/images/server.svg"
         }
@@ -493,18 +490,18 @@
     },
     "viewsWelcome": [
       {
-        "view": "kdb-servers",
-        "contents": "No connections registered.\n[Add Connection](command:kdb.connections.add)"
+        "view": "peachq-servers",
+        "contents": "No connections registered.\n[Add Connection](command:peachq.connections.add)"
       }
     ],
     "submenus": [
       {
-        "id": "kdb.results.destination.terminalMenu",
+        "id": "peachq.results.destination.terminalMenu",
         "label": "Output Destination",
         "icon": "$(terminal)"
       },
       {
-        "id": "kdb.results.destination.viewMenu",
+        "id": "peachq.results.destination.viewMenu",
         "label": "Output Destination",
         "icon": "$(table)"
       }
@@ -512,428 +509,428 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "kdb.repl.openFolder",
+          "command": "peachq.repl.openFolder",
           "when": "false"
         },
         {
-          "command": "kdb.connections.export.all",
+          "command": "peachq.connections.export.all",
           "when": "true"
         },
         {
-          "command": "kdb.connections.export.single",
+          "command": "peachq.connections.export.single",
           "when": "false"
         },
         {
-          "command": "kdb.connections.import",
+          "command": "peachq.connections.import",
           "when": "true"
         },
         {
-          "command": "kdb.connections.refresh.serverObjects",
+          "command": "peachq.connections.refresh.serverObjects",
           "when": "false"
         },
         {
-          "command": "kdb.scratchpad.create",
+          "command": "peachq.scratchpad.create",
           "when": "true"
         },
         {
-          "command": "kdb.scratchpad.python.create",
+          "command": "peachq.scratchpad.python.create",
           "when": "true"
         },
         {
-          "command": "kdb.scratchpad.sql.create",
+          "command": "peachq.scratchpad.sql.create",
           "when": "true"
         },
         {
-          "command": "kdb.connections.content.selectView",
+          "command": "peachq.connections.content.selectView",
           "when": "false"
         },
         {
-          "command": "kdb.scratchpad.explorer.refresh",
+          "command": "peachq.scratchpad.explorer.refresh",
           "when": "false"
         },
         {
-          "command": "kdb.file.pickConnection",
+          "command": "peachq.file.pickConnection",
           "when": "resourceFilename =~ /\\.(?:q|py|sql|kxnb)$/i"
         },
         {
-          "command": "kdb.scratchpad.run",
+          "command": "peachq.scratchpad.run",
           "when": "false"
         },
         {
-          "command": "kdb.connections.add",
+          "command": "peachq.connections.add",
           "when": "true"
         },
         {
-          "command": "kdb.connections.edit",
+          "command": "peachq.connections.edit",
           "when": "false"
         },
         {
-          "command": "kdb.connections.remove.kdb",
+          "command": "peachq.connections.remove.kdb",
           "when": "false"
         },
         {
-          "command": "kdb.connections.connect",
+          "command": "peachq.connections.connect",
           "when": "false"
         },
         {
-          "command": "kdb.connections.connect.via.dialog",
+          "command": "peachq.connections.connect.via.dialog",
           "when": "false"
         },
         {
-          "command": "kdb.connections.setActive",
+          "command": "peachq.connections.setActive",
           "when": "false"
         },
         {
-          "command": "kdb.connections.addAuthentication",
+          "command": "peachq.connections.addAuthentication",
           "when": "false"
         },
         {
-          "command": "kdb.connections.enableTLS",
+          "command": "peachq.connections.enableTLS",
           "when": "false"
         },
         {
-          "command": "kdb.connections.disconnect",
+          "command": "peachq.connections.disconnect",
           "when": "false"
         },
         {
-          "command": "kdb.queryHistory.rerun",
+          "command": "peachq.queryHistory.rerun",
           "when": "false"
         },
         {
-          "command": "kdb.queryHistory.copyQuery",
+          "command": "peachq.queryHistory.copyQuery",
           "when": "false"
         },
         {
-          "command": "kdb.queryHistory.clear",
+          "command": "peachq.queryHistory.clear",
           "when": "false"
         },
         {
-          "command": "kdb.resultsPanel.update",
+          "command": "peachq.resultsPanel.update",
           "when": "false"
         },
         {
-          "command": "kdb.resultsPanel.clear",
+          "command": "peachq.resultsPanel.clear",
           "when": "false"
         },
         {
-          "command": "kdb.resultsPanel.export.csv",
+          "command": "peachq.resultsPanel.export.csv",
           "when": "false"
         },
         {
-          "command": "kdb.results.destination.terminal",
+          "command": "peachq.results.destination.terminal",
           "when": "false"
         },
         {
-          "command": "kdb.results.destination.view",
+          "command": "peachq.results.destination.view",
           "when": "false"
         },
         {
-          "command": "kdb.repl.start",
+          "command": "peachq.repl.start",
           "when": "true"
         },
         {
-          "command": "kdb.execute.selectedQuery",
+          "command": "peachq.execute.selectedQuery",
           "when": "resourceFilename =~ /\\.(?:q|quke|sql)$/i"
         },
         {
-          "command": "kdb.execute.fileQuery",
+          "command": "peachq.execute.fileQuery",
           "when": "resourceFilename =~ /\\.(?:q|sql)$/i"
         },
         {
-          "command": "kdb.scratchpad.python.run",
+          "command": "peachq.scratchpad.python.run",
           "when": "resourceFilename =~ /\\.(?:py)$/i"
         },
         {
-          "command": "kdb.scratchpad.python.run.file",
+          "command": "peachq.scratchpad.python.run.file",
           "when": "resourceFilename =~ /\\.(?:py)$/i"
         },
         {
-          "command": "kdb.file.rename",
+          "command": "peachq.file.rename",
           "when": "false"
         },
         {
-          "command": "kdb.file.delete",
+          "command": "peachq.file.delete",
           "when": "false"
         },
         {
-          "command": "kdb.execute.block",
+          "command": "peachq.execute.block",
           "when": "resourceFilename =~ /\\.(?:q)$/i"
         },
         {
-          "command": "kdb.toggleParameterCache",
+          "command": "peachq.toggleParameterCache",
           "when": "resourceFilename =~ /\\.(?:q)$/i"
         },
         {
-          "command": "kdb.connections.labels.rename",
+          "command": "peachq.connections.labels.rename",
           "when": "false"
         },
         {
-          "command": "kdb.connections.labels.edit",
+          "command": "peachq.connections.labels.edit",
           "when": "false"
         },
         {
-          "command": "kdb.connections.labels.delete",
+          "command": "peachq.connections.labels.delete",
           "when": "false"
         },
         {
-          "command": "kdb.createNotebook",
+          "command": "peachq.createNotebook",
           "when": "true"
         }
       ],
       "webview/context": [
         {
-          "command": "kdb.resultsPanel.clear",
-          "when": "view == kdb-results",
+          "command": "peachq.resultsPanel.clear",
+          "when": "view == peachq-results",
           "group": "resultsPanel"
         },
         {
-          "command": "kdb.resultsPanel.export.csv",
-          "when": "view == kdb-results",
+          "command": "peachq.resultsPanel.export.csv",
+          "when": "view == peachq-results",
           "group": "resultsPanel"
         }
       ],
       "view/title": [
         {
-          "command": "kdb.connections.add",
-          "when": "view == kdb-servers",
+          "command": "peachq.connections.add",
+          "when": "view == peachq-servers",
           "group": "navigation@1"
         },
         {
-          "command": "kdb.connections.refresh.serverObjects",
-          "when": "view == kdb-servers",
+          "command": "peachq.connections.refresh.serverObjects",
+          "when": "view == peachq-servers",
           "group": "navigation@2"
         },
         {
-          "command": "kdb.scratchpad.create",
-          "when": "view == kdb-scratchpad-explorer",
+          "command": "peachq.scratchpad.create",
+          "when": "view == peachq-scratchpad-explorer",
           "group": "navigation@1"
         },
         {
-          "command": "kdb.scratchpad.python.create",
-          "when": "view == kdb-scratchpad-explorer",
+          "command": "peachq.scratchpad.python.create",
+          "when": "view == peachq-scratchpad-explorer",
           "group": "navigation@2"
         },
         {
-          "command": "kdb.scratchpad.sql.create",
-          "when": "view == kdb-scratchpad-explorer",
+          "command": "peachq.scratchpad.sql.create",
+          "when": "view == peachq-scratchpad-explorer",
           "group": "navigation@3"
         },
         {
-          "command": "kdb.scratchpad.explorer.refresh",
-          "when": "view == kdb-scratchpad-explorer",
+          "command": "peachq.scratchpad.explorer.refresh",
+          "when": "view == peachq-scratchpad-explorer",
           "group": "navigation@4"
         },
         {
-          "command": "kdb.queryHistory.clear",
-          "when": "view == kdb-query-history",
+          "command": "peachq.queryHistory.clear",
+          "when": "view == peachq-query-history",
           "group": "navigation@1"
         },
         {
-          "command": "kdb.resultsPanel.clear",
-          "when": "view == kdb-results",
+          "command": "peachq.resultsPanel.clear",
+          "when": "view == peachq-results",
           "group": "resultsPanel"
         },
         {
-          "command": "kdb.resultsPanel.export.csv",
-          "when": "view == kdb-results",
+          "command": "peachq.resultsPanel.export.csv",
+          "when": "view == peachq-results",
           "group": "resultsPanel"
         },
         {
-          "command": "kdb.connections.export.all",
-          "when": "view == kdb-servers",
+          "command": "peachq.connections.export.all",
+          "when": "view == peachq-servers",
           "group": "inline"
         },
         {
-          "command": "kdb.connections.import",
-          "when": "view == kdb-servers",
+          "command": "peachq.connections.import",
+          "when": "view == peachq-servers",
           "group": "inline"
         }
       ],
       "view/item/context": [
         {
-          "command": "kdb.connections.connect",
-          "when": "view == kdb-servers && viewItem not in kdb.connected && viewItem in kdb.rootNodes",
+          "command": "peachq.connections.connect",
+          "when": "view == peachq-servers && viewItem not in peachq.connected && viewItem in peachq.rootNodes",
           "group": "connection@1"
         },
         {
-          "command": "kdb.connections.edit",
-          "when": "view == kdb-servers && viewItem not in kdb.kdbQuickNodes && viewItem in kdb.rootNodes",
+          "command": "peachq.connections.edit",
+          "when": "view == peachq-servers && viewItem not in peachq.kdbQuickNodes && viewItem in peachq.rootNodes",
           "group": "connection@4"
         },
         {
-          "command": "kdb.connections.setActive",
-          "when": "view == kdb-servers && viewItem in kdb.connected && viewItem in kdb.rootNodes && viewItem not in kdb.connected.active",
+          "command": "peachq.connections.setActive",
+          "when": "view == peachq-servers && viewItem in peachq.connected && viewItem in peachq.rootNodes && viewItem not in peachq.connected.active",
           "group": "connection@1"
         },
         {
-          "command": "kdb.connections.addAuthentication",
-          "when": "view == kdb-servers && viewItem not in kdb.kdbQuickNodes && viewItem in kdb.kdbNodesWithoutAuth && viewItem not in kdb.local",
+          "command": "peachq.connections.addAuthentication",
+          "when": "view == peachq-servers && viewItem not in peachq.kdbQuickNodes && viewItem in peachq.kdbNodesWithoutAuth && viewItem not in peachq.local",
           "group": "connection@3"
         },
         {
-          "command": "kdb.connections.enableTLS",
-          "when": "view == kdb-servers && viewItem not in kdb.kdbQuickNodes && viewItem in kdb.kdbNodesWithoutTls && viewItem not in kdb.local",
+          "command": "peachq.connections.enableTLS",
+          "when": "view == peachq-servers && viewItem not in peachq.kdbQuickNodes && viewItem in peachq.kdbNodesWithoutTls && viewItem not in peachq.local",
           "group": "connection@4"
         },
         {
-          "command": "kdb.connections.disconnect",
-          "when": "view == kdb-servers && viewItem in kdb.connected && viewItem in kdb.rootNodes",
+          "command": "peachq.connections.disconnect",
+          "when": "view == peachq-servers && viewItem in peachq.connected && viewItem in peachq.rootNodes",
           "group": "connection@4"
         },
         {
-          "command": "kdb.connections.remove.kdb",
-          "when": "view == kdb-servers && viewItem in kdb.rootNodes && viewItem not in kdb.kdbQuickNodes",
+          "command": "peachq.connections.remove.kdb",
+          "when": "view == peachq-servers && viewItem in peachq.rootNodes && viewItem not in peachq.kdbQuickNodes",
           "group": "connection@5"
         },
         {
-          "command": "kdb.connections.export.single",
-          "when": "view == kdb-servers && viewItem not in kdb.kdbQuickNodes &&  viewItem in kdb.rootNodes",
+          "command": "peachq.connections.export.single",
+          "when": "view == peachq-servers && viewItem not in peachq.kdbQuickNodes &&  viewItem in peachq.rootNodes",
           "group": "connection@6"
         },
         {
-          "command": "kdb.queryHistory.rerun",
-          "when": "view == kdb-query-history",
+          "command": "peachq.queryHistory.rerun",
+          "when": "view == peachq-query-history",
           "group": "queryHistory@1"
         },
         {
-          "command": "kdb.queryHistory.copyQuery",
-          "when": "view == kdb-query-history && viewItem in kdb.kdbQHCopyList",
+          "command": "peachq.queryHistory.copyQuery",
+          "when": "view == peachq-query-history && viewItem in peachq.kdbQHCopyList",
           "group": "queryHistory@2"
         },
         {
-          "command": "kdb.connections.labels.rename",
-          "when": "view == kdb-servers && viewItem == label",
+          "command": "peachq.connections.labels.rename",
+          "when": "view == peachq-servers && viewItem == label",
           "group": "label@1"
         },
         {
-          "command": "kdb.connections.labels.edit",
-          "when": "view == kdb-servers && viewItem == label",
+          "command": "peachq.connections.labels.edit",
+          "when": "view == peachq-servers && viewItem == label",
           "group": "label@2"
         },
         {
-          "command": "kdb.connections.labels.delete",
-          "when": "view == kdb-servers && viewItem == label",
+          "command": "peachq.connections.labels.delete",
+          "when": "view == peachq-servers && viewItem == label",
           "group": "label@3"
         },
         {
-          "command": "kdb.connections.content.selectView",
-          "when": "view == kdb-servers && viewItem in kdb.selectContentNodesContext",
+          "command": "peachq.connections.content.selectView",
+          "when": "view == peachq-servers && viewItem in peachq.selectContentNodesContext",
           "group": "inline"
         }
       ],
       "editor/title": [
         {
-          "submenu": "kdb.results.destination.terminalMenu",
+          "submenu": "peachq.results.destination.terminalMenu",
           "group": "navigation@-0.5",
-          "when": "resourceFilename =~ /\\.(?:q|quke|sql|py)$/i && !kdb.showResultsInView"
+          "when": "resourceFilename =~ /\\.(?:q|quke|sql|py)$/i && !peachq.showResultsInView"
         },
         {
-          "submenu": "kdb.results.destination.viewMenu",
+          "submenu": "peachq.results.destination.viewMenu",
           "group": "navigation@-0.5",
-          "when": "resourceFilename =~ /\\.(?:q|quke|sql|py)$/i && kdb.showResultsInView"
+          "when": "resourceFilename =~ /\\.(?:q|quke|sql|py)$/i && peachq.showResultsInView"
         }
       ],
-      "kdb.results.destination.terminalMenu": [
+      "peachq.results.destination.terminalMenu": [
         {
-          "command": "kdb.results.destination.terminal",
+          "command": "peachq.results.destination.terminal",
           "group": "navigation@0"
         },
         {
-          "command": "kdb.results.destination.view",
+          "command": "peachq.results.destination.view",
           "group": "navigation@1"
         }
       ],
-      "kdb.results.destination.viewMenu": [
+      "peachq.results.destination.viewMenu": [
         {
-          "command": "kdb.results.destination.terminal",
+          "command": "peachq.results.destination.terminal",
           "group": "navigation@0"
         },
         {
-          "command": "kdb.results.destination.view",
+          "command": "peachq.results.destination.view",
           "group": "navigation@1"
         }
       ],
       "editor/title/run": [
         {
-          "command": "kdb.scratchpad.python.run.file",
+          "command": "peachq.scratchpad.python.run.file",
           "group": "p1@0",
           "when": "resourceFilename =~ /\\.(?:py)$/i"
         },
         {
-          "command": "kdb.scratchpad.python.run",
+          "command": "peachq.scratchpad.python.run",
           "group": "p1@1",
           "when": "resourceFilename =~ /\\.(?:py)$/i"
         },
         {
-          "command": "kdb.execute.fileQuery",
+          "command": "peachq.execute.fileQuery",
           "group": "q1@0",
           "when": "resourceFilename =~ /\\.(?:q|sql)$/i"
         },
         {
-          "command": "kdb.execute.selectedQuery",
+          "command": "peachq.execute.selectedQuery",
           "group": "q1@1",
           "when": "resourceFilename =~ /\\.(?:q|quke|sql)$/i"
         },
         {
-          "command": "kdb.execute.block",
+          "command": "peachq.execute.block",
           "group": "q1@2",
           "when": "resourceFilename =~ /\\.(?:q)$/i"
         }
       ],
       "editor/context": [
         {
-          "command": "kdb.execute.fileQuery",
+          "command": "peachq.execute.fileQuery",
           "group": "q@0",
           "when": "resourceFilename =~ /\\.(?:q|sql)$/i"
         },
         {
-          "command": "kdb.execute.selectedQuery",
+          "command": "peachq.execute.selectedQuery",
           "group": "q@1",
           "when": "resourceFilename =~ /\\.(?:q|quke|sql)$/i"
         },
         {
-          "command": "kdb.execute.block",
+          "command": "peachq.execute.block",
           "group": "q@2",
           "when": "resourceFilename =~ /\\.(?:q)$/i"
         },
         {
-          "command": "kdb.scratchpad.python.run.file",
+          "command": "peachq.scratchpad.python.run.file",
           "group": "p@0",
           "when": "resourceFilename =~ /\\.(?:py)$/i"
         },
         {
-          "command": "kdb.scratchpad.python.run",
+          "command": "peachq.scratchpad.python.run",
           "group": "p@1",
           "when": "resourceFilename =~ /\\.(?:py)$/i"
         }
       ],
       "notebook/toolbar": [
         {
-          "command": "kdb.file.pickConnection",
+          "command": "peachq.file.pickConnection",
           "when": "resourceExtname == .kxnb",
           "group": "navigation/execute@-1"
         }
       ],
       "explorer/context": [
         {
-          "command": "kdb.execute.fileQuery",
+          "command": "peachq.execute.fileQuery",
           "group": "q@1",
           "when": "resourceExtname == .q"
         },
         {
-          "command": "kdb.scratchpad.python.run.file",
+          "command": "peachq.scratchpad.python.run.file",
           "group": "q@2",
           "when": "resourceExtname == .py"
         },
         {
-          "command": "kdb.repl.openFolder",
+          "command": "peachq.repl.openFolder",
           "group": "q@3"
         }
       ]
     },
     "customEditors": [
       {
-        "viewType": "kdb.chartEditor",
+        "viewType": "peachq.chartEditor",
         "displayName": "Chart Viewer",
         "selector": [
           {
@@ -945,8 +942,8 @@
     ],
     "notebooks": [
       {
-        "type": "kx-notebook",
-        "displayName": "KX Notebook",
+        "type": "peachq-notebook",
+        "displayName": "peachq Notebook",
         "selector": [
           {
             "filenamePattern": "*.kxnb"
@@ -957,9 +954,8 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/KxSystems/kx-vscode/issues"
+    "url": "https://github.com/ryanhamilton/kx-vscode/issues"
   },
-  "homepage": "https://kx.com",
   "prettier": {
     "printWidth": 80,
     "bracketSameLine": true,
@@ -988,6 +984,7 @@
     "publish": "vsce publish",
     "pretest": "rimraf out-test && tsc --outdir out-test --strict false",
     "test": "node ./out-test/test/runTest.js",
+    "test:headless": "cross-env HEADLESS=1 node ./out-test/test/runTest.js",
     "test:file": "cross-env TEST_FILE=$1 npm run test",
     "test:folder": "cross-env TEST_FOLDER=$1 npm run test",
     "pretest:e2e": "npm run build && npm run pretest",

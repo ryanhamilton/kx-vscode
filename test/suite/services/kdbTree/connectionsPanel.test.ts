@@ -47,7 +47,7 @@ describe("connections panel", () => {
     sinon.stub(vscode.workspace, "getConfiguration").returns(<any>{
       get: (section: string, fallback?: unknown) => {
         switch (section) {
-          case "kdb.servers":
+          case "peachq.servers":
             return servers;
           default:
             return fallback;

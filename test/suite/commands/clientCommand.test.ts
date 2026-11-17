@@ -57,7 +57,7 @@ describe("clientCommands", () => {
       );
     });
   });
-  describe("kdb.toggleParameterCache", () => {
+  describe("peachq.toggleParameterCache", () => {
     it("should add parameter cache for single line functions", async () => {
       let edit: vscode.WorkspaceEdit;
       sinon.stub(client, "sendRequest").value(async () => ({

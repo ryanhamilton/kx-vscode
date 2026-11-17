@@ -403,7 +403,7 @@ describe("kdbTreeProvider", () => {
         },
       ];
       sinon.stub(vscode.workspace, "getConfiguration").value(() => ({
-        get: (v: string) => (v === "kdb.connectionLabels" ? labels : conns),
+        get: (v: string) => (v === "peachq.connectionLabels" ? labels : conns),
       }));
       const provider = new KdbTreeProvider(servers);
       const result = await provider.getChildren();

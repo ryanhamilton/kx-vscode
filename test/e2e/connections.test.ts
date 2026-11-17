@@ -69,7 +69,7 @@ const setting = (name: string) =>
   vscode.workspace.getConfiguration().get<{ [key: string]: Declared }>(name) ??
   {};
 
-const KDB_SETTING = "kdb.servers";
+const KDB_SETTING = "peachq.servers";
 
 const aliasOf = (entry: Declared) => entry.serverAlias ?? entry.alias;
 
@@ -99,14 +99,14 @@ const imported = (entry: Declared) => {
  * same reason utils/connection.ts reveals it after declaring a connection.
  */
 async function rendered() {
-  await vscode.commands.executeCommand("kdb-servers.focus");
+  await vscode.commands.executeCommand("peachq-servers.focus");
   await settle();
 }
 
 async function importFrom(uri: vscode.Uri) {
   await rendered();
   dialog.opens(uri);
-  await vscode.commands.executeCommand("kdb.connections.import");
+  await vscode.commands.executeCommand("peachq.connections.import");
 }
 
 /**
@@ -228,7 +228,7 @@ describe("Connections panel", () => {
     });
 
     it("opens the new connection window", async () => {
-      await vscode.commands.executeCommand("kdb.connections.add");
+      await vscode.commands.executeCommand("peachq.connections.add");
       await until(
         () => panels()[0]?.isActive === true,
         "the new connection panel to open",
@@ -238,10 +238,10 @@ describe("Connections panel", () => {
     });
 
     it("keeps one window however often it is asked for", async () => {
-      await vscode.commands.executeCommand("kdb.connections.add");
+      await vscode.commands.executeCommand("peachq.connections.add");
       await until(() => panels().length === 1, "the new connection panel");
 
-      await vscode.commands.executeCommand("kdb.connections.add");
+      await vscode.commands.executeCommand("peachq.connections.add");
       await settle();
 
       assert.strictEqual(panels().length, 1);
@@ -252,7 +252,7 @@ describe("Connections panel", () => {
   describe("Import", () => {
     it("reports the file it was not given", async () => {
       dialog.cancels("open", SELECT_FILE);
-      await vscode.commands.executeCommand("kdb.connections.import");
+      await vscode.commands.executeCommand("peachq.connections.import");
 
       await prompt.untilRaised("No file selected.");
       assert.deepStrictEqual(aliases().includes(KDB_ALIASES[0]), false);
@@ -260,7 +260,7 @@ describe("Connections panel", () => {
 
     it("asks for a JSON file", async () => {
       dialog.cancels("open", SELECT_FILE);
-      await vscode.commands.executeCommand("kdb.connections.import");
+      await vscode.commands.executeCommand("peachq.connections.import");
 
       const [request] = dialog.raised("open");
       assert.deepStrictEqual(
@@ -383,7 +383,7 @@ describe("Connections panel", () => {
     before(async () => {
       prompt.clear();
       dialog.clear();
-      exported = await exportTo("kdb.connections.export.all", EXPORTED, false);
+      exported = await exportTo("peachq.connections.export.all", EXPORTED, false);
       offered = [...dialog.requests];
     });
 
@@ -462,7 +462,7 @@ describe("Connections panel", () => {
 
     it("includes the credentials when they were asked for", async () => {
       const { content } = await exportTo(
-        "kdb.connections.export.all",
+        "peachq.connections.export.all",
         EXPORTED_WITH_AUTH,
         true,
       );
@@ -482,7 +482,7 @@ describe("Connections panel", () => {
 
     it("exports the one connection it was pointed at", async () => {
       const { content } = await exportTo(
-        "kdb.connections.export.single",
+        "peachq.connections.export.single",
         EXPORTED_SINGLE,
         false,
         { label: "mike-q [localhost:25103]" },
@@ -508,7 +508,7 @@ describe("Connections panel", () => {
       dialog.picks(EXPORT_AUTH, "No");
       dialog.cancels("save", SAVE_FILE);
 
-      await vscode.commands.executeCommand("kdb.connections.export.all");
+      await vscode.commands.executeCommand("peachq.connections.export.all");
       await settle();
 
       assert.deepStrictEqual(
@@ -521,7 +521,7 @@ describe("Connections panel", () => {
     it("reports an export nobody asked about the credentials for", async () => {
       dialog.cancels("pick", EXPORT_AUTH);
 
-      await vscode.commands.executeCommand("kdb.connections.export.all");
+      await vscode.commands.executeCommand("peachq.connections.export.all");
       await settle();
 
       assert.deepStrictEqual(

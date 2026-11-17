@@ -59,7 +59,7 @@ export class QueryHistoryProvider implements TreeDataProvider<TreeItem> {
   }
 
   private getQueryHistoryList(): Promise<QueryHistoryTreeItem[]> {
-    commands.executeCommand("setContext", "kdb.kdbQHCopyList", []);
+    commands.executeCommand("setContext", "peachq.kdbQHCopyList", []);
     ext.queryHistoryAvailableToCopy.length = 0;
     return Promise.resolve(
       this.queryList.map((query) => {
@@ -74,7 +74,7 @@ export class QueryHistoryProvider implements TreeDataProvider<TreeItem> {
     ).then((result) => {
       commands.executeCommand(
         "setContext",
-        "kdb.kdbQHCopyList",
+        "peachq.kdbQHCopyList",
         ext.queryHistoryAvailableToCopy,
       );
       return result;
@@ -95,7 +95,7 @@ export class QueryHistoryTreeItem extends TreeItem {
       ext.kdbQueryHistoryNodes.push(label);
       commands.executeCommand(
         "setContext",
-        "kdb.kdbQueryHistoryList",
+        "peachq.kdbQueryHistoryList",
         ext.kdbQueryHistoryList,
       );
     }

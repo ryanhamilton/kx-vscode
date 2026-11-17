@@ -357,7 +357,7 @@ describe("serverCommand", () => {
 
       sinon.assert.calledWith(
         executeCommandStub.firstCall,
-        "kdb.resultsPanel.update",
+        "peachq.resultsPanel.update",
         result,
         false,
       );
@@ -382,7 +382,7 @@ describe("serverCommand", () => {
 
       sinon.assert.calledWith(
         executeCommandStub.firstCall,
-        "kdb.resultsPanel.update",
+        "peachq.resultsPanel.update",
         result,
         false,
       );

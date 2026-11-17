@@ -100,7 +100,7 @@ export class ConnectionConsole {
     private readonly onClose?: () => void,
   ) {
     this.pty = vscode.window.createTerminal({
-      name: `KX ${getConnShortName(connLabel)}`,
+      name: `peachq ${getConnShortName(connLabel)}`,
       iconPath: new vscode.ThemeIcon("database"),
       isTransient: true,
       pty: {
@@ -211,7 +211,7 @@ export class ConnectionConsole {
     this.onDidWrite.fire(
       ANSI.CLEAR +
         ANSI.BOLD_ON +
-        `KX ${getConnShortName(this.connLabel)}` +
+        `peachq ${getConnShortName(this.connLabel)}` +
         ANSI.BOLD_OFF +
         ANSI.CRLF +
         ANSI.CRLF,

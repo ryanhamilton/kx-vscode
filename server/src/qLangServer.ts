@@ -130,11 +130,11 @@ export default class QLangServer {
       this.onDidChangeWatchedFiles.bind(this),
     );
     this.connection.onRequest(
-      "kdb.qls.expressionRange",
+      "peachq.qls.expressionRange",
       this.onExpressionRange.bind(this),
     );
     this.connection.onRequest(
-      "kdb.qls.parameterCache",
+      "peachq.qls.parameterCache",
       this.onParameterCache.bind(this),
     );
     this.connection.onSelectionRanges(this.onSelectionRanges.bind(this));
@@ -161,7 +161,7 @@ export default class QLangServer {
       notebookDocumentSync: {
         notebookSelector: [
           {
-            notebook: { notebookType: "kx-notebook" },
+            notebook: { notebookType: "peachq-notebook" },
             cells: [{ language: "q" }],
           },
         ],
@@ -173,7 +173,7 @@ export default class QLangServer {
   private async getLinting(uri: string): Promise<boolean> {
     const res = await this.connection.workspace.getConfiguration({
       scopeUri: uri,
-      section: "kdb.linting",
+      section: "peachq.linting",
     });
     return res ?? false;
   }
@@ -181,7 +181,7 @@ export default class QLangServer {
   private async getRefactoring(uri: string): Promise<"Workspace" | "Window"> {
     const res = await this.connection.workspace.getConfiguration({
       scopeUri: uri,
-      section: "kdb.refactoring",
+      section: "peachq.refactoring",
     });
     return res ?? "Workspace";
   }
@@ -191,7 +191,7 @@ export default class QLangServer {
   ): Promise<{ [key: string]: string }> {
     const res = await this.connection.workspace.getConfiguration({
       scopeUri: uri,
-      section: "kdb.connectionMap",
+      section: "peachq.connectionMap",
     });
     return res ?? {};
   }
@@ -199,11 +199,11 @@ export default class QLangServer {
   private async getQHome(uri: string): Promise<string | undefined> {
     const workspace = await this.connection.workspace.getConfiguration({
       scopeUri: uri,
-      section: "kdb.qHomeDirectoryWorkspace",
+      section: "peachq.qHomeDirectoryWorkspace",
     });
     const global = await this.connection.workspace.getConfiguration({
       scopeUri: uri,
-      section: "kdb.qHomeDirectory",
+      section: "peachq.qHomeDirectory",
     });
     return workspace || global || process.env.QHOME || undefined;
   }

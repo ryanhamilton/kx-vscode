@@ -948,7 +948,7 @@ export async function writeQueryResultsToView(
   isFromConnTree?: boolean,
 ): Promise<void> {
   await commands.executeCommand(
-    "kdb.resultsPanel.update",
+    "peachq.resultsPanel.update",
     result,
     isInsights,
     undefined,
@@ -1040,7 +1040,7 @@ async function refreshQuickProvider() {
   quickConnections.forEach((conn) => (servers[conn.serverAlias] = conn));
   await commands.executeCommand(
     "setContext",
-    "kdb.kdbQuickNodes",
+    "peachq.kdbQuickNodes",
     quickConnections.map((conn) => getQuickLabel(conn)),
   );
   ext.serverProvider.refresh(servers);

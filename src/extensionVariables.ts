@@ -53,7 +53,7 @@ export namespace ext {
   // Output destination toggle, driven by the editor-toolbar selector: when true
   // query results render in the kdb Results View, when false they go to the
   // connection's output console (Terminal). Mirrored to the
-  // "kdb.showResultsInView" context key for the selector's menu state.
+  // "peachq.showResultsInView" context key for the selector's menu state.
   export let isResultsTabVisible: boolean;
   export let scratchpadTreeProvider: WorkspaceTreeProvider;
   export let runScratchpadItem: StatusBarItem;
@@ -270,7 +270,7 @@ export namespace ext {
   };
 
   export const diagnosticCollection =
-    languages.createDiagnosticCollection("kdb");
+    languages.createDiagnosticCollection("peachq");
 
   export const labelColors: LabelColors[] = [
     {

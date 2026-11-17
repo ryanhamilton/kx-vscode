@@ -78,7 +78,7 @@ export function getHash(input: string): string {
 }
 
 export function getKeyForServerName(name: string) {
-  const conf = workspace.getConfiguration("kdb");
+  const conf = workspace.getConfiguration("peachq");
   const servers = conf.get<{ [key: string]: { serverAlias: string } }>(
     "servers",
     {},
@@ -205,11 +205,11 @@ export function getEnvironment(resource?: WorkspaceFolder): {
   }
 
   const qHomeDirectory = workspace
-    .getConfiguration("kdb", resource)
+    .getConfiguration("peachq", resource)
     .get<string>("qHomeDirectory", "");
 
   let qHomeDirectoryWorkspace = workspace
-    .getConfiguration("kdb", resource)
+    .getConfiguration("peachq", resource)
     .get<string>("qHomeDirectoryWorkspace", "");
 
   if (
@@ -283,11 +283,11 @@ export async function getWorkspaceFolder(
 export async function updateServers(servers: Server): Promise<void> {
   await workspace
     .getConfiguration()
-    .update("kdb.servers", servers, ConfigurationTarget.Global);
+    .update("peachq.servers", servers, ConfigurationTarget.Global);
 }
 
 export function getServers(): Server {
-  const servers = workspace.getConfiguration().get<Server>("kdb.servers");
+  const servers = workspace.getConfiguration().get<Server>("peachq.servers");
 
   if (!servers) {
     updateServers({});
@@ -304,13 +304,13 @@ export function getServers(): Server {
 
 export function getAutoFocusOutputOnEntrySetting(): boolean {
   return workspace
-    .getConfiguration("kdb")
+    .getConfiguration("peachq")
     .get<boolean>("autoFocusOutputOnEntry", true);
 }
 
 export function getHideDetailedConsoleQueryOutputSetting(): boolean {
   return workspace
-    .getConfiguration("kdb")
+    .getConfiguration("peachq")
     .get<boolean>("hideSourceExpressions", true);
 }
 
@@ -371,7 +371,7 @@ export async function offerConnectAction(connLabel?: string) {
     );
     if (result === "Connect") {
       await commands.executeCommand(
-        "kdb.connections.connect.via.dialog",
+        "peachq.connections.connect.via.dialog",
         connLabel,
       );
       return true;
@@ -405,7 +405,7 @@ export function offerReconnectionAfterEdit(connLabel: string): void {
   ).then(async (result) => {
     if (result === "Connect") {
       await commands.executeCommand(
-        "kdb.connections.connect.via.dialog",
+        "peachq.connections.connect.via.dialog",
         connLabel,
       );
     }

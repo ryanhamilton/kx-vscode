@@ -95,7 +95,7 @@ export class LocalConnection {
         }
 
         conn.addListener("close", () => {
-          commands.executeCommand("kdb.connections.disconnect", this.connLabel);
+          commands.executeCommand("peachq.connections.disconnect", this.connLabel);
           notify(
             `Connection closed: ${this.options.host}:${this.options.port}`,
             MessageKind.DEBUG,

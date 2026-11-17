@@ -32,7 +32,7 @@ import { webviewReset } from "../utils/webviewPage";
 const logger = "resultsPanelProvider";
 
 export class KdbResultsViewProvider implements WebviewViewProvider {
-  public static readonly viewType = "kdb-results";
+  public static readonly viewType = "peachq-results";
   public isInsights = false;
   public isPython = false;
   public _colorTheme: any;

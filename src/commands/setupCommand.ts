@@ -30,7 +30,7 @@ export async function showSetupError(workspace?: vscode.WorkspaceFolder) {
   if (res === "Set q Home Directory") {
     await vscode.commands.executeCommand(
       "workbench.action.openSettings",
-      "kdb.qHomeDirectory",
+      "peachq.qHomeDirectory",
     );
   }
   /* c8 ignore stop */

@@ -42,14 +42,14 @@ describe("Commands", () => {
     });
     it("should have certain always visible commands", () => {
       const visible = [
-        "kdb.connections.export.all",
-        "kdb.connections.import",
-        "kdb.scratchpad.create",
-        "kdb.scratchpad.python.create",
-        "kdb.scratchpad.sql.create",
-        "kdb.connections.add",
-        "kdb.repl.start",
-        "kdb.createNotebook",
+        "peachq.connections.export.all",
+        "peachq.connections.import",
+        "peachq.scratchpad.create",
+        "peachq.scratchpad.python.create",
+        "peachq.scratchpad.sql.create",
+        "peachq.connections.add",
+        "peachq.repl.start",
+        "peachq.createNotebook",
       ];
       const shown = palette.filter((cmd: any) => cmd.when === "true");
       assert.strictEqual(shown.length, visible.length);
@@ -59,13 +59,13 @@ describe("Commands", () => {
     });
     it("should have certain visible commands depending on context", () => {
       const visible = [
-        "kdb.file.pickConnection",
-        "kdb.execute.selectedQuery",
-        "kdb.execute.fileQuery",
-        "kdb.scratchpad.python.run",
-        "kdb.scratchpad.python.run.file",
-        "kdb.execute.block",
-        "kdb.toggleParameterCache",
+        "peachq.file.pickConnection",
+        "peachq.execute.selectedQuery",
+        "peachq.execute.fileQuery",
+        "peachq.scratchpad.python.run",
+        "peachq.scratchpad.python.run.file",
+        "peachq.execute.block",
+        "peachq.toggleParameterCache",
       ];
       const shown = palette.filter(
         (cmd: any) => cmd.when !== "true" && cmd.when !== "false",
@@ -85,13 +85,13 @@ describe("Commands", () => {
     });
     it("should exist for certain commands", () => {
       const bindings = [
-        "kdb.execute.selectedQuery",
-        "kdb.execute.selectedQuery",
-        "kdb.execute.fileQuery",
-        "kdb.scratchpad.python.run",
-        "kdb.scratchpad.python.run.file",
-        "kdb.execute.block",
-        "kdb.toggleParameterCache",
+        "peachq.execute.selectedQuery",
+        "peachq.execute.selectedQuery",
+        "peachq.execute.fileQuery",
+        "peachq.scratchpad.python.run",
+        "peachq.scratchpad.python.run.file",
+        "peachq.execute.block",
+        "peachq.toggleParameterCache",
       ];
       assert.strictEqual(bindings.length, keybindings.length);
       for (let i = 0; i < bindings.length; i++) {

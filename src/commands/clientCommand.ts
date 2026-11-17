@@ -30,7 +30,7 @@ import { ExecutionTypes } from "../models/execution";
 
 async function executeBlock(client: LanguageClient) {
   if (ext.activeTextEditor) {
-    const range = await client.sendRequest<Range>("kdb.qls.expressionRange", {
+    const range = await client.sendRequest<Range>("peachq.qls.expressionRange", {
       textDocument: { uri: `${ext.activeTextEditor.document.uri}` },
       position: ext.activeTextEditor.selection.active,
     });
@@ -53,7 +53,7 @@ async function toggleParameterCache(client: LanguageClient) {
       params: string[];
       start: Position;
       end: Position;
-    }>("kdb.qls.parameterCache", {
+    }>("peachq.qls.parameterCache", {
       textDocument: { uri: `${doc.uri}` },
       position: ext.activeTextEditor.selection.active,
     });
@@ -110,7 +110,7 @@ export function connectClientCommands(
   let mutex = false;
 
   context.subscriptions.push(
-    commands.registerCommand("kdb.execute.block", async () => {
+    commands.registerCommand("peachq.execute.block", async () => {
       if (!mutex) {
         mutex = true;
         try {
@@ -120,7 +120,7 @@ export function connectClientCommands(
         }
       }
     }),
-    commands.registerCommand("kdb.toggleParameterCache", async () => {
+    commands.registerCommand("peachq.toggleParameterCache", async () => {
       if (!mutex) {
         mutex = true;
         try {

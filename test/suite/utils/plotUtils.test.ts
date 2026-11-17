@@ -23,7 +23,7 @@ describe("plotUtils", () => {
   const data = "data:image/png;base64,iVBORw0KGgo=";
 
   beforeEach(() => {
-    ext.outputChannel = window.createOutputChannel("kdb", { log: true });
+    ext.outputChannel = window.createOutputChannel("peachq", { log: true });
     ext.activeTextEditor = undefined;
     ext.pendingImageTargets.clear();
   });

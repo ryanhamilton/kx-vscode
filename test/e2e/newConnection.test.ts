@@ -111,7 +111,7 @@ describe("New connection view", () => {
 
     assert.deepStrictEqual(posted, [
       {
-        command: "kdb.connections.add.kdb",
+        command: "peachq.connections.add.kdb",
         data: {
           serverName: "127.0.0.1",
           serverPort: "5001",
@@ -241,7 +241,7 @@ describe("New connection view", () => {
     const [message] = await submit(EDIT);
 
     assert.deepStrictEqual(message, {
-      command: "kdb.connections.edit.kdb",
+      command: "peachq.connections.edit.kdb",
       oldAlias: "existing",
       editAuth: false,
       labels: [],
