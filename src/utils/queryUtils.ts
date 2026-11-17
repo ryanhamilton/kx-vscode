@@ -15,15 +15,11 @@ import * as realFs from "fs";
 import { join } from "path";
 
 import { ext } from "../extensionVariables";
-import { MessageKind, notify, Runner } from "./notifications";
+import { MessageKind, notify } from "./notifications";
 import { ServerType } from "../models/connectionsModels";
-import { DataSourceFiles, DataSourceTypes } from "../models/dataSource";
 import { QueryHistory } from "../models/queryHistory";
-import { queryConstants, StructuredTextResults } from "../models/queryResult";
-import {
-  ScratchpadResult,
-  ScratchpadStacktrace,
-} from "../models/scratchpadResult";
+import { StructuredTextResults } from "../models/queryResult";
+import { ScratchpadStacktrace } from "../models/scratchpadResult";
 
 const logger = "queryUtils";
 
@@ -411,44 +407,19 @@ export function getConnectionType(type: ServerType): string {
   switch (type) {
     case ServerType.KDB:
       return "kdb";
-    case ServerType.INSIGHTS:
-      return "insights";
     default:
       return "undefined";
   }
 }
 
-export function checkIfIsDatasource(
-  dataSourceType: string | undefined,
-): boolean {
-  if (dataSourceType === undefined) {
-    return false;
-  }
-  const validTypes = ["API", "QSQL", "SQL", "UDA"];
-  return validTypes.includes(dataSourceType);
-}
-
-export function selectDSType(
-  dataSourceType: string,
-): DataSourceTypes | undefined {
-  const typeMapping: { [key: string]: DataSourceTypes } = {
-    API: DataSourceTypes.API,
-    QSQL: DataSourceTypes.QSQL,
-    SQL: DataSourceTypes.SQL,
-  };
-  return typeMapping[dataSourceType] || undefined;
-}
-
 export function addQueryHistory(
-  query: string | DataSourceFiles,
+  query: string,
   executorName: string,
   connectionName: string,
   connectionType: ServerType,
   success: boolean,
   isPython?: boolean,
   isWorkbook?: boolean,
-  isDatasource?: boolean,
-  datasourceType?: DataSourceTypes,
   duration?: string,
   isFromConnTree?: boolean,
 ) {
@@ -461,8 +432,6 @@ export function addQueryHistory(
     connectionType,
     language: isPython ? "python" : "q",
     isWorkbook,
-    isDatasource,
-    datasourceType,
     duration,
     isFromConnTree,
   };
@@ -496,24 +465,6 @@ export function appendStacktrace(
     (isScratchpadStacktrace(stacktrace)
       ? formatScratchpadStacktrace(stacktrace)
       : stacktrace.map((line) => `${line}`).join("\n"))
-  );
-}
-
-const UDA_UNKNOWN_API = "Querying database using (UDA) raised - Unknown API:";
-
-export function formatScratchpadError(result: ScratchpadResult): string {
-  let message =
-    result.errorMsg ||
-    (typeof result.error === "string" ? result.error : "Unknown error");
-
-  if (message.includes(UDA_UNKNOWN_API)) {
-    message +=
-      ". A table, label, or scope parameter may be missing or incorrect.";
-  }
-
-  return appendStacktrace(
-    `${queryConstants.error} ${message}`,
-    result.stacktrace,
   );
 }
 
@@ -553,9 +504,8 @@ const PNG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 const PNG_BASE64 = "iVBORw0KGg";
 
 /**
- * Tells whether a result is a PNG the process encoded with .Q.btoa, which the
- * Insights display API does for any image, whatever return format was asked
- * for.
+ * Tells whether a result is a PNG the process encoded with .Q.btoa, whatever
+ * return format was asked for.
  * @param result The result, or the data field of one
  * @returns Whether it is a base64 encoded PNG
  */
@@ -590,63 +540,39 @@ export function resultToBase64(result: any): string | undefined {
   return undefined;
 }
 
-export function needsScratchpad<T>(connLabel: string, target: Promise<T>) {
-  if (!ext.scratchpadStarted.has(connLabel)) {
-    const runner = Runner.create(() =>
-      target.then(() => ext.scratchpadStarted.add(connLabel)),
-    );
-    runner.title = `Starting scratchpad on ${connLabel}.`;
-    runner.execute();
-  }
-  return target;
-}
-
-export function resetScratchpadStarted(connLabel: string) {
-  ext.scratchpadStarted.delete(connLabel);
-}
-
 export const enum RunFlag {
   Populate = 0b0000000000,
   Run = 0b0000000001,
   Workbook = 0b0000000010,
   Notebook = 0b0000000100,
   Repl = 0b0000001000,
-  Insights = 0b0000010000,
   Quick = 0b0000100000,
-  Dap = 0b0001000000,
   Python = 0b0010000000,
   Sql = 0b0100000000,
   Quke = 0b1000000000,
 }
 
-export function notifyExecution(flags: number, dsType?: string) {
-  const telemetry =
+export function notifyExecution(flags: number) {
+  const label =
     (flags & RunFlag.Run ? "Run" : "Populate") +
-    (dsType
-      ? ".Datasource." + dsType.toLowerCase()
-      : (flags & RunFlag.Workbook
-          ? ".Workbook"
-          : flags & RunFlag.Notebook
-            ? ".Cell"
-            : ".File") +
-        (flags & RunFlag.Repl
-          ? ".repl"
-          : flags & RunFlag.Insights
-            ? ".ie"
-            : ".kdb") +
-        (flags & RunFlag.Quick ? ".quick" : "") +
-        (flags & RunFlag.Dap ? ".dap" : "") +
-        (flags & RunFlag.Python
-          ? ".py"
-          : flags & RunFlag.Sql
-            ? ".sql"
-            : flags & RunFlag.Quke
-              ? ".quke"
-              : ".q"));
+    (flags & RunFlag.Workbook
+      ? ".Workbook"
+      : flags & RunFlag.Notebook
+        ? ".Cell"
+        : ".File") +
+    (flags & RunFlag.Repl ? ".repl" : ".kdb") +
+    (flags & RunFlag.Quick ? ".quick" : "") +
+    (flags & RunFlag.Python
+      ? ".py"
+      : flags & RunFlag.Sql
+        ? ".sql"
+        : flags & RunFlag.Quke
+          ? ".quke"
+          : ".q");
 
-  notify(`Query ${telemetry} executed.`, MessageKind.DEBUG, {
+  notify(`Query ${label} executed.`, MessageKind.DEBUG, {
     logger,
   });
 
-  return telemetry;
+  return label;
 }

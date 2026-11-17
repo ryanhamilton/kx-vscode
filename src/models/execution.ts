@@ -17,5 +17,4 @@ export const enum ExecutionTypes {
   ReRunQuery,
   PythonQuerySelection,
   PythonQueryFile,
-  PopulateScratchpad,
 }

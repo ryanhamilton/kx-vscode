@@ -37,10 +37,6 @@ export function validateServerAlias(
       return "Input value must contain only alphanumeric characters and hypens";
     }
 
-    if (input === "InsightsEnterprise") {
-      return "Input value using restricted keywords of Insights Enterprise";
-    }
-
     if (input.toUpperCase() === ext.REPL) {
       return `The server name '${input}' is reserved for connections to the REPL`;
     }
@@ -98,18 +94,6 @@ export function validateServerPassword(
     if (!validateUtils.isValidLength(input, 1, MAX_STR_LEN)) {
       return `Password must be between 1 and ${MAX_STR_LEN} characters in length.`;
     }
-  }
-  return undefined;
-}
-
-export function validateInsightsServerUrl(
-  input: string | undefined,
-): string | undefined {
-  if (input === undefined || input.trim() === "") {
-    return "Insights connection address is required.";
-  }
-  if (!/^https:\/\//i.exec(input.trim())) {
-    return "Insights connections require a secure https:// URL (for example, https://myinsights.example.com).";
   }
   return undefined;
 }

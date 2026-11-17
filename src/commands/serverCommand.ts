@@ -12,13 +12,10 @@
  */
 
 import * as fs from "fs";
-import * as url from "url";
 import {
   CancellationToken,
   Position,
   Range,
-  Uri,
-  ViewColumn,
   commands,
   window,
   workspace,
@@ -27,42 +24,23 @@ import {
 
 import { ext } from "../extensionVariables";
 import {
-  getPartialDatasourceFile,
-  populateScratchpad,
-  runDataSource,
-} from "./dataSourceCommand";
-import { InsightsConnection } from "../classes/insightsConnection";
-import {
   ExportedConnections,
-  InsightDetails,
-  Insights,
   Server,
   ServerDetails,
   ServerType,
 } from "../models/connectionsModels";
-import { DataSourceFiles, DataSourceTypes } from "../models/dataSource";
 import { ExecutionTypes } from "../models/execution";
 import { QueryHistory } from "../models/queryHistory";
 import { queryConstants } from "../models/queryResult";
-import { ScratchpadResult } from "../models/scratchpadResult";
 import { NewConnectionPannel } from "../panels/newConnection";
 import { ConnectionManagementService } from "../services/connectionManagerService";
-import {
-  InsightsMetaNode,
-  InsightsNode,
-  KdbNode,
-  MetaObjectPayloadNode,
-} from "../services/kdbTreeProvider";
-import { MetaContentProvider } from "../services/metaContentProvider";
-import { inputVariable } from "../services/notebookProviders";
+import { KdbNode } from "../services/kdbTreeProvider";
 import { handleLabelsConnMap, removeConnFromLabels } from "../utils/connLabel";
 import {
   checkOpenSslInstalled,
-  getInsights,
   getKeyForServerName,
   getServers,
   offerReconnectionAfterEdit,
-  updateInsights,
   updateServers,
 } from "../utils/core";
 import { decodeQUTF } from "../utils/decode";
@@ -70,17 +48,13 @@ import { ExecutionConsole } from "../utils/executionConsole";
 import { MessageKind, Runner, notify } from "../utils/notifications";
 import { writePlotToFile } from "../utils/plotUtils";
 import {
-  checkIfIsDatasource,
   addQueryHistory,
   BLOCK_COMMENT_PATTERN,
-  formatScratchpadError,
   resultToBase64,
-  needsScratchpad,
   getSQLWrapper,
 } from "../utils/queryUtils";
 import { openUrl } from "../utils/uriUtils";
 import {
-  validateInsightsServerUrl,
   validateServerAlias,
   validateServerName,
   validateServerPort,
@@ -94,7 +68,7 @@ export async function addNewConnection(): Promise<void> {
   NewConnectionPannel.render(ext.context.extensionUri);
 }
 
-export async function editConnection(viewItem: KdbNode | InsightsNode) {
+export async function editConnection(viewItem: KdbNode) {
   NewConnectionPannel.close();
   NewConnectionPannel.render(ext.context.extensionUri, viewItem);
 }
@@ -102,195 +76,6 @@ export async function editConnection(viewItem: KdbNode | InsightsNode) {
 export function isConnected(connLabel: string): boolean {
   const connMngService = new ConnectionManagementService();
   return connMngService.isConnected(connLabel);
-}
-
-export async function addInsightsConnection(
-  insightsData: InsightDetails,
-  labels?: string[],
-) {
-  const aliasValidation = validateServerAlias(insightsData.alias);
-  if (aliasValidation) {
-    notify(aliasValidation, MessageKind.ERROR, { logger });
-    return;
-  }
-  const serverValidation = validateInsightsServerUrl(insightsData.server);
-  if (serverValidation) {
-    notify(serverValidation, MessageKind.ERROR, { logger });
-    return;
-  }
-  const server = insightsData.server!.trim();
-  if (insightsData.alias === undefined || insightsData.alias === "") {
-    const host = new url.URL(server);
-    insightsData.alias = host.host;
-  }
-
-  let insights: Insights | undefined = getInsights();
-  if (
-    insights != undefined &&
-    insights[getKeyForServerName(insightsData.alias)]
-  ) {
-    notify(
-      `Insights instance named ${insightsData.alias} already exists.`,
-      MessageKind.ERROR,
-      { logger },
-    );
-    return;
-  } else {
-    const key = insightsData.alias;
-    if (insights === undefined) {
-      insights = {
-        key: {
-          auth: true,
-          alias: insightsData.alias,
-          server,
-          realm: insightsData.realm,
-          insecure: insightsData.insecure,
-        },
-      };
-    } else {
-      insights[key] = {
-        auth: true,
-        alias: insightsData.alias,
-        server,
-        realm: insightsData.realm,
-        insecure: insightsData.insecure,
-      };
-    }
-
-    await updateInsights(insights);
-    const newInsights = getInsights();
-    if (newInsights != undefined) {
-      ext.latestLblsChanged.length = 0;
-      if (labels && labels.length > 0) {
-        ext.latestLblsChanged.push(...labels);
-        await handleLabelsConnMap(labels, insightsData.alias);
-      }
-      ext.serverProvider.refreshInsights(newInsights);
-      notify("Created Insights connection.", MessageKind.DEBUG, {
-        logger,
-      });
-    }
-
-    notify(
-      `Added Insights connection: ${insightsData.alias}`,
-      MessageKind.INFO,
-      { logger },
-    );
-
-    NewConnectionPannel.close();
-  }
-}
-
-export async function editInsightsConnection(
-  insightsData: InsightDetails,
-  oldAlias: string,
-  labels?: string[],
-) {
-  /* c8 ignore start */
-  const aliasValidation =
-    oldAlias === insightsData.alias
-      ? undefined
-      : validateServerAlias(insightsData.alias);
-  if (aliasValidation) {
-    notify(aliasValidation, MessageKind.ERROR, { logger });
-    return;
-  }
-  const serverValidation = validateInsightsServerUrl(insightsData.server);
-  if (serverValidation) {
-    notify(serverValidation, MessageKind.ERROR, { logger });
-    return;
-  }
-  insightsData.server = insightsData.server.trim();
-  const isConnectedConn = isConnected(oldAlias);
-  await disconnect(oldAlias);
-  if (insightsData.alias === undefined || insightsData.alias === "") {
-    const host = new url.URL(insightsData.server);
-    insightsData.alias = host.host;
-  }
-  const insights: Insights | undefined = getInsights();
-  if (insights) {
-    const oldInsights = insights[getKeyForServerName(oldAlias)];
-    const newAliasExists =
-      oldAlias !== insightsData.alias
-        ? insights[getKeyForServerName(insightsData.alias)]
-        : undefined;
-    if (newAliasExists) {
-      notify(
-        `Insights instance named ${insightsData.alias} already exists.`,
-        MessageKind.ERROR,
-        { logger },
-      );
-      return;
-    } else {
-      if (!oldInsights) {
-        notify(
-          `Insights instance named ${oldAlias} does not exist.`,
-          MessageKind.ERROR,
-          { logger },
-        );
-        return;
-      } else {
-        const oldKey = getKeyForServerName(oldAlias);
-        const newKey = insightsData.alias;
-        removeConnFromLabels(oldAlias);
-        if (insights[oldKey] && oldAlias !== insightsData.alias) {
-          const uInsights = Object.keys(insights).filter((insight) => {
-            return insight !== oldKey;
-          });
-          const updatedInsights: Insights = {};
-          uInsights.forEach((insight) => {
-            updatedInsights[insight] = insights[insight];
-          });
-
-          updatedInsights[newKey] = {
-            auth: true,
-            alias: insightsData.alias,
-            server: insightsData.server,
-            realm: insightsData.realm,
-            insecure: insightsData.insecure,
-          };
-
-          await updateInsights(updatedInsights);
-        } else {
-          insights[oldKey] = {
-            auth: true,
-            alias: insightsData.alias,
-            server: insightsData.server,
-            realm: insightsData.realm,
-            insecure: insightsData.insecure,
-          };
-          await updateInsights(insights);
-        }
-
-        const newInsights = getInsights();
-        if (newInsights != undefined) {
-          ext.latestLblsChanged.length = 0;
-          if (labels && labels.length > 0) {
-            ext.latestLblsChanged.push(...labels);
-            await handleLabelsConnMap(labels, insightsData.alias);
-          } else {
-            removeConnFromLabels(insightsData.alias);
-          }
-          ext.serverProvider.refreshInsights(newInsights);
-          notify("Edited Insights connection.", MessageKind.DEBUG, {
-            logger,
-          });
-          if (isConnectedConn) {
-            offerReconnectionAfterEdit(insightsData.alias);
-          }
-        }
-
-        notify(
-          `Edited Insights connection: ${insightsData.alias}`,
-          MessageKind.INFO,
-          { logger },
-        );
-
-        NewConnectionPannel.close();
-      }
-    }
-  }
-  /* c8 ignore stop */
 }
 
 export async function addAuthConnection(
@@ -662,12 +447,9 @@ export async function importConnections() {
     });
     return;
   }
-  if (
-    importedConnections.connections.KDB.length === 0 &&
-    importedConnections.connections.Insights.length === 0
-  ) {
+  if (importedConnections.connections.KDB.length === 0) {
     notify(
-      "There is no KDB or Insights connections to import in this JSON file.",
+      "There are no kdb connections to import in this JSON file.",
       MessageKind.ERROR,
       { logger },
     );
@@ -684,21 +466,14 @@ export async function addImportedConnections(
   const existingAliases = connMangService.retrieveListOfConnectionsNames();
   const localAlreadyExists = existingAliases.has("local");
 
-  const hasDuplicates =
-    importedConnections.connections.Insights.some((connection) =>
-      existingAliases.has(
-        connMangService.checkConnAlias(connection.alias, true),
+  const hasDuplicates = importedConnections.connections.KDB.some((connection) =>
+    existingAliases.has(
+      connMangService.checkConnAlias(
+        connection.serverAlias,
+        localAlreadyExists,
       ),
-    ) ||
-    importedConnections.connections.KDB.some((connection) =>
-      existingAliases.has(
-        connMangService.checkConnAlias(
-          connection.serverAlias,
-          false,
-          localAlreadyExists,
-        ),
-      ),
-    );
+    ),
+  );
 
   let res: "Duplicate" | "Overwrite" | "Cancel" | undefined = "Duplicate";
   if (hasDuplicates) {
@@ -716,29 +491,10 @@ export async function addImportedConnections(
   }
 
   let counter = 1;
-  const insights: InsightDetails[] = [];
-  for (const connection of importedConnections.connections.Insights) {
-    let alias = connMangService.checkConnAlias(connection.alias, true);
-
-    if (res === "Overwrite") {
-      insights.push(connection);
-    } else {
-      while (existingAliases.has(alias)) {
-        alias = `${connection.alias}-${counter}`;
-        counter++;
-      }
-      connection.alias = alias;
-      await addInsightsConnection(connection);
-    }
-    existingAliases.add(alias);
-    counter = 1;
-  }
-
   const servers: ServerDetails[] = [];
   for (const connection of importedConnections.connections.KDB) {
     let alias = connMangService.checkConnAlias(
       connection.serverAlias,
-      false,
       localAlreadyExists,
     );
 
@@ -756,15 +512,6 @@ export async function addImportedConnections(
     counter = 1;
   }
 
-  if (insights.length > 0) {
-    const config = insights.reduce((config, connection) => {
-      config[connection.alias] = connection;
-      return config;
-    }, getInsights() || {});
-    await updateInsights(config);
-    ext.serverProvider.refreshInsights(config);
-  }
-
   if (servers.length > 0) {
     const config = servers.reduce((config, connection) => {
       config[connection.serverAlias] = connection;
@@ -779,7 +526,7 @@ export async function addImportedConnections(
   });
 }
 
-export async function removeConnection(viewItem: KdbNode | InsightsNode) {
+export async function removeConnection(viewItem: KdbNode) {
   notify(
     `You are going to remove ${viewItem.label}, would you like to proceed?`,
     MessageKind.WARNING,
@@ -789,11 +536,7 @@ export async function removeConnection(viewItem: KdbNode | InsightsNode) {
   ).then(async (result) => {
     if (result === "Proceed") {
       const connMngService = new ConnectionManagementService();
-      removeConnFromLabels(
-        viewItem instanceof KdbNode
-          ? viewItem.details.serverAlias
-          : viewItem.details.alias,
-      );
+      removeConnFromLabels(viewItem.details.serverAlias);
       await connMngService.removeConnection(viewItem);
     }
   });
@@ -837,24 +580,10 @@ export async function connect(connLabel: string): Promise<void> {
   ext.serverProvider.reload();
 }
 
-export function activeConnection(viewItem: KdbNode | InsightsNode): void {
+export function activeConnection(viewItem: KdbNode): void {
   const connMngService = new ConnectionManagementService();
   connMngService.setActiveConnection(viewItem);
   ext.serverProvider.reload();
-}
-
-export async function resetScratchpad(connName?: string): Promise<void> {
-  const connMngService = new ConnectionManagementService();
-  await connMngService.resetScratchpad(connName);
-}
-
-export async function refreshGetMeta(connLabel?: string): Promise<void> {
-  const connMngService = new ConnectionManagementService();
-  if (connLabel) {
-    await connMngService.refreshGetMeta(connLabel);
-  } else {
-    await connMngService.refreshAllGetMetas();
-  }
 }
 
 export async function disconnect(connLabel: string): Promise<void> {
@@ -896,9 +625,7 @@ export async function executeQuery(
     return undefined;
   }
 
-  const selectedConn = connMngService.retrieveConnectedConnection(connLabel);
-  const isInsights = selectedConn instanceof InsightsConnection;
-  const connVersion = isInsights ? (selectedConn.insightsVersion ?? "0") : "0";
+  const isInsights = false;
 
   if (query.length === 0) {
     notify("Empty query.", MessageKind.DEBUG, {
@@ -928,8 +655,6 @@ export async function executeQuery(
     context,
     isStringfy,
     isPython,
-    timeout,
-    requestID,
   );
   const endTime = Date.now();
   const duration = (endTime - startTime).toString();
@@ -938,22 +663,7 @@ export async function executeQuery(
     return undefined;
   }
 
-  // set context for root nodes
-  if (isInsights) {
-    const res = await writeScratchpadResult(
-      results,
-      query,
-      connLabel,
-      executorName,
-      isPython,
-      isWorkbook,
-      duration,
-      connVersion,
-    );
-    if (isNotebook) {
-      return res;
-    }
-  } else if (isNotebook) {
+  if (isNotebook) {
     return results;
   } else {
     /* c8 ignore start */
@@ -982,7 +692,6 @@ export async function executeQuery(
           isPython,
           duration,
           isFromConnTree,
-          connVersion,
         );
       }
     } else {
@@ -1044,10 +753,7 @@ export async function runQuery(
   executorName: string,
   isWorkbook: boolean,
   rerunQuery?: string,
-  target?: string,
   isSql?: boolean,
-  isInsights?: boolean,
-  timeout?: number,
   cancel?: () => void,
 ) {
   const editor = ext.activeTextEditor;
@@ -1058,7 +764,6 @@ export async function runQuery(
   let context;
   let query;
   let isPython = false;
-  let variable: string | undefined;
 
   switch (type) {
     case ExecutionTypes.QuerySelection:
@@ -1088,14 +793,7 @@ export async function runQuery(
     }
   }
 
-  if (type === ExecutionTypes.PopulateScratchpad) {
-    if (executorName.endsWith(".py")) {
-      isPython = true;
-    }
-    variable = await inputVariable();
-  }
-
-  if (isSql && !isInsights) {
+  if (isSql) {
     query = getSQLWrapper(query);
   }
 
@@ -1104,103 +802,41 @@ export async function runQuery(
       token.onCancellationRequested(cancel);
     }
 
-    return target || (isSql && isInsights)
-      ? variable
-        ? populateScratchpad(
-            getPartialDatasourceFile(query, target, isSql, isPython),
-            connLabel,
-            variable,
-            undefined,
-            token,
-            timeout,
-          )
-        : runDataSource(
-            getPartialDatasourceFile(query, target, isSql, isPython),
-            connLabel,
-            executorName,
-            token,
-            timeout,
-          )
-      : executeQuery(
-          query,
-          connLabel,
-          executorName,
-          context,
-          isPython,
-          isWorkbook,
-          false,
-          token,
-          timeout,
-        );
+    return executeQuery(
+      query,
+      connLabel,
+      executorName,
+      context,
+      isPython,
+      isWorkbook,
+      false,
+      token,
+    );
   });
 
   runner.title = `Executing ${executorName} on ${connLabel || "active connection"}.`;
 
-  return !isInsights || ((target || isSql) && !variable)
-    ? runner.execute()
-    : needsScratchpad(connLabel, runner.execute());
+  return runner.execute();
 }
 
 export function rerunQuery(rerunQueryElement: QueryHistory) {
-  if (
-    !rerunQueryElement.isDatasource &&
-    typeof rerunQueryElement.query === "string"
-  ) {
-    const context = getConextForRerunQuery(rerunQueryElement.query);
-    executeQuery(
-      rerunQueryElement.query,
-      rerunQueryElement.connectionName,
-      rerunQueryElement.executorName,
-      context,
-      rerunQueryElement.language !== "q",
-      !!rerunQueryElement.isWorkbook,
-      !!rerunQueryElement.isFromConnTree,
-    );
-  } else {
-    const dsFile = rerunQueryElement.query as DataSourceFiles;
-    runDataSource(
-      dsFile,
-      rerunQueryElement.connectionName,
-      rerunQueryElement.executorName,
-    );
-  }
+  const context = getConextForRerunQuery(rerunQueryElement.query);
+  executeQuery(
+    rerunQueryElement.query,
+    rerunQueryElement.connectionName,
+    rerunQueryElement.executorName,
+    context,
+    rerunQueryElement.language !== "q",
+    !!rerunQueryElement.isWorkbook,
+    !!rerunQueryElement.isFromConnTree,
+  );
 }
 
 export function copyQuery(queryHistoryElement: QueryHistory) {
-  let query;
-  if (queryHistoryElement.isDatasource) {
-    const ds = queryHistoryElement.query as DataSourceFiles;
-    if (ds.dataSource.selectedType === DataSourceTypes.QSQL)
-      query = ds.dataSource.source ?? ds.dataSource.qsql.query;
-    if (ds.dataSource.selectedType === DataSourceTypes.SQL)
-      query = ds.dataSource.source ?? ds.dataSource.sql.query;
-  } else if (typeof queryHistoryElement.query === "string") {
-    query = queryHistoryElement.query;
-  }
+  const query = queryHistoryElement.query;
   if (query) {
     notify("Query copied to clipboard.", MessageKind.INFO, { logger });
     return env.clipboard.writeText(query);
-  }
-}
-
-export async function openMeta(node: MetaObjectPayloadNode | InsightsMetaNode) {
-  const metaContentProvider = new MetaContentProvider();
-  workspace.registerTextDocumentContentProvider("meta", metaContentProvider);
-  const connMngService = new ConnectionManagementService();
-  const doc = connMngService.retrieveMetaContent(node.connLabel, node.label);
-  if (doc && doc !== "") {
-    const formattedDoc = JSON.stringify(JSON.parse(doc), null, 2);
-    const uri = Uri.parse(`meta:${node.connLabel} - ${node.label}.json`);
-    metaContentProvider.update(uri, formattedDoc);
-    const document = await workspace.openTextDocument(uri);
-    await window.showTextDocument(document, {
-      preview: false,
-      viewColumn: ViewColumn.One,
-    });
-  } else {
-    notify("Meta content not found.", MessageKind.ERROR, {
-      logger,
-    });
   }
 }
 
@@ -1284,21 +920,19 @@ export async function writeQueryResultsToConsole(
       isFromConnTree,
     );
   } else {
-    if (!checkIfIsDatasource(type)) {
-      queryConsole.appendQueryError(
-        query,
-        res.substring(queryConstants.error.length),
-        connLabel,
-        executorName,
-        true,
-        isInsights,
-        type,
-        isPython,
-        false,
-        duration,
-        isFromConnTree,
-      );
-    }
+    queryConsole.appendQueryError(
+      query,
+      res.substring(queryConstants.error.length),
+      connLabel,
+      executorName,
+      true,
+      isInsights,
+      type,
+      isPython,
+      false,
+      duration,
+      isFromConnTree,
+    );
   }
 }
 
@@ -1312,13 +946,12 @@ export async function writeQueryResultsToView(
   isPython?: boolean,
   duration?: string,
   isFromConnTree?: boolean,
-  connVersion?: string,
 ): Promise<void> {
   await commands.executeCommand(
     "kdb.resultsPanel.update",
     result,
     isInsights,
-    connVersion,
+    undefined,
     isPython,
   );
   // Results went to the (possibly hidden) Results view — leave a clickable
@@ -1327,27 +960,23 @@ export async function writeQueryResultsToView(
   ext.connectionConsoles.get(connLabel)?.appendResultsPointer();
   let isSuccess = true;
 
-  if (!checkIfIsDatasource(type)) {
-    if (typeof result === "string") {
-      const res = decodeQUTF(result);
-      if (res.startsWith(queryConstants.error)) {
-        isSuccess = false;
-      }
+  if (typeof result === "string") {
+    const res = decodeQUTF(result);
+    if (res.startsWith(queryConstants.error)) {
+      isSuccess = false;
     }
-    addQueryHistory(
-      query,
-      executorName,
-      connLabel,
-      isInsights ? ServerType.INSIGHTS : ServerType.KDB,
-      isSuccess,
-      isPython,
-      type === "WORKBOOK",
-      undefined,
-      undefined,
-      duration,
-      isFromConnTree,
-    );
   }
+  addQueryHistory(
+    query,
+    executorName,
+    connLabel,
+    ServerType.KDB,
+    isSuccess,
+    isPython,
+    type === "WORKBOOK",
+    duration,
+    isFromConnTree,
+  );
 }
 
 export async function writeQueryResultsToPlot(
@@ -1369,87 +998,17 @@ export async function writeQueryResultsToPlot(
     query,
     executorName,
     connLabel,
-    isInsights ? ServerType.INSIGHTS : ServerType.KDB,
+    ServerType.KDB,
     true,
     isPython,
     type === "WORKBOOK",
-    undefined,
-    undefined,
     duration,
     isFromConnTree,
   );
 }
 
-export async function writeScratchpadResult(
-  result: ScratchpadResult,
-  query: string,
-  connLabel: string,
-  executorName: string,
-  isPython: boolean,
-  isWorkbook: boolean,
-  duration: string,
-  connVersion: string,
-): Promise<any> {
-  let errorMsg;
-
-  if (result.error) {
-    errorMsg = formatScratchpadError(result);
-  }
-
-  if (executorName.endsWith(".kxnb")) {
-    return errorMsg ?? result;
-  }
-
-  const plot = errorMsg ? undefined : resultToBase64(result);
-
-  if (plot) {
-    await writeQueryResultsToPlot(
-      plot,
-      query,
-      connLabel,
-      executorName,
-      true,
-      isWorkbook ? "WORKBOOK" : "SCRATCHPAD",
-      isPython,
-      duration,
-    );
-    return;
-  }
-
-  if (ext.isResultsTabVisible) {
-    await writeQueryResultsToView(
-      errorMsg ?? result,
-      query,
-      connLabel,
-      executorName,
-      true,
-      isWorkbook ? "WORKBOOK" : "SCRATCHPAD",
-      isPython,
-      duration,
-      false,
-      connVersion,
-    );
-  } else {
-    await writeQueryResultsToConsole(
-      errorMsg ?? result.data,
-      query,
-      connLabel,
-      executorName,
-      true,
-      isWorkbook ? "WORKBOOK" : "SCRATCHPAD",
-      isPython,
-      duration,
-    );
-  }
-}
-
 function isValidExportedConnections(data: any): data is ExportedConnections {
-  return (
-    data &&
-    data.connections &&
-    Array.isArray(data.connections.Insights) &&
-    Array.isArray(data.connections.KDB)
-  );
+  return data && data.connections && Array.isArray(data.connections.KDB);
 }
 
 const quickConnections: ServerDetails[] = [];

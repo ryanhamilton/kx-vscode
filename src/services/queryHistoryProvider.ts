@@ -24,7 +24,6 @@ import {
 } from "vscode";
 
 import { ext } from "../extensionVariables";
-import { DataSourceFiles, DataSourceTypes } from "../models/dataSource";
 import { QueryHistory } from "../models/queryHistory";
 import { getConnectionType } from "../utils/queryUtils";
 
@@ -65,19 +64,7 @@ export class QueryHistoryProvider implements TreeDataProvider<TreeItem> {
     return Promise.resolve(
       this.queryList.map((query) => {
         const label = query.connectionName + " - " + query.time;
-        /* c8 ignore start */
-        if (query.isDatasource) {
-          const ds = query.query as DataSourceFiles;
-          if (
-            ds.dataSource.selectedType === DataSourceTypes.QSQL ||
-            ds.dataSource.selectedType === DataSourceTypes.SQL
-          ) {
-            ext.queryHistoryAvailableToCopy.push(label);
-          }
-        } else if (typeof query.query === "string") {
-          ext.queryHistoryAvailableToCopy.push(label);
-        }
-        /* c8 ignore stop */
+        ext.queryHistoryAvailableToCopy.push(label);
         return new QueryHistoryTreeItem(
           label,
           query,
@@ -140,22 +127,7 @@ export class QueryHistoryTreeItem extends TreeItem {
       tooltipMd.appendMarkdown("- File: " + this.details.executorName + " \n");
     }
 
-    let queryText;
-
-    /* c8 ignore start */
-    if (this.details.isDatasource) {
-      const ds = this.details.query as DataSourceFiles;
-      if (ds.dataSource.selectedType === DataSourceTypes.QSQL)
-        queryText = ds.dataSource.source ?? ds.dataSource.qsql.query;
-      if (ds.dataSource.selectedType === DataSourceTypes.SQL)
-        queryText = ds.dataSource.source ?? ds.dataSource.sql.query;
-      tooltipMd.appendMarkdown(
-        "- Type: **" + this.details.datasourceType + "** \n",
-      );
-    } else {
-      queryText = this.details.query;
-    }
-    /* c8 ignore stop */
+    let queryText = this.details.query;
 
     if (typeof queryText === "string") {
       tooltipMd.appendMarkdown("- Query: ");

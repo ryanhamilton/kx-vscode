@@ -41,17 +41,6 @@
           "description": "kdb servers for explorer",
           "scope": "machine"
         },
-        "kdb.insights": {
-          "deprecationMessage": "This setting is deprecated, use kdb.insightsEnterpriseConnections instead",
-          "type": "object",
-          "description": "kdb insights for explorer",
-          "scope": "machine"
-        },
-        "kdb.insightsEnterpriseConnections": {
-          "type": "object",
-          "description": "kdb insights enterprise connections for explorer",
-          "scope": "machine"
-        },
         "kdb.hideDetailedConsoleQueryOutput": {
           "type": "boolean",
           "description": "Hide detailed console query output",
@@ -105,24 +94,6 @@
           "default": {},
           "scope": "resource"
         },
-        "kdb.targetMap": {
-          "type": "object",
-          "description": "Target map for workspace files",
-          "default": {},
-          "scope": "resource"
-        },
-        "kdb.timeoutMap": {
-          "type": "object",
-          "description": "Timeout map for workspace files",
-          "default": {},
-          "scope": "resource"
-        },
-        "kdb.defaultTimeout": {
-          "type": "number",
-          "description": "Timeout in seconds for Insights Enterprise requests",
-          "default": 30,
-          "scope": "machine-overridable"
-        },
         "kdb.connectionLabels": {
           "type": "array",
           "description": "List of label names and colorset",
@@ -156,7 +127,7 @@
       {
         "category": "KX",
         "command": "kdb.connections.refresh.serverObjects",
-        "title": "Refresh server objects & insights meta",
+        "title": "Refresh server objects",
         "icon": "$(refresh)"
       },
       {
@@ -211,35 +182,8 @@
       },
       {
         "category": "KX",
-        "command": "kdb.file.pickTarget",
-        "title": "Choose Execution Target",
-        "shortTitle": "Target",
-        "icon": "$(target)"
-      },
-      {
-        "category": "KX",
-        "command": "kdb.file.inputVariable",
-        "title": "Input Variable Name"
-      },
-      {
-        "command": "kdb.file.populateScratchpad",
-        "title": "KX: Populate Scratchpad",
-        "icon": "$(debug-rerun)"
-      },
-      {
-        "category": "KX",
         "command": "kdb.scratchpad.run",
         "title": "Run workbook"
-      },
-      {
-        "category": "KX",
-        "command": "kdb.scratchpad.reset",
-        "title": "Reset Scratchpad"
-      },
-      {
-        "category": "KX",
-        "command": "kdb.scratchpad.editor.reset",
-        "title": "Reset Scratchpad"
       },
       {
         "category": "KX",
@@ -264,11 +208,6 @@
       },
       {
         "category": "KX",
-        "command": "kdb.connections.refresh.meta",
-        "title": "Refresh get meta"
-      },
-      {
-        "category": "KX",
         "command": "kdb.connections.connect.via.dialog",
         "title": "Connect server"
       },
@@ -276,11 +215,6 @@
         "category": "KX",
         "command": "kdb.connections.setActive",
         "title": "Active connection"
-      },
-      {
-        "category": "KX",
-        "command": "kdb.connections.open.meta",
-        "title": "Open meta object"
       },
       {
         "category": "KX",
@@ -292,11 +226,6 @@
         "category": "KX",
         "command": "kdb.connections.enableTLS",
         "title": "Enable TLS"
-      },
-      {
-        "category": "KX",
-        "command": "kdb.connections.remove.insights",
-        "title": "Remove connection"
       },
       {
         "category": "KX",
@@ -419,24 +348,6 @@
         "category": "KX",
         "command": "kdb.createNotebook",
         "title": "New Notebook"
-      },
-      {
-        "category": "KX",
-        "command": "kdb.query.create",
-        "title": "New Query",
-        "icon": "$(add)"
-      },
-      {
-        "category": "KX",
-        "command": "kdb.query.refresh",
-        "title": "Refresh queries",
-        "icon": "$(refresh)",
-        "enablement": "workspaceFolderCount > 0"
-      },
-      {
-        "category": "KX",
-        "command": "kdb.query.convert",
-        "title": "Convert datasources to queries"
       }
     ],
     "keybindings": [
@@ -471,18 +382,6 @@
         "when": "resourceFilename =~ /\\.(?:py)$/i"
       },
       {
-        "command": "kdb.scratchpad.editor.reset",
-        "key": "ctrl+shift+delete",
-        "mac": "cmd+shift+delete",
-        "when": "resourceFilename =~ /\\.(?:q|py|sql|kxnb)$/i"
-      },
-      {
-        "command": "kdb.file.populateScratchpad",
-        "key": "alt+ctrl+shift+p",
-        "mac": "alt+cmd+shift+p",
-        "when": "resourceFilename =~ /\\.(?:q|py|sql)$/i"
-      },
-      {
         "command": "kdb.execute.block",
         "key": "ctrl+shift+e",
         "mac": "cmd+shift+e",
@@ -493,12 +392,6 @@
         "key": "ctrl+shift+y",
         "mac": "cmd+shift+y",
         "when": "resourceFilename =~ /\\.(?:q)$/i"
-      },
-      {
-        "command": "kdb.file.pickTarget",
-        "key": "ctrl+alt+t",
-        "mac": "cmd+alt+t",
-        "when": "resourceFilename =~ /\\.(?:q|py|sql)$/i"
       }
     ],
     "snippets": [
@@ -524,19 +417,6 @@
           "light": "./resources/light/scratchpad.svg"
         },
         "configuration": "./language-configuration.json"
-      },
-      {
-        "id": "kxquery",
-        "aliases": [
-          "kxquery"
-        ],
-        "extensions": [
-          ".kxquery"
-        ],
-        "icon": {
-          "dark": "./resources/dark/datasource.svg",
-          "light": "./resources/light/datasource.svg"
-        }
       },
       {
         "id": "kdbplot",
@@ -593,11 +473,6 @@
         {
           "id": "kdb-servers",
           "name": "Connections",
-          "icon": "resources/images/server.svg"
-        },
-        {
-          "id": "kdb-query-explorer",
-          "name": "Queries",
           "icon": "resources/images/server.svg"
         },
         {
@@ -686,28 +561,8 @@
           "when": "resourceFilename =~ /\\.(?:q|py|sql|kxnb)$/i"
         },
         {
-          "command": "kdb.file.pickTarget",
-          "when": "resourceFilename =~ /\\.(?:q|py|sql)$/i"
-        },
-        {
-          "command": "kdb.file.inputVariable",
-          "when": "false"
-        },
-        {
-          "command": "kdb.file.populateScratchpad",
-          "when": "resourceFilename =~ /\\.(?:q|py|sql)$/i"
-        },
-        {
           "command": "kdb.scratchpad.run",
           "when": "false"
-        },
-        {
-          "command": "kdb.scratchpad.reset",
-          "when": "false"
-        },
-        {
-          "command": "kdb.scratchpad.editor.reset",
-          "when": "resourceFilename =~ /\\.(?:q|py|sql|kxnb)$/i"
         },
         {
           "command": "kdb.connections.add",
@@ -726,10 +581,6 @@
           "when": "false"
         },
         {
-          "command": "kdb.connections.refresh.meta",
-          "when": "false"
-        },
-        {
           "command": "kdb.connections.connect.via.dialog",
           "when": "false"
         },
@@ -738,19 +589,11 @@
           "when": "false"
         },
         {
-          "command": "kdb.connections.open.meta",
-          "when": "false"
-        },
-        {
           "command": "kdb.connections.addAuthentication",
           "when": "false"
         },
         {
           "command": "kdb.connections.enableTLS",
-          "when": "false"
-        },
-        {
-          "command": "kdb.connections.remove.insights",
           "when": "false"
         },
         {
@@ -844,18 +687,6 @@
         {
           "command": "kdb.createNotebook",
           "when": "true"
-        },
-        {
-          "command": "kdb.query.create",
-          "when": "true"
-        },
-        {
-          "command": "kdb.query.refresh",
-          "when": "false"
-        },
-        {
-          "command": "kdb.query.convert",
-          "when": "true"
         }
       ],
       "webview/context": [
@@ -871,16 +702,6 @@
         }
       ],
       "view/title": [
-        {
-          "command": "kdb.query.create",
-          "when": "view == kdb-query-explorer",
-          "group": "navigation@1"
-        },
-        {
-          "command": "kdb.query.refresh",
-          "when": "view == kdb-query-explorer",
-          "group": "navigation@2"
-        },
         {
           "command": "kdb.connections.add",
           "when": "view == kdb-servers",
@@ -940,42 +761,32 @@
       "view/item/context": [
         {
           "command": "kdb.connections.connect",
-          "when": "view == kdb-servers && viewItem not in kdb.connected && (viewItem in kdb.rootNodes || viewItem in kdb.insightsNodes)",
+          "when": "view == kdb-servers && viewItem not in kdb.connected && viewItem in kdb.rootNodes",
           "group": "connection@1"
         },
         {
           "command": "kdb.connections.edit",
-          "when": "view == kdb-servers && viewItem not in kdb.kdbQuickNodes && (viewItem in kdb.rootNodes || viewItem in kdb.insightsNodes)",
+          "when": "view == kdb-servers && viewItem not in kdb.kdbQuickNodes && viewItem in kdb.rootNodes",
           "group": "connection@4"
         },
         {
           "command": "kdb.connections.setActive",
-          "when": "view == kdb-servers && viewItem in kdb.connected && (viewItem in kdb.rootNodes || viewItem in kdb.insightsNodes) && viewItem not in kdb.connected.active",
+          "when": "view == kdb-servers && viewItem in kdb.connected && viewItem in kdb.rootNodes && viewItem not in kdb.connected.active",
           "group": "connection@1"
         },
         {
           "command": "kdb.connections.addAuthentication",
-          "when": "view == kdb-servers && viewItem not in kdb.kdbQuickNodes &&  viewItem not in kdb.insightsNodes && viewItem in kdb.kdbNodesWithoutAuth && viewItem not in kdb.local",
+          "when": "view == kdb-servers && viewItem not in kdb.kdbQuickNodes && viewItem in kdb.kdbNodesWithoutAuth && viewItem not in kdb.local",
           "group": "connection@3"
         },
         {
           "command": "kdb.connections.enableTLS",
-          "when": "view == kdb-servers && viewItem not in kdb.kdbQuickNodes &&  viewItem not in kdb.insightsNodes && viewItem in kdb.kdbNodesWithoutTls && viewItem not in kdb.local",
+          "when": "view == kdb-servers && viewItem not in kdb.kdbQuickNodes && viewItem in kdb.kdbNodesWithoutTls && viewItem not in kdb.local",
           "group": "connection@4"
         },
         {
-          "command": "kdb.connections.refresh.meta",
-          "when": "view == kdb-servers && viewItem in kdb.connected && viewItem in kdb.insightsNodes",
-          "group": "connection@3"
-        },
-        {
-          "command": "kdb.connections.remove.insights",
-          "when": "view == kdb-servers && viewItem in kdb.insightsNodes",
-          "group": "connection@5"
-        },
-        {
           "command": "kdb.connections.disconnect",
-          "when": "view == kdb-servers && viewItem in kdb.connected && (viewItem in kdb.rootNodes || viewItem in kdb.insightsNodes)",
+          "when": "view == kdb-servers && viewItem in kdb.connected && viewItem in kdb.rootNodes",
           "group": "connection@4"
         },
         {
@@ -985,13 +796,8 @@
         },
         {
           "command": "kdb.connections.export.single",
-          "when": "view == kdb-servers && viewItem not in kdb.kdbQuickNodes &&  (viewItem in kdb.rootNodes || viewItem in kdb.insightsNodes)",
+          "when": "view == kdb-servers && viewItem not in kdb.kdbQuickNodes &&  viewItem in kdb.rootNodes",
           "group": "connection@6"
-        },
-        {
-          "command": "kdb.scratchpad.reset",
-          "when": "view == kdb-servers && viewItem in kdb.connected && viewItem in kdb.insightsNodes",
-          "group": "connection@7"
         },
         {
           "command": "kdb.queryHistory.rerun",
@@ -1002,16 +808,6 @@
           "command": "kdb.queryHistory.copyQuery",
           "when": "view == kdb-query-history && viewItem in kdb.kdbQHCopyList",
           "group": "queryHistory@2"
-        },
-        {
-          "command": "kdb.file.rename",
-          "when": "(view == kdb-query-explorer || view == kdb-scratchpad-explorer) && viewItem == artifact",
-          "group": "kdbWorkspace@1"
-        },
-        {
-          "command": "kdb.file.delete",
-          "when": "(view == kdb-query-explorer || view == kdb-scratchpad-explorer) && viewItem == artifact",
-          "group": "kdbWorkspace@2"
         },
         {
           "command": "kdb.connections.labels.rename",
@@ -1038,12 +834,12 @@
         {
           "submenu": "kdb.results.destination.terminalMenu",
           "group": "navigation@-0.5",
-          "when": "resourceFilename =~ /\\.(?:q|quke|sql|py|kxquery)$/i && !kdb.showResultsInView"
+          "when": "resourceFilename =~ /\\.(?:q|quke|sql|py)$/i && !kdb.showResultsInView"
         },
         {
           "submenu": "kdb.results.destination.viewMenu",
           "group": "navigation@-0.5",
-          "when": "resourceFilename =~ /\\.(?:q|quke|sql|py|kxquery)$/i && kdb.showResultsInView"
+          "when": "resourceFilename =~ /\\.(?:q|quke|sql|py)$/i && kdb.showResultsInView"
         }
       ],
       "kdb.results.destination.terminalMenu": [
@@ -1091,11 +887,6 @@
           "command": "kdb.execute.block",
           "group": "q1@2",
           "when": "resourceFilename =~ /\\.(?:q)$/i"
-        },
-        {
-          "command": "kdb.file.populateScratchpad",
-          "group": "q2@0",
-          "when": "resourceFilename =~ /\\.(?:q|py|sql)$/i"
         }
       ],
       "editor/context": [
@@ -1113,11 +904,6 @@
           "command": "kdb.execute.block",
           "group": "q@2",
           "when": "resourceFilename =~ /\\.(?:q)$/i"
-        },
-        {
-          "command": "kdb.file.populateScratchpad",
-          "group": "q2@0",
-          "when": "resourceFilename =~ /\\.(?:q|py|sql)$/i"
         },
         {
           "command": "kdb.scratchpad.python.run.file",
@@ -1156,31 +942,11 @@
     },
     "customEditors": [
       {
-        "viewType": "kdb.queryEditor",
-        "displayName": "Query Editor",
-        "selector": [
-          {
-            "filenamePattern": "*.kxquery"
-          }
-        ],
-        "priority": "default"
-      },
-      {
         "viewType": "kdb.chartEditor",
         "displayName": "Chart Viewer",
         "selector": [
           {
             "filenamePattern": "*.plot"
-          }
-        ],
-        "priority": "default"
-      },
-      {
-        "viewType": "kdb.dataSourceConverter",
-        "displayName": "Datasource Converter",
-        "selector": [
-          {
-            "filenamePattern": "*.kdb.json"
           }
         ],
         "priority": "default"
@@ -1250,11 +1016,9 @@
     "@types/vscode": "1.103.0",
     "@types/vscode-webview": "1.57.5",
     "@types/ws": "8.18.1",
-    "@vscode/codicons": "0.0.46-24",
     "@vscode/python-environments": "1.4.0",
     "@vscode/test-electron": "3.1.0",
     "@vscode/vsce": "3.9.2",
-    "axios": "1.19.0",
     "c8": "11.0.0",
     "chevrotain": "11.1.2",
     "cross-env": "10.1.0",
@@ -1267,7 +1031,6 @@
     "fs-extra": "11.3.6",
     "glob": "13.0.6",
     "jsdom": "29.1.1",
-    "jwt-decode": "4.0.0",
     "kill-sync": "1.0.4",
     "lit": "3.3.3",
     "mocha": "11.7.6",
@@ -1279,7 +1042,6 @@
     "moment-timezone": "0.6.3",
     "node-q": "2.7.0",
     "npm-check-updates": "22.0.1",
-    "pick-port": "2.2.1",
     "prettier": "3.6.2",
     "proxyquire": "2.1.3",
     "rimraf": "6.1.3",

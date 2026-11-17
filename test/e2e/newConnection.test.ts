@@ -27,7 +27,6 @@ describe("New connection view", () => {
 
   const ROOT = "kdb-new-connection-view";
   const MY_Q = ROOT;
-  const INSIGHTS = ROOT;
   const EDIT = ROOT;
 
   before(async () => {
@@ -149,34 +148,6 @@ describe("New connection view", () => {
       username: "user",
       password: "secret",
     });
-  });
-
-  it("adds an Insights connection from the Insights tab", async () => {
-    await click(`${ROOT} >>> .tabs button:nth-child(2)`);
-    await type(INSIGHTS, {
-      "Server Name": "insights",
-      "Define connection address": "https://insights.example.com",
-    });
-
-    await open(INSIGHTS, ADVANCED);
-    await type(INSIGHTS, { "Define Realm (optional)": "keycloak" });
-    await click(`${INSIGHTS} >>> input[type="checkbox"]`);
-
-    const posted = await submit(INSIGHTS);
-
-    assert.deepStrictEqual(posted, [
-      {
-        command: "kdb.connections.add.insights",
-        data: {
-          alias: "insights",
-          server: "https://insights.example.com",
-          auth: true,
-          realm: "keycloak",
-          insecure: true,
-        },
-        labels: [],
-      },
-    ]);
   });
 
   it("offers the labels the panel sent and saves the one picked", async () => {
@@ -313,45 +284,5 @@ describe("New connection view", () => {
     assert.strictEqual(message.data.auth, true);
     assert.strictEqual(message.data.username, "user");
     assert.strictEqual(message.data.password, "secret");
-  });
-
-  it("fills the Insights edit form and sends back the changes", async () => {
-    await edit({
-      serverName: "existing insights",
-      serverAddress: "https://insights.example.com",
-      connType: 2,
-      insecure: true,
-    });
-
-    assert.deepStrictEqual(
-      await shownIn(["Server Name", "Define connection address"]),
-      {
-        heading: "Edit Insights Connection",
-        button: "Update Connection",
-        "Server Name": "existing insights",
-        "Define connection address": "https://insights.example.com",
-      },
-    );
-
-    await type(EDIT, {
-      "Define connection address": "https://moved.example.com",
-    });
-    await open(EDIT, ADVANCED);
-    await type(EDIT, { "Define Realm (optional)": "keycloak" });
-
-    const [message] = await submit(EDIT);
-
-    assert.deepStrictEqual(message, {
-      command: "kdb.connections.edit.insights",
-      oldAlias: "existing insights",
-      labels: [],
-      data: {
-        alias: "existing insights",
-        server: "https://moved.example.com",
-        auth: true,
-        realm: "keycloak",
-        insecure: true,
-      },
-    });
   });
 });

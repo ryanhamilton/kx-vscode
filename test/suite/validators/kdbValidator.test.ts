@@ -69,15 +69,6 @@ describe("kdbValidator", () => {
   });
 
   it("Should return fail if using restricted keyword", () => {
-    const result = kdbValidators.validateServerAlias("InsightsEnterprise");
-    assert.strictEqual(
-      result,
-      "Input value using restricted keywords of Insights Enterprise",
-      "Input contained restricted keyword.",
-    );
-  });
-
-  it("Should return fail if using restricted keyword", () => {
     const result = kdbValidators.validateServerAlias("REPL");
     assert.strictEqual(
       result,

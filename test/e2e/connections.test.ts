@@ -19,11 +19,9 @@ import * as vscode from "vscode";
 
 import { activate, settle, until } from "./utils";
 import * as dialog from "./utils/dialog";
-import { insights, start as startInsights } from "./utils/insights";
 import * as prompt from "./utils/prompt";
 import {
   CREDENTIALS,
-  INSIGHTS_ALIASES,
   KDB_ALIASES,
   exportedConnections,
 } from "../fixtures/config/connections";
@@ -72,21 +70,10 @@ const setting = (name: string) =>
   {};
 
 const KDB_SETTING = "kdb.servers";
-const INSIGHTS_SETTING = "kdb.insightsEnterpriseConnections";
 
 const aliasOf = (entry: Declared) => entry.serverAlias ?? entry.alias;
 
-/**
- * Every connection in the settings, from both lists.
- *
- * A list rather than one object keyed by the two merged: both settings key
- * their entries by the alias, so a q connection and an Insights connection
- * sharing a name are two entries under one key and merging loses one of them.
- */
-const declared = () => [
-  ...Object.values(setting(KDB_SETTING)),
-  ...Object.values(setting(INSIGHTS_SETTING)),
-];
+const declared = () => [...Object.values(setting(KDB_SETTING))];
 
 const aliases = () =>
   declared()
@@ -99,7 +86,7 @@ const declaredAs = (alias: string) =>
 // What this suite declares, i.e. the fixture and the renamed duplicates of it.
 const imported = (entry: Declared) => {
   const alias = aliasOf(entry) ?? "";
-  return [...KDB_ALIASES, ...INSIGHTS_ALIASES].some(
+  return KDB_ALIASES.some(
     (known) => alias === known || alias.startsWith(`${known}-`),
   );
 };
@@ -164,22 +151,17 @@ async function exportTo(
 }
 
 describe("Connections panel", () => {
-  let existing: { kdb: object; insights: object };
+  let existing: { kdb: object };
 
   /**
    * The settings as they were found, without taking anything declared since
-   * with them. The shared Insights instance is declared by whichever suite
-   * reaches it first — which is this one — and every suite after it expects to
-   * still find it, so only what this suite imported is taken out and the
-   * snapshot is laid back over the rest.
+   * with them: only what this suite imported is taken out and the snapshot is
+   * laid back over the rest.
    */
   const restore = async () => {
     const configuration = vscode.workspace.getConfiguration();
 
-    for (const [name, snapshot] of [
-      [KDB_SETTING, existing.kdb],
-      [INSIGHTS_SETTING, existing.insights],
-    ] as const) {
+    for (const [name, snapshot] of [[KDB_SETTING, existing.kdb]] as const) {
       const kept = Object.fromEntries(
         Object.entries(setting(name)).filter(([, entry]) => !imported(entry)),
       );
@@ -197,7 +179,6 @@ describe("Connections panel", () => {
 
     existing = {
       kdb: { ...setting(KDB_SETTING) },
-      insights: { ...setting(INSIGHTS_SETTING) },
     };
 
     fs.writeFileSync(IMPORT.fsPath, JSON.stringify(FIXTURE, null, 2));
@@ -209,10 +190,6 @@ describe("Connections panel", () => {
         "  KDB:",
         ...FIXTURE.connections.KDB.map(
           (server) => `    - serverAlias: ${server.serverAlias}`,
-        ),
-        "  Insights:",
-        ...FIXTURE.connections.Insights.map(
-          (insight) => `    - alias: ${insight.alias}`,
         ),
         "",
       ].join("\n"),
@@ -272,27 +249,6 @@ describe("Connections panel", () => {
     });
   });
 
-  describe("Refresh", () => {
-    /**
-     * Refreshing reloads the tree and asks every connected connection for its
-     * metadata again. The reload itself is not observable from out here, but
-     * the request is: the stand-in Insights instance records it.
-     */
-    it("asks the connected connections for their metadata again", async () => {
-      await startInsights();
-      insights.clear();
-
-      await vscode.commands.executeCommand(
-        "kdb.connections.refresh.serverObjects",
-      );
-
-      await until(
-        () => insights.calls("/meta").length > 0,
-        `the metadata to be requested again (requests: ${insights.requests.length})`,
-      );
-    });
-  });
-
   describe("Import", () => {
     it("reports the file it was not given", async () => {
       dialog.cancels("open", SELECT_FILE);
@@ -341,14 +297,12 @@ describe("Connections panel", () => {
       const empty = at("empty.json");
       fs.writeFileSync(
         empty.fsPath,
-        JSON.stringify({ connections: { KDB: [], Insights: [] } }),
+        JSON.stringify({ connections: { KDB: [] } }),
       );
 
       await importFrom(empty);
 
-      await prompt.untilRaised(
-        "There is no KDB or Insights connections to import",
-      );
+      await prompt.untilRaised("There are no kdb connections to import");
     });
 
     it("imports the connections in the file", async () => {
@@ -356,7 +310,7 @@ describe("Connections panel", () => {
 
       await prompt.untilRaised("Connections imported successfully.");
 
-      for (const alias of [...KDB_ALIASES, ...INSIGHTS_ALIASES]) {
+      for (const alias of KDB_ALIASES) {
         assert.ok(
           aliases().includes(alias),
           `${alias} was not imported (declared: ${aliases()})`,
@@ -413,24 +367,6 @@ describe("Connections panel", () => {
         await prompt.untilRaised("Connections imported successfully.");
       });
 
-      it("imports what each connection was declared with", () => {
-        assert.deepStrictEqual(declaredAs("mike-q"), {
-          serverAlias: "mike-q",
-          serverName: "localhost",
-          serverPort: "25103",
-          auth: false,
-          tls: false,
-        });
-
-        assert.deepStrictEqual(declaredAs("zulu-insights"), {
-          alias: "zulu-insights",
-          server: "https://zulu.example.com",
-          auth: true,
-          realm: "keycloak",
-          insecure: false,
-        });
-      });
-
       it("keeps the imported credentials out of the settings", () => {
         const secured = declaredAs("alpha-q");
 
@@ -456,12 +392,9 @@ describe("Connections panel", () => {
         ...exported.content.connections.KDB.map(
           (server: any) => server.serverAlias,
         ),
-        ...exported.content.connections.Insights.map(
-          (insight: any) => insight.alias,
-        ),
       ];
 
-      for (const alias of [...KDB_ALIASES, ...INSIGHTS_ALIASES]) {
+      for (const alias of KDB_ALIASES) {
         assert.ok(
           names.includes(alias),
           `${alias} was not exported (exported: ${names})`,
@@ -490,20 +423,14 @@ describe("Connections panel", () => {
 
     /**
      * The exported file on its own terms. Connections are exchanged as JSON —
-     * not as the YAML the Insights artefacts in a workspace are written in — and
-     * both lists are always present, so an import never has to guess which of
-     * the two a file carries.
+     * not as YAML.
      */
     it("writes a JSON file in the shape the import accepts", () => {
       const { written, content } = exported;
 
       assert.deepStrictEqual(Object.keys(content), ["connections"]);
-      assert.deepStrictEqual(Object.keys(content.connections).sort(), [
-        "Insights",
-        "KDB",
-      ]);
+      assert.deepStrictEqual(Object.keys(content.connections).sort(), ["KDB"]);
       assert.ok(Array.isArray(content.connections.KDB));
-      assert.ok(Array.isArray(content.connections.Insights));
 
       assert.strictEqual(written, JSON.stringify(content, null, 2));
     });
@@ -563,7 +490,6 @@ describe("Connections panel", () => {
 
       assert.deepStrictEqual(content, {
         connections: {
-          Insights: [],
           KDB: [
             {
               serverAlias: "mike-q",

@@ -15,35 +15,25 @@ import * as assert from "assert";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 
-import { InsightsConnection } from "../../../../src/classes/insightsConnection";
 import { LocalConnection } from "../../../../src/classes/localConnection";
 import { ext } from "../../../../src/extensionVariables";
-import { Insights, Server } from "../../../../src/models/connectionsModels";
+import { Server } from "../../../../src/models/connectionsModels";
 import { ConnectionLabel, Labels } from "../../../../src/models/labels";
 import { ServerObject } from "../../../../src/models/serverObject";
 import { ConnectionManagementService } from "../../../../src/services/connectionManagerService";
 import {
-  InsightsMetaNode,
-  InsightsNode,
   KdbNode,
   KdbTreeProvider,
   LabelNode,
-  MetaObjectPayloadNode,
   QCategoryNode,
   QNamespaceNode,
   QServerNode,
 } from "../../../../src/services/kdbTreeProvider";
 import { KdbTreeService } from "../../../../src/services/kdbTreeService";
-import { getMetaResponse } from "../../../fixtures/api/getMeta";
 
 describe("kdbTreeProvider", () => {
   let servers: Server;
-  let insights: Insights;
   let kdbNode: KdbNode;
-  let insightNode: InsightsNode;
-  const connMng = new ConnectionManagementService();
-  let retrieveInsightsConnVersionStub,
-    retrieveInsightsConnQEEnabledStub: sinon.SinonStub;
 
   beforeEach(() => {
     servers = {
@@ -55,32 +45,11 @@ describe("kdbTreeProvider", () => {
         auth: false,
       },
     };
-    insights = {
-      testInsight: {
-        alias: "testInsightsAlias",
-        server: "testInsightsName",
-        auth: false,
-      },
-    };
     kdbNode = new KdbNode(
       ["child1"],
       "testElement",
       servers["testServer"],
       vscode.TreeItemCollapsibleState.None,
-    );
-    insightNode = new InsightsNode(
-      ["child1"],
-      "testElement",
-      insights["testInsight"],
-      vscode.TreeItemCollapsibleState.None,
-    );
-    retrieveInsightsConnVersionStub = sinon.stub(
-      connMng,
-      "retrieveInsightsConnVersion",
-    );
-    retrieveInsightsConnQEEnabledStub = sinon.stub(
-      connMng,
-      "retrieveInsightsConnQEEnabled",
     );
   });
 
@@ -89,7 +58,7 @@ describe("kdbTreeProvider", () => {
   });
 
   it("Validate creation of KDB provider", () => {
-    const kdbProvider = new KdbTreeProvider(servers, insights);
+    const kdbProvider = new KdbTreeProvider(servers);
     assert.notStrictEqual(
       kdbProvider,
       undefined,
@@ -98,7 +67,7 @@ describe("kdbTreeProvider", () => {
   });
 
   it("Validate reload of KDB provider", () => {
-    const kdbProvider = new KdbTreeProvider(servers, insights);
+    const kdbProvider = new KdbTreeProvider(servers);
     kdbProvider.reload();
     assert.notStrictEqual(
       kdbProvider,
@@ -108,7 +77,7 @@ describe("kdbTreeProvider", () => {
   });
 
   it("Validate refreshing KDB provider with KDB instance", () => {
-    const kdbProvider = new KdbTreeProvider(servers, insights);
+    const kdbProvider = new KdbTreeProvider(servers);
     servers["testServer"] = {
       serverAlias: "testServer2Alias",
       serverName: "testServer2Name",
@@ -124,23 +93,8 @@ describe("kdbTreeProvider", () => {
     );
   });
 
-  it("Validate refreshing KDB provide with Insights instancer", () => {
-    const kdbProvider = new KdbTreeProvider(servers, insights);
-    insights["testInsight2"] = {
-      alias: "testInsights2Alias",
-      server: "testInsights2Name",
-      auth: false,
-    };
-    kdbProvider.refreshInsights(insights);
-    assert.notStrictEqual(
-      kdbProvider,
-      undefined,
-      "KdbTreeProvider should be created.",
-    );
-  });
-
   it("Should return the KdbNode tree item element", () => {
-    const kdbProvider = new KdbTreeProvider(servers, insights);
+    const kdbProvider = new KdbTreeProvider(servers);
     const element = kdbProvider.getTreeItem(kdbNode);
     assert.strictEqual(
       element.label,
@@ -149,32 +103,20 @@ describe("kdbTreeProvider", () => {
     );
   });
 
-  it("Should return the Insights tree item element", () => {
-    const kdbProvider = new KdbTreeProvider(servers, insights);
-    const element = kdbProvider.getTreeItem(insightNode);
-    assert.strictEqual(
-      element.label,
-      insightNode.label,
-      "Get insights node element is incorrect",
-    );
-  });
-
   it("Should return no children for the tree when serverList is empty", async () => {
-    const kdbProvider = new KdbTreeProvider({}, {});
+    const kdbProvider = new KdbTreeProvider({});
     const result = await kdbProvider.getChildren();
     assert.strictEqual(result.length, 0, "Children should be empty");
   });
 
   it("Should return children for the tree when serverList has entries", async () => {
-    retrieveInsightsConnVersionStub.returned(1);
-    retrieveInsightsConnQEEnabledStub.returned("Enabled");
-    const kdbProvider = new KdbTreeProvider(servers, insights);
+    const kdbProvider = new KdbTreeProvider(servers);
     const result = await kdbProvider.getChildren();
-    assert.strictEqual(result.length, 2, "Children count should be 2");
+    assert.strictEqual(result.length, 1, "Children count should be 1");
   });
 
   it("Should return merged elements for parent", async () => {
-    const kdbProvider = new KdbTreeProvider(servers, insights);
+    const kdbProvider = new KdbTreeProvider(servers);
     const kdbNode = new KdbNode(
       [],
       "testServer",
@@ -194,7 +136,7 @@ describe("kdbTreeProvider", () => {
   });
 
   it("Should return namespaces for parent", async () => {
-    const kdbProvider = new KdbTreeProvider(servers, insights);
+    const kdbProvider = new KdbTreeProvider(servers);
     const kdbNode = new KdbNode(
       [],
       "testServer",
@@ -213,7 +155,7 @@ describe("kdbTreeProvider", () => {
   });
 
   it("Should return categories for parent", async () => {
-    const kdbProvider = new KdbTreeProvider(servers, insights);
+    const kdbProvider = new KdbTreeProvider(servers);
     const kdbNode = new KdbNode(
       [],
       "testServer",
@@ -385,82 +327,6 @@ describe("kdbTreeProvider", () => {
     assert.equal(ext.kdbNodesWithoutAuth.length, 0);
   });
 
-  it("Should retun a new InsightsNode", () => {
-    const insightsNode = new InsightsNode(
-      [],
-      "insightsnode1",
-      {
-        server: "insightsservername",
-        alias: "insightsserveralias",
-        auth: true,
-      },
-      vscode.TreeItemCollapsibleState.None,
-    );
-
-    ext.kdbinsightsNodes.pop();
-
-    assert.strictEqual(
-      insightsNode.label,
-      "insightsnode1",
-      "InsightsNode node creation failed",
-    );
-  });
-
-  it("Should return a new InsightsNode with children", () => {
-    const insightsNode = new InsightsNode(
-      ["child1", "child2", "child3", "child4"],
-      "insightsnode1",
-      {
-        server: "insightsservername",
-        alias: "insightsserveralias",
-        auth: true,
-      },
-      vscode.TreeItemCollapsibleState.None,
-    );
-
-    ext.kdbinsightsNodes.pop();
-
-    assert.strictEqual(
-      insightsNode.label,
-      "insightsnode1",
-      "InsightsNode node creation failed",
-    );
-  });
-
-  it("Should return a new InsightsNode that is connected", () => {
-    const insightsNode = new InsightsNode(
-      [],
-      "insightsnode1",
-      {
-        server: "insightsservername",
-        alias: "insightsserveralias",
-        auth: true,
-      },
-      vscode.TreeItemCollapsibleState.None,
-    );
-
-    ext.connectionNode = insightsNode;
-
-    const insightsNode1 = new InsightsNode(
-      [],
-      "insightsnode1",
-      {
-        server: "insightsservername",
-        alias: "insightsserveralias",
-        auth: true,
-      },
-      vscode.TreeItemCollapsibleState.None,
-    );
-
-    ext.kdbinsightsNodes.pop();
-
-    assert.strictEqual(
-      insightsNode1.label,
-      "insightsnode1",
-      "InsightsNode node creation failed",
-    );
-  });
-
   it("Should return a new QNamespaceNode", () => {
     const qNsNode = new QNamespaceNode(
       [],
@@ -521,109 +387,9 @@ describe("kdbTreeProvider", () => {
     );
   });
 
-  describe("InsightsMetaNode", () => {
-    it("should initialize fields correctly", () => {
-      const node = new InsightsMetaNode(
-        ["child1", "child2"],
-        "testLabel",
-        "testDetails",
-        vscode.TreeItemCollapsibleState.Collapsed,
-        "testConnLabel",
-      );
-
-      assert.deepStrictEqual(node.children, ["child1", "child2"]);
-      assert.strictEqual(node.label, "testLabel");
-      assert.strictEqual(
-        node.collapsibleState,
-        vscode.TreeItemCollapsibleState.Collapsed,
-      );
-      assert.strictEqual(node.connLabel, "testConnLabel");
-      assert.strictEqual(node.description, "");
-      assert.strictEqual(node.contextValue, "meta");
-    });
-
-    it("should return empty string from getDescription", () => {
-      const node = new InsightsMetaNode(
-        [],
-        "",
-        "",
-        vscode.TreeItemCollapsibleState.None,
-        "",
-      );
-
-      assert.strictEqual(node.getDescription(), "");
-    });
-  });
-
-  describe("MetaObjectPayloadNode", () => {
-    it("should initialize fields correctly", () => {
-      const node = new MetaObjectPayloadNode(
-        ["child1", "child2"],
-        "testLabel",
-        "testDetails",
-        vscode.TreeItemCollapsibleState.Collapsed,
-        "testIcon",
-        "testConnLabel",
-      );
-
-      assert.deepStrictEqual(node.children, ["child1", "child2"]);
-      assert.strictEqual(node.label, "testLabel");
-      assert.strictEqual(
-        node.collapsibleState,
-        vscode.TreeItemCollapsibleState.Collapsed,
-      );
-      assert.strictEqual(node.coreIcon, "testIcon");
-      assert.strictEqual(node.connLabel, "testConnLabel");
-      assert.strictEqual(node.description, "");
-    });
-  });
-
   describe("getChildren", () => {
-    const kdbProvider = new KdbTreeProvider(servers, insights);
-    insights = {
-      testInsight: {
-        alias: "testInsightsAlias",
-        server: "testInsightsName",
-        auth: false,
-      },
-    };
-    insightNode = new InsightsNode(
-      ["child1"],
-      "testInsight",
-      insights["testInsight"],
-      vscode.TreeItemCollapsibleState.None,
-    );
-    insightNode.contextValue = "testInsight";
-
     afterEach(() => {
-      ext.kdbinsightsNodes.length = 0;
       sinon.restore();
-    });
-
-    it("Should return categories for insights connection", async () => {
-      ext.kdbinsightsNodes.push("testInsight");
-      kdbProvider.getChildren(insightNode);
-      const result = await kdbProvider.getChildren(insightNode);
-      assert.notStrictEqual(result, undefined);
-    });
-
-    it("should return metaObjects for parent", async () => {
-      const connMng = new ConnectionManagementService();
-      const metaNode = new InsightsMetaNode(
-        [],
-        "testMeta",
-        "",
-        vscode.TreeItemCollapsibleState.None,
-        "insightsConn",
-      );
-      const insightsConn = new InsightsConnection(
-        insightNode.label,
-        insightNode,
-      );
-      sinon.stub(connMng, "retrieveConnectedConnection").returns(insightsConn);
-      insightsConn.meta = getMetaResponse;
-      const result = await kdbProvider.getChildren(metaNode);
-      assert.notStrictEqual(result, undefined);
     });
 
     it("should return label node", async () => {
@@ -633,13 +399,13 @@ describe("kdbTreeProvider", () => {
       const conns: ConnectionLabel[] = [
         {
           labelName: "label1",
-          connections: ["testServerAlias", "testInsightsAlias"],
+          connections: ["testServerAlias"],
         },
       ];
       sinon.stub(vscode.workspace, "getConfiguration").value(() => ({
         get: (v: string) => (v === "kdb.connectionLabels" ? labels : conns),
       }));
-      const provider = new KdbTreeProvider(servers, insights);
+      const provider = new KdbTreeProvider(servers);
       const result = await provider.getChildren();
       assert.strictEqual(result.length, 1);
     });
@@ -648,9 +414,7 @@ describe("kdbTreeProvider", () => {
   describe("KdbTreeProvider private methods", () => {
     let provider: KdbTreeProvider;
     let servers: Server;
-    let insights: Insights;
     let mockLocalConn: LocalConnection;
-    let mockInsightsConn: InsightsConnection;
     let connMngStub: sinon.SinonStub;
 
     const createMockServerObject = (
@@ -680,17 +444,8 @@ describe("kdbTreeProvider", () => {
           auth: false,
         },
       };
-      insights = {
-        testInsight: {
-          alias: "testInsightsAlias",
-          server: "testInsightsName",
-          auth: false,
-        },
-      };
-
-      provider = new KdbTreeProvider(servers, insights);
+      provider = new KdbTreeProvider(servers);
       mockLocalConn = sinon.createStubInstance(LocalConnection);
-      mockInsightsConn = sinon.createStubInstance(InsightsConnection);
 
       connMngStub = sinon.stub(
         ConnectionManagementService.prototype,
@@ -713,22 +468,6 @@ describe("kdbTreeProvider", () => {
           "testLabel",
         );
         connMngStub.returns(undefined);
-
-        const result = (provider as any).validateAndGetConnection(serverType);
-
-        assert.strictEqual(result, null);
-      });
-
-      it("should return null for InsightsConnection", () => {
-        const serverType = new QCategoryNode(
-          [],
-          "test",
-          "",
-          ".",
-          vscode.TreeItemCollapsibleState.None,
-          "testLabel",
-        );
-        connMngStub.returns(mockInsightsConn);
 
         const result = (provider as any).validateAndGetConnection(serverType);
 

@@ -15,17 +15,10 @@ import * as crypto from "crypto";
 import * as vscode from "vscode";
 
 import { getCellKind } from "./notebookProviders";
-import { InsightsConnection } from "../classes/insightsConnection";
 import { LocalConnection } from "../classes/localConnection";
 import { ReplConnection } from "../classes/replConnection";
-import {
-  getPartialDatasourceFile,
-  populateScratchpad,
-  runDataSource,
-} from "../commands/dataSourceCommand";
 import { contextAbove, executeQuery } from "../commands/serverCommand";
 import {
-  getTimeoutForUri,
   reportReplError,
   resolveRunTarget,
 } from "../commands/workspaceCommand";
@@ -36,7 +29,6 @@ import { MessageKind, notify } from "../utils/notifications";
 import { registerImageTarget } from "../utils/plotUtils";
 import {
   resultToBase64,
-  needsScratchpad,
   getPythonWrapper,
   getSQLWrapper,
   notifyExecution,
@@ -250,7 +242,6 @@ export class KxNotebookController {
     }
 
     const conn = runTarget.conn;
-    const { isInsights, connVersion } = this.getInsightProps(conn);
 
     for (const cell of cells) {
       const execution = controller.createNotebookCellExecution(cell);
@@ -279,12 +270,7 @@ export class KxNotebookController {
           continue;
         }
 
-        const { target, variable } = this.getCellMetadata(
-          cell,
-          kind,
-          isInsights,
-          conn,
-        );
+        this.checkCellMetadata(cell, conn);
 
         const executor = this.getQueryExecutor(
           conn,
@@ -293,15 +279,11 @@ export class KxNotebookController {
           kind,
           text,
           requestID,
-          target,
-          variable,
           context,
         );
 
-        let results = await Promise.race([
-          !isInsights || ((target || kind === CellKind.SQL) && !variable)
-            ? executor
-            : needsScratchpad(conn.connLabel, executor),
+        const results = await Promise.race([
+          executor,
           new Promise((_, reject) => {
             const updateCancelled = () => {
               if (execution.token.isCancellationRequested) {
@@ -316,27 +298,13 @@ export class KxNotebookController {
 
         notifyExecution(
           RunFlag.Notebook |
-            (variable ? 0 : RunFlag.Run) |
-            (isInsights ? RunFlag.Insights : 0) |
-            (target ? RunFlag.Dap : 0) |
+            RunFlag.Run |
             (isQuickAlias(conn.connLabel) ? RunFlag.Quick : 0) |
             (kind === CellKind.PYTHON ? RunFlag.Python : 0) |
             (kind === CellKind.SQL ? RunFlag.Sql : 0),
         );
 
-        if (variable) {
-          results = `Scratchpad variable (${variable}) populated.`;
-        }
-
-        const rendered =
-          target || kind === CellKind.SQL
-            ? render(results, kind === CellKind.PYTHON, isInsights)
-            : render(
-                results,
-                kind === CellKind.PYTHON,
-                isInsights,
-                connVersion,
-              );
+        const rendered = render(results, kind === CellKind.PYTHON);
 
         this.writeOutput(execution, rendered, cellTarget);
         success = true;
@@ -363,103 +331,43 @@ export class KxNotebookController {
     }
   }
 
-  getInsightProps(conn: LocalConnection | InsightsConnection) {
-    let isInsights = false;
-    let connVersion = "0";
-
-    if (conn instanceof InsightsConnection) {
-      isInsights = true;
-      connVersion = conn.insightsVersion ?? "0";
-    }
-
-    return { isInsights, connVersion };
-  }
-
-  getCellMetadata(
-    cell: vscode.NotebookCell,
-    kind: CellKind,
-    isInsights: boolean,
-    conn: InsightsConnection | LocalConnection,
-  ): { target?: string; variable?: string } {
+  checkCellMetadata(cell: vscode.NotebookCell, conn: LocalConnection) {
     const target = cell.metadata?.target;
     const variable = cell.metadata?.variable;
-
-    if (!isInsights) {
-      if (target) {
-        throw new Error(
-          `Setting execution target (${target}) is not supported on ${conn.connLabel}.`,
-        );
-      }
-      if (variable) {
-        throw new Error(
-          `Setting output variable ${variable} is not supported on ${conn.connLabel}.`,
-        );
-      }
+    if (target) {
+      throw new Error(
+        `Setting execution target (${target}) is not supported on ${conn.connLabel}.`,
+      );
     }
-
-    return { target, variable };
+    if (variable) {
+      throw new Error(
+        `Setting output variable ${variable} is not supported on ${conn.connLabel}.`,
+      );
+    }
   }
 
   getQueryExecutor(
-    conn: LocalConnection | InsightsConnection,
+    conn: LocalConnection,
     execution: vscode.NotebookCellExecution,
     cell: vscode.NotebookCell,
     kind: CellKind,
     text: string,
     requestID?: string,
-    target?: string,
-    variable?: string,
     context = ".",
   ): Promise<any> {
-    const uri = cell.notebook.uri;
-    const executorName = getBasename(uri);
-
-    const timeout =
-      conn instanceof InsightsConnection
-        ? getTimeoutForUri(uri).value
-        : undefined;
-
-    if (
-      target ||
-      (kind === CellKind.SQL && conn instanceof InsightsConnection)
-    ) {
-      const params = getPartialDatasourceFile(
-        text,
-        target,
-        kind === CellKind.SQL,
-        kind === CellKind.PYTHON,
-      );
-
-      return variable
-        ? populateScratchpad(
-            params,
-            conn.connLabel,
-            variable,
-            true,
-            execution.token,
-            timeout,
-          )
-        : runDataSource(
-            params,
-            conn.connLabel,
-            executorName,
-            execution.token,
-            timeout,
-          );
-    } else {
-      return executeQuery(
-        kind === CellKind.SQL ? getSQLWrapper(text) : text,
-        conn.connLabel,
-        executorName,
-        kind === CellKind.Q ? context : ".",
-        kind === CellKind.PYTHON,
-        false,
-        false,
-        execution.token,
-        timeout,
-        requestID,
-      );
-    }
+    const executorName = getBasename(cell.notebook.uri);
+    return executeQuery(
+      kind === CellKind.SQL ? getSQLWrapper(text) : text,
+      conn.connLabel,
+      executorName,
+      kind === CellKind.Q ? context : ".",
+      kind === CellKind.PYTHON,
+      false,
+      false,
+      execution.token,
+      undefined,
+      requestID,
+    );
   }
 
   writeOutput(
@@ -510,12 +418,7 @@ function renderTable(table: any): string {
   return rows.join("\n");
 }
 
-function render(
-  results: any,
-  isPython: boolean,
-  isInsights: boolean,
-  connVersion?: string,
-): Rendered {
+function render(results: any, isPython: boolean): Rendered {
   const plot = resultToBase64(results);
   if (plot) {
     return { text: `<img src="${plot}"/>`, mime: "text/html" };
@@ -526,7 +429,7 @@ function render(
   }
 
   if (results) {
-    const table = convertToGrid(results, isInsights, connVersion, isPython);
+    const table = convertToGrid(results, false, undefined, isPython);
     if (table.columnDefs) {
       return { text: renderTable(table), mime: "text/html" };
     }

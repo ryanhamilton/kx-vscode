@@ -19,11 +19,7 @@ import {
   getHideDetailedConsoleQueryOutputSetting,
 } from "./core";
 import { MessageKind, notify } from "./notifications";
-import {
-  addQueryHistory,
-  checkIfIsDatasource,
-  convertRowsToConsole,
-} from "./queryUtils";
+import { addQueryHistory, convertRowsToConsole } from "./queryUtils";
 import { ext } from "../extensionVariables";
 import { ServerType } from "../models/connectionsModels";
 
@@ -131,21 +127,17 @@ export class ExecutionConsole {
       dataSourceRes = convertRowsToConsole(output);
     }
 
-    if (!checkIfIsDatasource(type)) {
-      addQueryHistory(
-        query,
-        executorName,
-        connLabel,
-        isInsights ? ServerType.INSIGHTS : ServerType.KDB,
-        true,
-        isPhython,
-        type === "WORKBOOK",
-        undefined,
-        undefined,
-        duration,
-        isFromConnTree,
-      );
-    }
+    addQueryHistory(
+      query,
+      executorName,
+      connLabel,
+      ServerType.KDB,
+      true,
+      isPhython,
+      type === "WORKBOOK",
+      duration,
+      isFromConnTree,
+    );
 
     //TODO: this._console.clear(); Add an option in the future to clear or not the console
     const date = new Date();
@@ -203,21 +195,19 @@ export class ExecutionConsole {
           query,
           executorName,
           connLabel,
-          isInsights ? ServerType.INSIGHTS : ServerType.KDB,
+          ServerType.KDB,
           false,
           isPython,
           type === "WORKBOOK",
-          undefined,
-          undefined,
           duration,
           isFromConnTree,
         );
       }
     } else {
-      notify(`Please connect to a KDB or Insights server`, MessageKind.ERROR, {
+      notify(`Please connect to a q server`, MessageKind.ERROR, {
         logger,
       });
-      sink.appendLine(`Please connect to a KDB or Insights server`);
+      sink.appendLine(`Please connect to a q server`);
       commands.executeCommand("kdb.connections.disconnect");
       addQueryHistory(
         query,

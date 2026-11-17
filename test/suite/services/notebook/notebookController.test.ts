@@ -17,10 +17,8 @@ import * as vscode from "vscode";
 
 import * as notebookTestUtils from "./notebookTest.utils.test";
 import { setActiveTarget } from "../../../../src/classes/activeTarget";
-import { InsightsConnection } from "../../../../src/classes/insightsConnection";
 import { LocalConnection } from "../../../../src/classes/localConnection";
 import { ReplConnection } from "../../../../src/classes/replConnection";
-import * as dataSourceCommand from "../../../../src/commands/dataSourceCommand";
 import * as serverCommand from "../../../../src/commands/serverCommand";
 import * as workspaceCommand from "../../../../src/commands/workspaceCommand";
 import { ext } from "../../../../src/extensionVariables";
@@ -290,110 +288,6 @@ describe("Controller", () => {
         );
 
     describe("Connected", () => {
-      describe("Insights Connection", () => {
-        beforeEach(() => {
-          sinon
-            .stub(
-              ConnectionManagementService.prototype,
-              "retrieveConnectedConnection",
-            )
-            .returns(sinon.createStubInstance(InsightsConnection));
-        });
-
-        describe("Connection Not Exists", () => {
-          beforeEach(() => {
-            runOn(undefined);
-
-            createInstance();
-          });
-
-          it("should notify missing connection with error", async () => {
-            await instance.execute(
-              [notebookTestUtils.createCell()],
-              notebookTestUtils.createNotebook(),
-              createController(),
-            );
-            assert.strictEqual(success, undefined);
-          });
-        });
-
-        describe("Connection Exists", () => {
-          let runDataSourceStub: sinon.SinonStub;
-
-          beforeEach(() => {
-            runOn(sinon.createStubInstance(InsightsConnection));
-
-            runDataSourceStub = sinon
-              .stub(dataSourceCommand, "runDataSource")
-              .resolves(undefined);
-
-            createInstance();
-          });
-
-          it("should execute sql cell", async () => {
-            await instance.execute(
-              [notebookTestUtils.createCell("sql")],
-              notebookTestUtils.createNotebook(),
-              createController(),
-            );
-            sinon.assert.calledOnce(runDataSourceStub);
-            assert.strictEqual(success, true);
-          });
-
-          it("should fail the cell when the datasource query fails", async () => {
-            const writeOutput = sinon.stub(
-              controlller.KxNotebookController.prototype,
-              "writeOutput",
-            );
-            runDataSourceStub.rejects(
-              new Error("Request failed with status 502: Bad Gateway"),
-            );
-
-            await instance.execute(
-              [notebookTestUtils.createCell("sql")],
-              notebookTestUtils.createNotebook(),
-              createController(),
-            );
-
-            assert.strictEqual(success, false);
-            assert.match(
-              writeOutput.firstCall.args[1].text,
-              /502: Bad Gateway/,
-            );
-          });
-        });
-
-        describe("Populate Scratchpad", () => {
-          let populateScratchpadStub: sinon.SinonStub;
-
-          beforeEach(() => {
-            runOn(sinon.createStubInstance(InsightsConnection));
-
-            populateScratchpadStub = sinon.stub(
-              dataSourceCommand,
-              "populateScratchpad",
-            );
-
-            createInstance();
-          });
-
-          it("should call populate scratchpad if variable is set", async () => {
-            await instance.execute(
-              [
-                notebookTestUtils.createCell("q", {
-                  target: "test-target",
-                  variable: "test-variable",
-                }),
-              ],
-              notebookTestUtils.createNotebook(),
-              createController(),
-            );
-            assert.strictEqual(success, true);
-            sinon.assert.calledOnce(populateScratchpadStub);
-          });
-        });
-      });
-
       describe("Output escaping", () => {
         let writeOutputStub: sinon.SinonStub;
 

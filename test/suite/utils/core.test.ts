@@ -13,16 +13,12 @@
 
 import * as assert from "assert";
 import path from "node:path";
-import { env } from "node:process";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 
 import { LocalConnection } from "../../../src/classes/localConnection";
 import { ext } from "../../../src/extensionVariables";
-import {
-  InsightDetails,
-  ServerDetails,
-} from "../../../src/models/connectionsModels";
+import { ServerDetails } from "../../../src/models/connectionsModels";
 import * as coreUtils from "../../../src/utils/core";
 import * as cpUtils from "../../../src/utils/cpUtils";
 import * as loggers from "../../../src/utils/loggers";
@@ -92,16 +88,6 @@ describe("core", () => {
 
     afterEach(() => {
       ext.kdbConnectionAliasList.length = 0;
-    });
-
-    it("should add insights alias to the list getInsightsAlias", () => {
-      const insightsDetail: InsightDetails = {
-        alias: "test",
-        server: "test",
-        auth: true,
-      };
-      coreUtils.getInsightsAlias([insightsDetail]);
-      assert.strictEqual(ext.kdbConnectionAliasList.length, 1);
     });
 
     it("should add alias only from kdb server that have alias using getServerAlias", () => {
@@ -237,28 +223,6 @@ describe("core", () => {
       showErrorMessageSpy.calledOnce;
       appendLineSpy.calledWithMatch(message);
       appendLineSpy.calledWithMatch(type);
-    });
-
-    it("tokenUndefinedError should log and show error message", () => {
-      const connLabel = "test connection";
-
-      coreUtils.tokenUndefinedError(connLabel);
-
-      appendLineSpy.calledOnce;
-      showErrorMessageSpy.calledOnce;
-      appendLineSpy.calledWithMatch(connLabel);
-      showErrorMessageSpy.calledWithMatch(connLabel);
-    });
-
-    it("invalidUsernameJWT should log and show error message", () => {
-      const connLabel = "test connection";
-
-      coreUtils.invalidUsernameJWT(connLabel);
-
-      appendLineSpy.calledOnce;
-      showErrorMessageSpy.calledOnce;
-      appendLineSpy.calledWithMatch(connLabel);
-      showErrorMessageSpy.calledWithMatch(connLabel);
     });
   });
   /* eslint-enable @typescript-eslint/no-unused-expressions */
@@ -528,367 +492,6 @@ describe("core", () => {
     });
   });
 
-  describe("getInsights", () => {
-    let workspaceStub,
-      _getConfigurationStub,
-      getStub,
-      updateInsightsStub: sinon.SinonStub;
-
-    beforeEach(() => {
-      getStub = sinon.stub();
-      _getConfigurationStub = sinon
-        .stub()
-        .returns({ get: getStub, update: sinon.stub() });
-      workspaceStub = sinon.stub(vscode.workspace, "getConfiguration").returns({
-        get: getStub,
-        has: function (_section: string): boolean {
-          throw new Error("Function not implemented.");
-        },
-        inspect: function <T>(_section: string):
-          | {
-              key: string;
-              defaultValue?: T;
-              globalValue?: T;
-              workspaceValue?: T;
-              workspaceFolderValue?: T;
-              defaultLanguageValue?: T;
-              globalLanguageValue?: T;
-              workspaceLanguageValue?: T;
-              workspaceFolderLanguageValue?: T;
-              languageIds?: string[];
-            }
-          | undefined {
-          throw new Error("Function not implemented.");
-        },
-        update: sinon.stub(),
-      });
-      updateInsightsStub = sinon.stub(coreUtils, "updateInsights").resolves();
-    });
-
-    afterEach(() => {
-      sinon.restore();
-    });
-
-    it("should return undefined when no insights are configured", () => {
-      getStub.withArgs("kdb.insightsEnterpriseConnections").returns(undefined);
-      getStub.withArgs("kdb.insights").returns(undefined);
-
-      const result = coreUtils.getInsights();
-
-      assert.ok(typeof result === "object");
-      assert.strictEqual(Object.keys(result).length, 0);
-      assert.ok(getStub.calledWith("kdb.insightsEnterpriseConnections"));
-      assert.ok(getStub.calledWith("kdb.insights"));
-    });
-
-    it("should return insightsEnterpriseConnections when available and not empty", () => {
-      const mockInsights = {
-        insight3: {
-          alias: "Charlie Insight",
-          server: "https://charlie.insights.com",
-          auth: true,
-          realm: "charlie-realm",
-          insecure: false,
-        },
-        insight1: {
-          alias: "Alpha Insight",
-          server: "https://alpha.insights.com",
-          auth: false,
-          insecure: true,
-        },
-        insight2: {
-          alias: "Beta Insight",
-          server: "https://beta.insights.com",
-          auth: true,
-          realm: "beta-realm",
-          insecure: false,
-        },
-      };
-
-      getStub
-        .withArgs("kdb.insightsEnterpriseConnections")
-        .returns(mockInsights);
-      getStub.withArgs("kdb.insights").returns(undefined);
-
-      const result = coreUtils.getInsights();
-
-      assert.ok(result);
-      const insightKeys = Object.keys(result);
-      const insightAliases = insightKeys.map((key) => result[key].alias);
-
-      assert.deepStrictEqual(insightAliases, [
-        "Alpha Insight",
-        "Beta Insight",
-        "Charlie Insight",
-      ]);
-
-      assert.strictEqual(
-        result[insightKeys[0]].server,
-        "https://alpha.insights.com",
-      );
-      assert.strictEqual(result[insightKeys[0]].auth, false);
-      assert.strictEqual(result[insightKeys[1]].realm, "beta-realm");
-      assert.strictEqual(result[insightKeys[2]].insecure, false);
-
-      assert.ok(getStub.calledWith("kdb.insightsEnterpriseConnections"));
-      assert.ok(!getStub.calledWith("kdb.insights"));
-    });
-
-    it("should fallback to kdb.insights when insightsEnterpriseConnections is empty", () => {
-      const mockFallbackInsights = {
-        fallback2: {
-          alias: "Fallback Beta",
-          server: "https://fallback-beta.com",
-          auth: true,
-        },
-        fallback1: {
-          alias: "Fallback Alpha",
-          server: "https://fallback-alpha.com",
-          auth: false,
-        },
-      };
-
-      getStub.withArgs("kdb.insightsEnterpriseConnections").returns({});
-      getStub.withArgs("kdb.insights").returns(mockFallbackInsights);
-
-      const result = coreUtils.getInsights();
-
-      assert.ok(result);
-      const insightKeys = Object.keys(result);
-      const insightAliases = insightKeys.map((key) => result[key].alias);
-
-      assert.deepStrictEqual(insightAliases, [
-        "Fallback Alpha",
-        "Fallback Beta",
-      ]);
-
-      assert.ok(getStub.calledWith("kdb.insightsEnterpriseConnections"));
-      assert.ok(getStub.calledWith("kdb.insights"));
-    });
-
-    it("should fallback to kdb.insights when insightsEnterpriseConnections is undefined", () => {
-      const mockFallbackInsights = {
-        single: {
-          alias: "Single Fallback",
-          server: "https://single-fallback.com",
-          auth: true,
-          realm: "single-realm",
-        },
-      };
-
-      getStub.withArgs("kdb.insightsEnterpriseConnections").returns(undefined);
-      getStub.withArgs("kdb.insights").returns(mockFallbackInsights);
-
-      const result = coreUtils.getInsights();
-
-      assert.ok(result);
-      const insightKeys = Object.keys(result);
-      assert.strictEqual(insightKeys.length, 1);
-      assert.strictEqual(result[insightKeys[0]].alias, "Single Fallback");
-
-      assert.ok(getStub.calledWith("kdb.insightsEnterpriseConnections"));
-      assert.ok(getStub.calledWith("kdb.insights"));
-    });
-
-    it("should return undefined when both sources are empty", () => {
-      getStub.withArgs("kdb.insightsEnterpriseConnections").returns({});
-      getStub.withArgs("kdb.insights").returns({});
-
-      const result = coreUtils.getInsights();
-
-      assert.ok(typeof result === "object");
-      assert.strictEqual(Object.keys(result).length, 0);
-      assert.ok(getStub.calledWith("kdb.insightsEnterpriseConnections"));
-      assert.ok(getStub.calledWith("kdb.insights"));
-    });
-
-    it("should handle single insight correctly", () => {
-      const mockInsights = {
-        onlyInsight: {
-          alias: "Only Insight",
-          server: "https://only.insights.com",
-          auth: true,
-          realm: "only-realm",
-          insecure: false,
-        },
-      };
-
-      getStub
-        .withArgs("kdb.insightsEnterpriseConnections")
-        .returns(mockInsights);
-
-      const result = coreUtils.getInsights();
-
-      assert.ok(result);
-      const insightKeys = Object.keys(result);
-      assert.strictEqual(insightKeys.length, 1);
-      assert.strictEqual(result[insightKeys[0]].alias, "Only Insight");
-      assert.strictEqual(
-        result[insightKeys[0]].server,
-        "https://only.insights.com",
-      );
-    });
-
-    it("should handle insights with identical aliases", () => {
-      const mockInsights = {
-        insight1: {
-          alias: "Same Name",
-          server: "https://server1.com",
-          auth: false,
-        },
-        insight2: {
-          alias: "Same Name",
-          server: "https://server2.com",
-          auth: true,
-        },
-      };
-
-      getStub
-        .withArgs("kdb.insightsEnterpriseConnections")
-        .returns(mockInsights);
-
-      const result = coreUtils.getInsights();
-
-      assert.ok(result);
-      const insightKeys = Object.keys(result);
-      assert.strictEqual(insightKeys.length, 2);
-
-      insightKeys.forEach((key) => {
-        assert.strictEqual(result[key].alias, "Same Name");
-      });
-    });
-
-    it("should handle insights with special characters in alias", () => {
-      const mockInsights = {
-        insight1: {
-          alias: "!Special Insight",
-          server: "https://special.com",
-          auth: false,
-        },
-        insight2: {
-          alias: "123 Numeric Insight",
-          server: "https://numeric.com",
-          auth: false,
-        },
-        insight3: {
-          alias: "Åccented Insight",
-          server: "https://accented.com",
-          auth: false,
-        },
-      };
-
-      getStub
-        .withArgs("kdb.insightsEnterpriseConnections")
-        .returns(mockInsights);
-
-      const result = coreUtils.getInsights();
-
-      assert.ok(result);
-      const insightKeys = Object.keys(result);
-      const insightAliases = insightKeys.map((key) => result[key].alias);
-
-      assert.strictEqual(insightAliases[0], "!Special Insight");
-      assert.strictEqual(insightAliases[1], "123 Numeric Insight");
-      assert.strictEqual(insightAliases[2], "Åccented Insight");
-    });
-
-    it("should prefer insightsEnterpriseConnections over fallback when both exist", () => {
-      const mockPrimaryInsights = {
-        primary: {
-          alias: "Primary Insight",
-          server: "https://primary.com",
-          auth: true,
-        },
-      };
-
-      const mockFallbackInsights = {
-        fallback: {
-          alias: "Fallback Insight",
-          server: "https://fallback.com",
-          auth: false,
-        },
-      };
-
-      getStub
-        .withArgs("kdb.insightsEnterpriseConnections")
-        .returns(mockPrimaryInsights);
-      getStub.withArgs("kdb.insights").returns(mockFallbackInsights);
-
-      const result = coreUtils.getInsights();
-
-      assert.ok(result);
-      const insightKeys = Object.keys(result);
-      assert.strictEqual(insightKeys.length, 1);
-      assert.strictEqual(result[insightKeys[0]].alias, "Primary Insight");
-      assert.strictEqual(result[insightKeys[0]].server, "https://primary.com");
-
-      assert.ok(getStub.calledWith("kdb.insightsEnterpriseConnections"));
-      assert.ok(!getStub.calledWith("kdb.insights"));
-    });
-
-    it("should call workspace.getConfiguration without parameters", () => {
-      getStub.withArgs("kdb.insightsEnterpriseConnections").returns(undefined);
-      getStub.withArgs("kdb.insights").returns(undefined);
-
-      coreUtils.getInsights();
-
-      assert.ok(workspaceStub.calledTwice);
-      assert.ok(workspaceStub.calledWith());
-    });
-
-    it("should call get method with correct parameters", () => {
-      getStub.withArgs("kdb.insightsEnterpriseConnections").returns(undefined);
-      getStub.withArgs("kdb.insights").returns(undefined);
-
-      coreUtils.getInsights();
-
-      assert.ok(getStub.calledWith("kdb.insightsEnterpriseConnections"));
-      assert.ok(getStub.calledWith("kdb.insights"));
-    });
-
-    it("should handle insights with optional properties", () => {
-      const mockInsights = {
-        insight1: {
-          alias: "Basic Insight",
-          server: "https://basic.com",
-          auth: false,
-        },
-        insight2: {
-          alias: "Full Insight",
-          server: "https://full.com",
-          auth: true,
-          realm: "full-realm",
-          insecure: true,
-        },
-      };
-
-      getStub
-        .withArgs("kdb.insightsEnterpriseConnections")
-        .returns(mockInsights);
-
-      const result = coreUtils.getInsights();
-
-      assert.ok(result);
-      const insightKeys = Object.keys(result);
-      assert.strictEqual(insightKeys.length, 2);
-
-      const basicInsight = Object.values(result).find(
-        (i) => i.alias === "Basic Insight",
-      );
-      const fullInsight = Object.values(result).find(
-        (i) => i.alias === "Full Insight",
-      );
-
-      assert.ok(basicInsight);
-      assert.strictEqual(basicInsight.realm, undefined);
-      assert.strictEqual(basicInsight.insecure, undefined);
-
-      assert.ok(fullInsight);
-      assert.strictEqual(fullInsight.realm, "full-realm");
-      assert.strictEqual(fullInsight.insecure, true);
-    });
-  });
-
   // Drive qualified on Windows, where the helpers resolve against the drive of
   // the current working directory.
   const absolute = (...parts: string[]) =>
@@ -1049,16 +652,6 @@ describe("core", () => {
   });
 
   describe("Seconds", () => {
-    it("should calculate seconds correctly", () => {
-      assert.strictEqual(coreUtils.calculateSeconds(30, "Seconds"), 30);
-      assert.strictEqual(coreUtils.calculateSeconds(30, "Minutes"), 1800);
-      assert.strictEqual(coreUtils.calculateSeconds(7, "Hours"), 25200);
-    });
-
-    it("should calculate a fractional number of minutes as a decimal number of seconds", () => {
-      assert.strictEqual(coreUtils.calculateSeconds(0.21, "Minutes"), 12.6);
-    });
-
     it("should deconstruct seconds correctly", () => {
       assert.deepStrictEqual(coreUtils.deconstructSeconds(30), {
         value: 30,
@@ -1072,12 +665,6 @@ describe("core", () => {
         value: 7,
         unit: "Hours",
       });
-    });
-
-    it("should format seconds correctly", () => {
-      assert.strictEqual(coreUtils.formatSeconds(30), "30s");
-      assert.strictEqual(coreUtils.formatSeconds(1800), "30m");
-      assert.strictEqual(coreUtils.formatSeconds(25200), "7h");
     });
   });
 

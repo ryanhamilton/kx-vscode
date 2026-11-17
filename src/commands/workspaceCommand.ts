@@ -18,12 +18,8 @@ import {
   Command,
   EventEmitter,
   FileType,
-  NotebookCell,
-  QuickPickItem,
-  QuickPickItemKind,
   Range,
   StatusBarAlignment,
-  TabInputCustom,
   TabInputNotebook,
   TextDocument,
   TextEditor,
@@ -35,25 +31,17 @@ import {
 import { ext } from "../extensionVariables";
 import {
   ensureQuickConnection,
-  resetScratchpad,
   runQuery,
   setQuickPassword,
 } from "./serverCommand";
 import { getActiveTarget } from "../classes/activeTarget";
-import { InsightsConnection } from "../classes/insightsConnection";
 import { LocalConnection } from "../classes/localConnection";
 import { QNotFoundError, ReplConnection } from "../classes/replConnection";
 import { ExecutionTypes } from "../models/execution";
-import { MetaDap } from "../models/meta";
-import { DISTRIBUTED, DISTRIBUTED_SINCE } from "../models/query";
 import { ConnectionManagementService } from "../services/connectionManagerService";
-import { InsightsNode, KdbNode, LabelNode } from "../services/kdbTreeProvider";
-import { updateCellMetadata } from "../services/notebookProviders";
+import { KdbNode, LabelNode } from "../services/kdbTreeProvider";
 import {
-  calculateSeconds,
-  formatSeconds,
   getBasename,
-  isBaseVersionGreaterOrEqual,
   isQuick,
   isQuickAlias,
   offerConnectAction,
@@ -65,12 +53,7 @@ import {
   getSQLWrapper,
   notifyExecution,
 } from "../utils/queryUtils";
-import {
-  cleanAssemblyName,
-  cleanDapName,
-  errorMessage,
-  normalizeAssemblyTarget,
-} from "../utils/shared";
+import { errorMessage } from "../utils/shared";
 import { showInputPicker } from "../utils/widgets";
 
 const logger = "workspaceCommand";
@@ -90,7 +73,7 @@ function setRealActiveTextEditor(editor?: TextEditor | undefined) {
 type NotebookToolbarContext = { notebookEditor?: { notebookUri?: Uri } };
 
 /**
- * The file the connection, target and timeout pickers act on. A notebook has
+ * The file the connection picker acts on. A notebook has
  * no active text editor until one of its cells is focused, so the toolbar
  * context it passes comes first, then the frontmost tab, and only then the
  * active text editor.
@@ -106,9 +89,6 @@ export function getActiveFileUri(context?: unknown): Uri | undefined {
   if (tab instanceof TabInputNotebook) {
     return tab.uri;
   }
-  if (tab instanceof TabInputCustom && isQuery(tab.uri)) {
-    return tab.uri;
-  }
 
   return ext.activeTextEditor?.document.uri;
 }
@@ -119,7 +99,7 @@ function activeEditorChanged(editor?: TextEditor | undefined) {
 }
 
 /**
- * Points the connection and timeout status bar items at the file in front,
+ * Points the connection status bar item at the file in front,
  * which is a notebook when its tab is frontmost and the active text editor
  * otherwise.
  */
@@ -129,20 +109,14 @@ export async function updateStatusBarItems() {
 
   if (uri) {
     const server = getServerForUri(uri);
-    if (isQuery(uri)) {
-      setRunScratchpadItemText(uri, server || "(none)");
-      runItem.show();
-    } else if (server || isConnectableFile(uri)) {
+    if (server || isConnectableFile(uri)) {
       setRunScratchpadItemText(uri, server || "(active)");
       runItem.show();
     } else {
       runItem.hide();
     }
-
-    await setTimeoutItem(uri);
   } else {
     runItem.hide();
-    ext.pickTimeoutItem.hide();
   }
 }
 
@@ -178,58 +152,6 @@ function setRunScratchpadItemText(uri: Uri, text: string) {
   ext.runScratchpadItem.tooltip = `KX: Choose connection for '${getBasename(uri)}'`;
 }
 
-export async function setTimeoutItem(uri: Uri) {
-  const server = getServerForUri(uri);
-  const timeoutItem = ext.pickTimeoutItem;
-
-  if (isQuery(uri)) {
-    setTimeouttemText(uri, getTimeoutForUri(uri));
-    timeoutItem.show();
-  } else if (server) {
-    const conn = await getConnectionForServer(server);
-
-    if (conn instanceof InsightsNode) {
-      const timeout = getTimeoutForUri(uri);
-      setTimeouttemText(uri, timeout);
-      timeoutItem.show();
-    } else {
-      timeoutItem.hide();
-    }
-  } else {
-    timeoutItem.hide();
-  }
-}
-
-function setTimeouttemText(
-  uri: Uri,
-  { source, value }: { source: string; value?: number },
-) {
-  let text = "default";
-
-  if (value) {
-    if (source === "uri") {
-      text = formatSeconds(value);
-    } else if (source === "workspace") {
-      text = `Default (${formatSeconds(value)})`;
-    }
-  }
-
-  ext.pickTimeoutItem.text = `$(watch) ${text}`;
-  ext.pickTimeoutItem.tooltip = `KX: Choose timeout for '${getBasename(uri)}'`;
-}
-
-export function getInsightsServers() {
-  const conf = workspace.getConfiguration("kdb");
-  const servers = conf.get<{ [key: string]: { alias: string } }>(
-    "insightsEnterpriseConnections",
-    {},
-  );
-
-  return Object.values(servers)
-    .map(({ alias }) => alias)
-    .sort((a, b) => a.localeCompare(b));
-}
-
 function getServers() {
   const conf = workspace.getConfiguration("kdb");
   const servers = conf.get<{ [key: string]: { serverAlias: string } }>(
@@ -241,7 +163,6 @@ function getServers() {
     ...Object.values(servers)
       .map(({ serverAlias }) => serverAlias)
       .sort((a, b) => a.localeCompare(b)),
-    ...getInsightsServers(),
   ];
 }
 
@@ -265,32 +186,22 @@ function getQuickServers(uri: Uri) {
 
 export async function getConnectionForServer(
   server: string,
-): Promise<InsightsNode | KdbNode | undefined> {
+): Promise<KdbNode | undefined> {
   /* c8 ignore start */
   if (server) {
     const nodes = await ext.serverProvider.getChildren();
-    const orphan = nodes.find((node) => {
-      if (node instanceof InsightsNode) {
-        return node.details.alias === server;
-      } else if (node instanceof KdbNode) {
-        return node.details.serverAlias === server;
-      }
-      return false;
-    }) as InsightsNode | KdbNode;
+    const orphan = nodes.find(
+      (node) => node instanceof KdbNode && node.details.serverAlias === server,
+    ) as KdbNode;
     if (orphan) {
       return orphan;
     }
     const labels = nodes.filter((server) => server instanceof LabelNode);
     for (const label of labels) {
-      const item = (label as LabelNode).children.find((node) => {
-        const name =
-          node instanceof InsightsNode
-            ? node.details.alias
-            : node instanceof KdbNode
-              ? node.details.serverAlias
-              : "";
-        return name === server;
-      }) as InsightsNode | KdbNode;
+      const item = (label as LabelNode).children.find(
+        (node) =>
+          node instanceof KdbNode && node.details.serverAlias === server,
+      ) as KdbNode;
       if (item) {
         return item;
       }
@@ -304,11 +215,9 @@ function relativePath(uri: Uri) {
 }
 
 // Assignments for files outside the workspace cannot be persisted in the
-// kdb.connectionMap/targetMap/timeoutMap settings, which are keyed by
+// kdb.connectionMap setting, which is keyed by
 // workspace relative path. They are kept in memory for the session instead.
 const sessionConnectionMap = new Map<string, string>();
-const sessionTargetMap = new Map<string, string>();
-const sessionTimeoutMap = new Map<string, number>();
 
 const sessionMapChangedEmitter = new EventEmitter<void>();
 
@@ -375,119 +284,6 @@ export function getServerForUri(uri: Uri) {
     : undefined;
 }
 
-export async function setTargetForUri(uri: Uri, target: string | undefined) {
-  uri = Uri.file(uri.path);
-  if (isOutsideWorkspace(uri)) {
-    setSessionValue(sessionTargetMap, uri, target);
-    return;
-  }
-  const conf = workspace.getConfiguration("kdb", uri);
-  const map = conf.get<{ [key: string]: string | undefined }>("targetMap", {});
-  map[relativePath(uri)] = target;
-  await conf.update("targetMap", map);
-}
-
-export function getTargetForUri(uri: Uri) {
-  uri = Uri.file(uri.path);
-  let target: string | undefined;
-
-  if (isOutsideWorkspace(uri)) {
-    target = sessionTargetMap.get(sessionKey(uri));
-  } else {
-    const conf = workspace.getConfiguration("kdb", uri);
-    const map = conf.get<{ [key: string]: string | undefined }>(
-      "targetMap",
-      {},
-    );
-    target = map[relativePath(uri)];
-  }
-
-  return target ? normalizeAssemblyTarget(target) : undefined;
-}
-
-export async function setTimeoutForUri(uri: Uri, timeout: number | undefined) {
-  let apply = true;
-  let explainer = "";
-
-  if (timeout) {
-    // info message for unsupported timeout (>7hrs)
-    if (timeout > 25200) {
-      explainer = "the maximum allowed";
-      timeout = 25200;
-    }
-
-    const formatted = formatSeconds(timeout);
-
-    // warning for high timeouts (>20min)
-    if (timeout > 1200) {
-      const highTimeoutPrompt = await notify(
-        `High timeout warning: You have set an execution timeout of ${formatted}${explainer ? " (" + explainer + ")" : ""}. Note that database queries will continue to run on the Data Access Process until completion or timeout, even if a Scratchpad query is cancelled. The DAP will be unavailable for all users while a query is running.`,
-        MessageKind.WARNING,
-        {},
-        "Keep Timeout",
-        "Cancel",
-      );
-
-      if (highTimeoutPrompt === "Cancel") {
-        apply = false;
-      }
-    }
-  }
-
-  if (apply) {
-    uri = Uri.file(uri.path);
-    if (isOutsideWorkspace(uri)) {
-      setSessionValue(sessionTimeoutMap, uri, timeout);
-    } else {
-      const conf = workspace.getConfiguration("kdb", uri);
-      const map = conf.get<{ [key: string]: number | undefined }>(
-        "timeoutMap",
-        {},
-      );
-      map[relativePath(uri)] = timeout;
-      await conf.update("timeoutMap", map);
-    }
-    setTimeouttemText(uri, { source: "uri", value: timeout });
-  }
-}
-
-export function getTimeoutForUri(uri: Uri) {
-  uri = Uri.file(uri.path);
-  const conf = workspace.getConfiguration("kdb", uri);
-  let uriTimeout: number | undefined;
-
-  if (isOutsideWorkspace(uri)) {
-    uriTimeout = sessionTimeoutMap.get(sessionKey(uri));
-  } else {
-    const map = conf.get<{ [key: string]: number | undefined }>(
-      "timeoutMap",
-      {},
-    );
-    uriTimeout = map[relativePath(uri)];
-  }
-
-  if (uriTimeout) {
-    return {
-      source: "uri",
-      value: uriTimeout,
-    };
-  }
-
-  const workspaceTimeout = conf.get<number | undefined>("defaultTimeout");
-
-  if (workspaceTimeout) {
-    return {
-      source: "workspace",
-      value: workspaceTimeout,
-    };
-  }
-
-  return {
-    source: "none",
-    value: 30,
-  };
-}
-
 export function getConnectionForUri(uri: Uri) {
   const server = getServerForUri(uri);
   if (server) {
@@ -501,44 +297,30 @@ export function getConnectionForUri(uri: Uri) {
           user === item.details.username,
       );
     }
-    return ext.connectionsList.find((item) =>
-      item instanceof InsightsNode
-        ? item.details.alias === server
-        : item.details.serverAlias === server,
+    return ext.connectionsList.find(
+      (item) => item.details.serverAlias === server,
     );
   }
 }
 
 export async function pickConnection(uri: Uri) {
   /* c8 ignore start */
-  const insightsOnly = isQuery(uri);
   const server = getServerForUri(uri);
-  const items = insightsOnly
-    ? getInsightsServers()
-    : [
-        "(active)",
-        ...replChoices(server),
-        ...getServers(),
-        ...getQuickServers(uri),
-      ];
+  const items = [
+    "(active)",
+    ...replChoices(server),
+    ...getServers(),
+    ...getQuickServers(uri),
+  ];
 
   let picked = await showInputPicker(items, {
-    title: insightsOnly
-      ? `Choose an Insights connection for ${getBasename(uri)}`
-      : `Choose a connection or enter a quick connection string for ${getBasename(uri)}`,
+    title: `Choose a connection or enter a quick connection string for ${getBasename(uri)}`,
     placeHolder: server,
   });
 
   if (picked === undefined) return undefined;
 
-  if (insightsOnly) {
-    if (!items.includes(picked)) {
-      notify(`Connection "${picked}" is not found.`, MessageKind.ERROR, {
-        logger,
-      });
-      return undefined;
-    }
-  } else if (isQuick(picked)) {
+  if (isQuick(picked)) {
     const [host, port, user, pass] = picked.split(":");
     if (host && port && /^\d+$/s.test(port)) {
       if (user) {
@@ -555,15 +337,11 @@ export async function pickConnection(uri: Uri) {
     }
   } else if (picked === "(active)") {
     picked = undefined;
-    await setTargetForUri(uri, undefined);
   } else if (!items.includes(picked)) {
     notify(`Connection "${picked}" is not found.`, MessageKind.ERROR, {
       logger,
     });
     return undefined;
-  } else if (isRepl(picked)) {
-    // The REPL has no execution targets, drop any stale assignment.
-    await setTargetForUri(uri, undefined);
   }
 
   if (picked || isConnectableFile(uri)) {
@@ -574,270 +352,7 @@ export async function pickConnection(uri: Uri) {
   }
   await setServerForUri(uri, picked);
 
-  await setTimeoutItem(uri);
-
   return picked;
-  /* c8 ignore stop */
-}
-
-export async function pickTarget(uri: Uri, cell?: NotebookCell) {
-  /* c8 ignore start */
-  let server = getServerForUri(uri);
-  if (!server) server = await pickConnection(uri);
-  if (!server || isRepl(server)) return;
-
-  const conn = await findConnection(uri);
-  const isInsights = conn instanceof InsightsConnection;
-
-  let daps: MetaDap[] = [];
-
-  if (isInsights) {
-    const connMngService = new ConnectionManagementService();
-    daps = JSON.parse(
-      connMngService.retrieveMetaContent(conn.connLabel, "DAP"),
-    );
-  }
-
-  const target = cell?.metadata.target || getTargetForUri(uri);
-
-  if (target && !targetExists(target, daps) && !conn) {
-    daps.unshift(createMetaDapFromTarget(target));
-  }
-
-  const tierItems = buildTierOptionsWithSeparators(
-    daps,
-    isInsights &&
-      !!conn.insightsVersion &&
-      isBaseVersionGreaterOrEqual(conn.insightsVersion, DISTRIBUTED_SINCE),
-  );
-  const defaultOption = isInsights ? "scratchpad" : "default";
-
-  const items: QuickPickItem[] = [{ label: defaultOption }];
-
-  if (tierItems.length > 0) {
-    items.push(...tierItems);
-  }
-
-  const picked = await window.showQuickPick(items, {
-    title: `Choose Execution Target (${conn?.connLabel ?? "Not Connected"})`,
-    placeHolder: target || defaultOption,
-  });
-
-  let selectedValue = picked?.label;
-
-  if (selectedValue) {
-    if (selectedValue === "scratchpad" || selectedValue === "default") {
-      selectedValue = undefined;
-    }
-
-    if (cell) {
-      await updateCellMetadata(cell, {
-        target: selectedValue,
-        variable: selectedValue && cell.metadata.variable,
-      });
-    } else {
-      await setTargetForUri(uri, selectedValue);
-    }
-  }
-
-  return selectedValue;
-  /* c8 ignore stop */
-}
-
-export async function pickTimeout(uri: Uri) {
-  // prompt for unit
-  const unitItems: QuickPickItem[] = [
-    { label: "Seconds", description: "s" },
-    { label: "Minutes", description: "min" },
-    { label: "Hours", description: "hr" },
-    { label: "", kind: QuickPickItemKind.Separator },
-    { label: "Clear", description: "Use default timeout" },
-  ];
-  const selectedUnit = await window.showQuickPick(unitItems, {
-    placeHolder: "Select the timeout unit",
-    canPickMany: false,
-  });
-
-  const timeoutUnit = selectedUnit?.label;
-
-  if (timeoutUnit === "Clear") {
-    await setTimeoutForUri(uri, undefined);
-    const timeout = await getTimeoutForUri(uri);
-    setTimeouttemText(uri, timeout);
-  } else if (timeoutUnit) {
-    // prompt for value
-    const timeoutValue = await window.showInputBox({
-      prompt: `Enter timeout value in ${timeoutUnit.toLowerCase()}`,
-      placeHolder: "e.g. 30",
-      validateInput: (text) => {
-        if (text !== "" && (isNaN(Number(text)) || Number(text) <= 0)) {
-          return "Please enter a positive number";
-        }
-
-        const timeout = calculateSeconds(Number(text), timeoutUnit);
-        if (timeout > 60 * 60 * 7) {
-          return "Please enter a maximum of 7 hours";
-        }
-
-        return null;
-      },
-    });
-
-    if (timeoutValue) {
-      // convert to seconds
-      const timeout = calculateSeconds(Number(timeoutValue), timeoutUnit);
-
-      if (timeout) {
-        await setTimeoutForUri(uri, timeout);
-      }
-    }
-  }
-}
-
-function createTierKey(dap: MetaDap): string {
-  const cleanedAssembly = cleanAssemblyName(dap.assembly);
-  return dap.instance ? `${cleanedAssembly} ${dap.instance}` : cleanedAssembly;
-}
-
-function targetExists(target: string, daps: MetaDap[]): boolean {
-  return daps.some((dap) => {
-    const tierKey = createTierKey(dap);
-    const processKey = createProcessKey(dap);
-    return tierKey === target || processKey === target;
-  });
-}
-
-function createMetaDapFromTarget(target: string): MetaDap {
-  const parts = target.split(/\s+/);
-  const [assembly, instance, ...dapParts] = parts;
-
-  return dapParts.length > 0
-    ? ({ assembly, instance, dap: dapParts.join(" ") } as MetaDap)
-    : ({ assembly, instance } as MetaDap);
-}
-
-// TODO: Remove it if this don't going to be used from 1.14
-// Options separated by ties and DAP processes
-// function buildTierOptionsWithSeparators(daps: MetaDap[]): QuickPickItem[] {
-//   const items: QuickPickItem[] = [];
-
-//   const tierSet = new Set<string>();
-//   const processItems: QuickPickItem[] = [];
-
-//   daps.forEach((dap) => {
-//     const cleanedAssembly = cleanAssemblyName(dap.assembly);
-//     const tierKey = `${cleanedAssembly} ${dap.instance}`;
-//     tierSet.add(tierKey);
-
-//     if (dap.dap) {
-//       const cleanedDapName = cleanDapName(dap.dap);
-//       processItems.push({ label: `${tierKey} ${cleanedDapName}` });
-//     }
-//   });
-
-//   if (tierSet.size > 0) {
-//     items.push({
-//       kind: QuickPickItemKind.Separator,
-//       label: "Tiers",
-//     });
-
-//     const sortedTiers = Array.from(tierSet).sort((a, b) => a.localeCompare(b));
-//     sortedTiers.forEach((tier) => {
-//       items.push({ label: tier });
-//     });
-//   }
-
-//   if (processItems.length > 0) {
-//     items.push({
-//       kind: QuickPickItemKind.Separator,
-//       label: "DAP Processes",
-//     });
-
-//     const sortedProcessItems = processItems
-//       .slice()
-//       .sort((a, b) => a.label.localeCompare(b.label));
-//     sortedProcessItems.forEach((item) => {
-//       items.push(item);
-//     });
-//   }
-
-//   return items;
-// }
-
-// Options separated by Assembly
-function buildTierOptionsWithSeparators(
-  daps: MetaDap[],
-  distributed: boolean,
-): QuickPickItem[] {
-  const assemblyMap = new Map<string, Map<string, MetaDap[]>>();
-
-  daps.forEach((dap) => {
-    if (!assemblyMap.has(dap.assembly)) {
-      assemblyMap.set(dap.assembly, new Map<string, MetaDap[]>());
-    }
-
-    const tierKey = createTierKey(dap);
-    const tierMap = assemblyMap.get(dap.assembly)!;
-    const cleanedDap = { ...dap };
-
-    if (!tierMap.has(tierKey)) {
-      tierMap.set(tierKey, []);
-    }
-    if (cleanedDap.dap) {
-      cleanedDap.dap = cleanDapName(cleanedDap.dap);
-    }
-
-    tierMap.get(tierKey)!.push(cleanedDap);
-  });
-
-  const items: QuickPickItem[] = [];
-  const sortedAssemblies = Array.from(assemblyMap.keys()).sort((a, b) =>
-    a.localeCompare(b),
-  );
-
-  sortedAssemblies.forEach((assembly) => {
-    items.push({
-      kind: QuickPickItemKind.Separator,
-      label: `${assembly}`,
-    });
-
-    // The assembly on its own: the RC fans the query out over every tier.
-    if (distributed) {
-      items.push({
-        label: cleanAssemblyName(assembly),
-        description: DISTRIBUTED,
-      });
-    }
-
-    const tierMap = assemblyMap.get(assembly)!;
-    const sortedTierKeys = Array.from(tierMap.keys()).sort((a, b) =>
-      a.localeCompare(b),
-    );
-
-    sortedTierKeys.forEach((tierKey) => {
-      const processes = tierMap.get(tierKey)!;
-
-      items.push({ label: tierKey });
-
-      const sortedProcesses = processes
-        .filter((process) => process.dap)
-        .sort((a, b) => a.dap!.localeCompare(b.dap!));
-
-      sortedProcesses.forEach((process) => {
-        items.push({ label: `${tierKey} ${process.dap}` });
-      });
-    });
-  });
-
-  return items;
-}
-
-function createProcessKey(dap: MetaDap): string | null {
-  /* c8 ignore start */
-  if (!dap.dap) return null;
-
-  const cleanedDapName = cleanDapName(dap.dap);
-  return `${createTierKey(dap)} ${cleanedDapName}`;
   /* c8 ignore stop */
 }
 
@@ -860,10 +375,6 @@ function isWorkbook(uri: Uri | undefined) {
       uri.path.endsWith(".kdb.py") ||
       uri.path.endsWith(".kdb.sql"))
   );
-}
-
-function isQuery(uri: Uri | undefined) {
-  return !!uri && uri.path.endsWith(".kxquery");
 }
 
 // A file that can be run against a connection (q/quke/Python/SQL, including
@@ -978,7 +489,7 @@ export async function runOnRepl(
 
 export type RunTarget =
   | { kind: "repl"; label?: string }
-  | { kind: "connection"; conn: InsightsConnection | LocalConnection };
+  | { kind: "connection"; conn: LocalConnection };
 
 /**
  * Decides where a q/Python/SQL file runs. Precedence:
@@ -1039,19 +550,7 @@ export async function runActiveEditor(type?: ExecutionTypes) {
     }
     const conn = runTarget.conn;
 
-    const isInsights = conn instanceof InsightsConnection;
     const executorName = getBasename(ext.activeTextEditor.document.uri);
-    const target = isInsights ? getTargetForUri(uri) : undefined;
-    const timeout = isInsights ? getTimeoutForUri(uri).value : undefined;
-
-    if (type === ExecutionTypes.PopulateScratchpad && !isInsights) {
-      notify(
-        `Populating scratchpad is not supported on ${conn.connLabel}.`,
-        MessageKind.ERROR,
-        { logger },
-      );
-      return;
-    }
 
     try {
       await runQuery(
@@ -1064,28 +563,10 @@ export async function runActiveEditor(type?: ExecutionTypes) {
         executorName,
         !!isWorkbook(uri),
         undefined,
-        target,
         !!isSql(uri),
-        isInsights,
-        timeout,
-        () => {
-          if (isInsights) {
-            if (target) {
-              notify(
-                `Cancel request sent for ${conn.connLabel}, however, the query will continue running on the database until it finishes or times out`,
-                MessageKind.INFO,
-                { logger },
-              );
-            } else {
-              conn.cancelScratchpad(isPython(uri));
-            }
-          }
-        },
       );
       notifyExecution(
-        (type === ExecutionTypes.PopulateScratchpad ? 0 : RunFlag.Run) |
-          (isInsights ? RunFlag.Insights : 0) |
-          (target ? RunFlag.Dap : 0) |
+        RunFlag.Run |
           (isQuickAlias(conn.connLabel) ? RunFlag.Quick : 0) |
           (isWorkbook(uri) ? RunFlag.Workbook : 0) |
           (isPython(uri) ? RunFlag.Python : 0) |
@@ -1111,27 +592,8 @@ export async function runActiveEditor(type?: ExecutionTypes) {
   /* c8 ignore stop */
 }
 
-export async function resetScratchpadFromEditor(): Promise<void> {
-  if (ext.activeTextEditor) {
-    const uri = ext.activeTextEditor.document.uri;
-    const isWorkbook = uri.path.endsWith(".kdb.q");
-    let server = getServerForUri(uri);
-    if (!server && isWorkbook) {
-      server = await pickConnection(uri);
-    }
-    if (!server) {
-      server = "";
-    }
-    const connection = await getConnectionForServer(server);
-    server = connection?.label || "";
-    resetScratchpad(server);
-  }
-}
-
 function update(uri: Uri) {
-  if (isQuery(uri)) {
-    ext.queryTreeProvider.reload();
-  } else if (isWorkbook(uri)) {
+  if (isWorkbook(uri)) {
     ext.scratchpadTreeProvider.reload();
   }
 }
@@ -1152,18 +614,6 @@ export class ConnectionLensProvider implements CodeLensProvider {
       }),
     );
 
-    if (server) {
-      const conn = await getConnectionForServer(server);
-      if (!isSql(document.uri) && conn instanceof InsightsNode) {
-        lenses.push(
-          new CodeLens(top, {
-            command: "kdb.file.pickTarget",
-            title: getTargetForUri(document.uri) || "scratchpad",
-          }),
-        );
-      }
-    }
-
     return lenses;
   }
 }
@@ -1179,17 +629,7 @@ export function connectWorkspaceCommands() {
     arguments: [],
   };
 
-  ext.pickTimeoutItem = window.createStatusBarItem(
-    StatusBarAlignment.Right,
-    10000,
-  );
-  ext.pickTimeoutItem.command = <Command>{
-    title: "Choose Timeout",
-    command: "kdb.file.pickTimeout",
-    arguments: [],
-  };
-
-  const watcher = workspace.createFileSystemWatcher("**/*.{kxquery,q,py,sql}");
+  const watcher = workspace.createFileSystemWatcher("**/*.{q,py,sql}");
   watcher.onDidCreate(update);
   watcher.onDidDelete(update);
 
@@ -1197,7 +637,6 @@ export function connectWorkspaceCommands() {
     /* c8 ignore start */
     for (const uri of event.files) {
       if (isKxFolder(uri)) {
-        ext.queryTreeProvider.reload();
         ext.scratchpadTreeProvider.reload();
         break;
       }
@@ -1210,20 +649,11 @@ export function connectWorkspaceCommands() {
     for (const { oldUri, newUri } of event.files) {
       await setServerForUri(newUri, getServerForUri(oldUri));
       await setServerForUri(oldUri, undefined);
-      await setTargetForUri(newUri, getTargetForUri(oldUri));
-      await setTargetForUri(oldUri, undefined);
-
-      const timeout = getTimeoutForUri(oldUri);
-      if (timeout.source === "uri") {
-        await setTimeoutForUri(newUri, timeout.value);
-        await setTimeoutForUri(oldUri, undefined);
-      }
     }
     /* c8 ignore stop */
   });
 
   workspace.onDidChangeWorkspaceFolders(() => {
-    ext.queryTreeProvider.reload();
     ext.scratchpadTreeProvider.reload();
   });
   window.onDidChangeActiveTextEditor(activeEditorChanged);
@@ -1236,7 +666,7 @@ export function connectWorkspaceCommands() {
 
 export async function findConnection(uri: Uri) {
   /* c8 ignore start */
-  let conn: InsightsConnection | LocalConnection | undefined;
+  let conn: LocalConnection | undefined;
   let server = getServerForUri(uri) ?? "";
 
   if (server) {

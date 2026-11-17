@@ -17,8 +17,6 @@ import * as sinon from "sinon";
 
 import { ext } from "../../../src/extensionVariables";
 import { ServerType } from "../../../src/models/connectionsModels";
-import { DataSourceTypes } from "../../../src/models/dataSource";
-import * as coreUtils from "../../../src/utils/core";
 import * as queryUtils from "../../../src/utils/queryUtils";
 
 describe("queryUtils", () => {
@@ -258,21 +256,6 @@ describe("queryUtils", () => {
     });
   });
 
-  it("getConnectionType", () => {
-    const params: ServerType[] = [
-      ServerType.INSIGHTS,
-      ServerType.KDB,
-      ServerType.undefined,
-    ];
-    const expectedRes = ["insights", "kdb", "undefined"];
-
-    for (let i = 0; i < params.length; i++) {
-      const result = queryUtils.getConnectionType(params[i]);
-
-      assert.equal(result, expectedRes[i]);
-    }
-  });
-
   describe("addQueryHistory", () => {
     it("addQueryHistory", () => {
       const query = "SELECT * FROM table";
@@ -348,73 +331,6 @@ describe("queryUtils", () => {
     });
   });
 
-  describe("formatScratchpadError", () => {
-    it("should prefix the error message", () => {
-      assert.strictEqual(
-        queryUtils.formatScratchpadError({
-          data: "",
-          error: true,
-          errorMsg: "type",
-          sessionID: "1",
-        }),
-        "Error: type",
-      );
-    });
-
-    it("should fall back to a string error when there is no message", () => {
-      assert.strictEqual(
-        queryUtils.formatScratchpadError({
-          data: "",
-          error: "Internal server error",
-          sessionID: "1",
-        }),
-        "Error: Internal server error",
-      );
-    });
-
-    it("should fall back to Unknown error when the error is a flag", () => {
-      assert.strictEqual(
-        queryUtils.formatScratchpadError({
-          data: "",
-          error: true,
-          sessionID: "1",
-        }),
-        "Error: Unknown error",
-      );
-    });
-
-    it("should explain an unknown UDA", () => {
-      assert.strictEqual(
-        queryUtils.formatScratchpadError({
-          data: "",
-          error: true,
-          errorMsg:
-            "Querying database using (UDA) raised - Unknown API: .kx.uda",
-          sessionID: "1",
-        }),
-        "Error: Querying database using (UDA) raised - Unknown API: .kx.uda. " +
-          "A table, label, or scope parameter may be missing or incorrect.",
-      );
-    });
-
-    it("should append the stacktrace", () => {
-      const stacktrace = [
-        { name: "f", isNested: false, text: ["{a:x*2;a", "+y}"] },
-      ];
-
-      assert.strictEqual(
-        queryUtils.formatScratchpadError({
-          data: "",
-          error: true,
-          errorMsg: "type",
-          sessionID: "1",
-          stacktrace,
-        }),
-        "Error: type\n" + queryUtils.formatScratchpadStacktrace(stacktrace),
-      );
-    });
-  });
-
   describe("formatScratchpadStacktrace", () => {
     it("should format a Scratchpad stacktrace correctly", () => {
       const stacktrace = [
@@ -442,18 +358,6 @@ describe("queryUtils", () => {
         formatted,
         '[2] f @ {a:x*2;a+y}\n                ^\n[1] f{{a:x*2;a+y}[x;2#y]}\n      ^\n[0] f[3;"hello"]\n    ^',
       );
-    });
-  });
-
-  describe("selectDSType", () => {
-    it("should return correct DataSourceTypes for given input", function () {
-      assert.equal(queryUtils.selectDSType("API"), DataSourceTypes.API);
-      assert.equal(queryUtils.selectDSType("QSQL"), DataSourceTypes.QSQL);
-      assert.equal(queryUtils.selectDSType("SQL"), DataSourceTypes.SQL);
-    });
-
-    it("should return undefined for unknown input", function () {
-      assert.equal(queryUtils.selectDSType("unknown"), undefined);
     });
   });
 
@@ -778,15 +682,6 @@ describe("queryUtils", () => {
       const res = queryUtils.getHeaders(4.2, "json");
       assert.deepStrictEqual(res, { ...jsonHeaders, timeout: "4" });
     });
-
-    it("should round a decimal number of seconds converted from minutes", () => {
-      // 0.21 minutes picked as the timeout unit/value -> 12.6 seconds
-      const res = queryUtils.getHeaders(
-        coreUtils.calculateSeconds(0.21, "Minutes"),
-        "json",
-      );
-      assert.deepStrictEqual(res, { ...jsonHeaders, timeout: "13" });
-    });
   });
 
   describe("queryWrapper", () => {
@@ -875,23 +770,6 @@ describe("queryUtils", () => {
     });
   });
 
-  describe("needsScratchpad", () => {
-    it("should return the promise", async () => {
-      const res = await queryUtils.needsScratchpad(
-        "test",
-        Promise.resolve("test"),
-      );
-
-      assert.strictEqual(res, "test");
-    });
-
-    it("should reset scratchpad started status", async () => {
-      ext.scratchpadStarted.add("test");
-      queryUtils.resetScratchpadStarted("test");
-      assert.strictEqual(ext.scratchpadStarted.has("test"), false);
-    });
-  });
-
   describe("notifyExecution", () => {
     describe("repl", () => {
       describe("File", () => {
@@ -973,35 +851,6 @@ describe("queryUtils", () => {
         });
       });
     });
-    describe("ie", () => {
-      describe("Workbook", () => {
-        it("should return telemetry for q", () => {
-          const res = queryUtils.notifyExecution(
-            queryUtils.RunFlag.Run |
-              queryUtils.RunFlag.Workbook |
-              queryUtils.RunFlag.Insights,
-          );
-          assert.strictEqual(res, "Run.Workbook.ie.q");
-        });
-        it("should return telemetry for Python", () => {
-          const res = queryUtils.notifyExecution(
-            queryUtils.RunFlag.Run |
-              queryUtils.RunFlag.Workbook |
-              queryUtils.RunFlag.Insights |
-              queryUtils.RunFlag.Python,
-          );
-          assert.strictEqual(res, "Run.Workbook.ie.py");
-        });
-        it("should return telemetry for SQL", () => {
-          const res = queryUtils.notifyExecution(
-            queryUtils.RunFlag.Run |
-              queryUtils.RunFlag.Workbook |
-              queryUtils.RunFlag.Insights |
-              queryUtils.RunFlag.Sql,
-          );
-          assert.strictEqual(res, "Run.Workbook.ie.sql");
-        });
-      });
-    });
+    describe("ie", () => {});
   });
 });

@@ -16,11 +16,6 @@ import * as vscode from "vscode";
 
 import { activate, until } from "./utils";
 import { CONNECTION as KDB, kdb, start as startKdb } from "./utils/connection";
-import {
-  CONNECTION as INSIGHTS,
-  insights,
-  start as startInsights,
-} from "./utils/insights";
 import { clear, untilRaised } from "./utils/prompt";
 
 /**
@@ -51,13 +46,11 @@ const entry = (
 });
 
 const KDB_QUERY = '"HISTORY_ON_KDB"';
-const INSIGHTS_QUERY = '"HISTORY_ON_INSIGHTS"';
 
 describe("Query history", () => {
   before(async () => {
     await activate();
     await startKdb();
-    await startInsights();
   });
 
   beforeEach(() => clear());
@@ -77,23 +70,6 @@ describe("Query history", () => {
           .map((request) => request.args?.code)
           .join(", ")})`,
       );
-    });
-
-    it("sends the query back to the Insights connection it was run on", async () => {
-      insights.clear();
-      await vscode.commands.executeCommand(
-        "kdb.queryHistory.rerun",
-        entry(INSIGHTS, INSIGHTS_QUERY, false),
-      );
-
-      await until(
-        () => insights.queries().length > 0,
-        "the query to reach the Insights connection",
-      );
-
-      const request = insights.queries()[0];
-      assert.strictEqual(request.path, "/scratchpadmanager/scratchpad/display");
-      assert.strictEqual(request.body.expression, INSIGHTS_QUERY);
     });
   });
 

@@ -101,9 +101,7 @@ export class FileTreeItem extends TreeItem {
   }
 
   private getFileIconType(fileName: string) {
-    if (fileName.endsWith(".kxquery")) {
-      this.baseIcon = "datasource";
-    } else if (fileName.endsWith(".kdb.q")) {
+    if (fileName.endsWith(".kdb.q")) {
       this.baseIcon = "scratchpad";
     } else if (fileName.endsWith(".kdb.py")) {
       this.baseIcon = "python";

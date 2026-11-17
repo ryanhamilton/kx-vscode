@@ -25,37 +25,28 @@ import { initActiveTargetTracking } from "./classes/activeTargetTracker";
 import { OPEN_RESULTS_HINT } from "./classes/connectionConsole";
 import { connectBuildTools, lintCommand } from "./commands/buildToolsCommand";
 import { connectClientCommands } from "./commands/clientCommand";
-import { convertDataSources } from "./commands/queryCommand";
 import {
   activeConnection,
   addAuthConnection,
-  addInsightsConnection,
   addKdbConnection,
   addNewConnection,
   connect,
   copyQuery,
   disconnect,
   editConnection,
-  editInsightsConnection,
   editKdbConnection,
   enableTLS,
   executeQuery,
   exportConnections,
   importConnections,
-  openMeta,
-  refreshGetMeta,
   removeConnection,
   rerunQuery,
-  resetScratchpad,
 } from "./commands/serverCommand";
 import {
   ConnectionLensProvider,
   connectWorkspaceCommands,
   getActiveFileUri,
   pickConnection,
-  pickTarget,
-  pickTimeout,
-  resetScratchpadFromEditor,
   runActiveEditor,
   setServerForUri,
   startRepl,
@@ -63,32 +54,14 @@ import {
 } from "./commands/workspaceCommand";
 import { ext } from "./extensionVariables";
 import { CommandRegistration } from "./models/commandRegistration";
-import {
-  InsightDetails,
-  Insights,
-  Server,
-  ServerDetails,
-} from "./models/connectionsModels";
+import { Server, ServerDetails } from "./models/connectionsModels";
 import { ExecutionTypes } from "./models/execution";
-import { createDefaultQueryFile } from "./models/query";
 import { QueryResult } from "./models/queryResult";
 import { ChartEditorProvider } from "./services/chartEditorProvider";
 import { CompletionProvider } from "./services/completionProvider";
-import { DataSourceConverterProvider } from "./services/dataSourceConverterProvider";
-import {
-  InsightsMetaNode,
-  InsightsNode,
-  KdbNode,
-  KdbTreeProvider,
-  MetaObjectPayloadNode,
-} from "./services/kdbTreeProvider";
+import { KdbNode, KdbTreeProvider } from "./services/kdbTreeProvider";
 import { KxNotebookController } from "./services/notebookController";
-import {
-  inputVariable,
-  KxNotebookTargetActionProvider,
-} from "./services/notebookProviders";
 import { KxNotebookSerializer } from "./services/notebookSerializer";
-import { QueryEditorProvider } from "./services/queryEditorProvider";
 import {
   QueryHistoryProvider,
   QueryHistoryTreeItem,
@@ -109,14 +82,13 @@ import {
 } from "./utils/connLabel";
 import {
   checkOpenSslInstalled,
-  getInsights,
   getServers,
   hasWorkspaceOrShowOption,
 } from "./utils/core";
 import { getIconPath } from "./utils/iconsUtils";
 import { MessageKind, notify, Runner } from "./utils/notifications";
 import AuthSettings from "./utils/secretStorage";
-import { addWorkspaceFile, openWith, setUriContent } from "./utils/workspace";
+import { addWorkspaceFile } from "./utils/workspace";
 
 const logger = "extension";
 
@@ -143,7 +115,6 @@ export async function activate(context: vscode.ExtensionContext) {
   ext.outputChannel = vscode.window.createOutputChannel("kdb", { log: true });
   ext.openSslVersion = await checkOpenSslInstalled();
 
-
   getWorkspaceLabelsConnMap();
   getWorkspaceLabels();
 
@@ -157,9 +128,8 @@ export async function activate(context: vscode.ExtensionContext) {
   setResultsDestination(false);
 
   const servers: Server | undefined = getServers();
-  const insights: Insights | undefined = getInsights();
 
-  ext.serverProvider = new KdbTreeProvider(servers!, insights!);
+  ext.serverProvider = new KdbTreeProvider(servers!);
   ext.queryHistoryProvider = new QueryHistoryProvider();
   ext.resultsViewProvider = new KdbResultsViewProvider(
     ext.context.extensionUri,
@@ -167,10 +137,6 @@ export async function activate(context: vscode.ExtensionContext) {
   ext.scratchpadTreeProvider = new WorkspaceTreeProvider(
     "**/*.kdb.{q,py,sql}",
     "scratchpad",
-  );
-  ext.queryTreeProvider = new WorkspaceTreeProvider(
-    "**/*.kxquery",
-    "datasource",
   );
 
   vscode.commands.executeCommand("setContext", "kdb.QHOME", env.QHOME);
@@ -184,10 +150,6 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.window.registerTreeDataProvider(
     "kdb-scratchpad-explorer",
     ext.scratchpadTreeProvider,
-  );
-  vscode.window.registerTreeDataProvider(
-    "kdb-query-explorer",
-    ext.queryTreeProvider,
   );
 
   // initialize the secret store
@@ -203,8 +165,6 @@ export async function activate(context: vscode.ExtensionContext) {
       { webviewOptions: { retainContextWhenHidden: true } },
     ),
 
-    QueryEditorProvider.register(context),
-    DataSourceConverterProvider.register(),
     ChartEditorProvider.register(context),
 
     vscode.languages.registerCodeLensProvider(
@@ -219,7 +179,6 @@ export async function activate(context: vscode.ExtensionContext) {
     ext.diagnosticCollection,
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration("kdb.connectionMap")) {
-        ext.queryTreeProvider.reload();
         ext.scratchpadTreeProvider.reload();
       }
       if (event.affectsConfiguration("kdb.connectionLabelsMap")) {
@@ -266,13 +225,6 @@ export async function activate(context: vscode.ExtensionContext) {
       new KxNotebookSerializer(),
     ),
     (ext.notebookController = new KxNotebookController()),
-  );
-
-  context.subscriptions.push(
-    vscode.notebooks.registerNotebookCellStatusBarItemProvider(
-      "kx-notebook",
-      new KxNotebookTargetActionProvider(),
-    ),
   );
 
   // Track the last-focused KX target terminal (REPL or connection console) as
@@ -412,63 +364,12 @@ function registerResultsPanelCommands(): CommandRegistration[] {
   return resultsCommands;
 }
 
-function registerQueryCommands(): CommandRegistration[] {
-  const queryCommands: CommandRegistration[] = [
-    {
-      command: "kdb.query.create",
-      callback: async (item: FileTreeItem) => {
-        if (hasWorkspaceOrShowOption("adding queries")) {
-          const uri = await addWorkspaceFile(
-            item ? item.resourceUri : undefined,
-            "query",
-            ".kxquery",
-          );
-          await vscode.workspace.openTextDocument(uri);
-          await setUriContent(
-            uri,
-            JSON.stringify(createDefaultQueryFile(), null, 2),
-          );
-          await openWith(uri, QueryEditorProvider.viewType);
-          await vscode.commands.executeCommand(
-            "workbench.action.files.save",
-            uri,
-          );
-          await setServerForUri(uri, undefined);
-        }
-      },
-    },
-    {
-      command: "kdb.query.convert",
-      callback: async () => await convertDataSources(),
-    },
-    {
-      command: "kdb.query.refresh",
-      callback: () => ext.queryTreeProvider.reload(),
-    },
-  ];
-
-  return queryCommands;
-}
-
 function registerScratchpadCommands(): CommandRegistration[] {
   const scratchpadCommands: CommandRegistration[] = [
     {
       command: "kdb.scratchpad.run",
       callback: async () => {
         await runActiveEditor();
-      },
-    },
-    {
-      command: "kdb.scratchpad.reset",
-      callback: async (viewItem?: InsightsNode) => {
-        const connLabel = viewItem ? viewItem.label : undefined;
-        await resetScratchpad(connLabel);
-      },
-    },
-    {
-      command: "kdb.scratchpad.editor.reset",
-      callback: async () => {
-        await resetScratchpadFromEditor();
       },
     },
     {
@@ -582,7 +483,7 @@ function registerConnectionsCommands(): CommandRegistration[] {
   const connectionCommands: CommandRegistration[] = [
     {
       command: "kdb.connections.connect",
-      callback: async (viewItem: KdbNode | InsightsNode) => {
+      callback: async (viewItem: KdbNode) => {
         await connect(viewItem.label);
       },
     },
@@ -624,12 +525,6 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.remove.insights",
-      callback: async (viewItem: InsightsNode) => {
-        await removeConnection(viewItem);
-      },
-    },
-    {
       command: "kdb.connections.remove.kdb",
       callback: async (viewItem: KdbNode) => {
         await removeConnection(viewItem);
@@ -637,7 +532,7 @@ function registerConnectionsCommands(): CommandRegistration[] {
     },
     {
       command: "kdb.connections.disconnect",
-      callback: async (viewItem: InsightsNode | KdbNode | string) => {
+      callback: async (viewItem: KdbNode | string) => {
         const connLabel =
           typeof viewItem === "string" ? viewItem : viewItem.label;
         await disconnect(connLabel);
@@ -654,7 +549,7 @@ function registerConnectionsCommands(): CommandRegistration[] {
     },
     {
       command: "kdb.connections.export.single",
-      callback: async (viewItem: KdbNode | InsightsNode) => {
+      callback: async (viewItem: KdbNode) => {
         notify("Export single conection.", MessageKind.DEBUG, {
           logger,
         });
@@ -693,12 +588,6 @@ function registerConnectionsCommands(): CommandRegistration[] {
       },
     },
     {
-      command: "kdb.connections.open.meta",
-      callback: async (viewItem: InsightsMetaNode | MetaObjectPayloadNode) => {
-        await openMeta(viewItem);
-      },
-    },
-    {
       command: "kdb.connections.add",
       callback: async () => {
         await addNewConnection();
@@ -706,30 +595,14 @@ function registerConnectionsCommands(): CommandRegistration[] {
     },
     {
       command: "kdb.connections.edit",
-      callback: async (viewItem: KdbNode | InsightsNode) => {
+      callback: async (viewItem: KdbNode) => {
         await editConnection(viewItem);
-      },
-    },
-    {
-      command: "kdb.connections.add.insights",
-      callback: async (insightsData: InsightDetails, labels: string[]) => {
-        await addInsightsConnection(insightsData, labels);
       },
     },
     {
       command: "kdb.connections.add.kdb",
       callback: async (kdbData: ServerDetails, labels: string[]) => {
         await addKdbConnection(kdbData, labels);
-      },
-    },
-    {
-      command: "kdb.connections.edit.insights",
-      callback: async (
-        insightsData: InsightDetails,
-        oldAlias: string,
-        labels: string[],
-      ) => {
-        await editInsightsConnection(insightsData, oldAlias, labels);
       },
     },
     {
@@ -746,21 +619,9 @@ function registerConnectionsCommands(): CommandRegistration[] {
     {
       command: "kdb.connections.refresh.serverObjects",
       callback: async () => {
-        const runner = Runner.create(() => {
-          ext.serverProvider.reload();
-          return refreshGetMeta();
-        });
+        const runner = Runner.create(async () => ext.serverProvider.reload());
         runner.location = vscode.ProgressLocation.Notification;
         runner.title = "Refreshing server objects for all connections.";
-        await runner.execute();
-      },
-    },
-    {
-      command: "kdb.connections.refresh.meta",
-      callback: async (viewItem: InsightsNode) => {
-        const runner = Runner.create(() => refreshGetMeta(viewItem.label));
-        runner.location = vscode.ProgressLocation.Notification;
-        runner.title = `Refreshing meta data for ${viewItem.label || "all connections"}.`;
         await runner.execute();
       },
     },
@@ -846,14 +707,10 @@ function registerFileCommands(): CommandRegistration[] {
       command: "kdb.file.rename",
       callback: async (item: FileTreeItem) => {
         if (item && item.resourceUri) {
-          if (item.resourceUri.path.endsWith(".kxquery")) {
-            await openWith(item.resourceUri, QueryEditorProvider.viewType);
-          } else {
-            const document = await vscode.workspace.openTextDocument(
-              item.resourceUri,
-            );
-            await vscode.window.showTextDocument(document);
-          }
+          const document = await vscode.workspace.openTextDocument(
+            item.resourceUri,
+          );
+          await vscode.window.showTextDocument(document);
           await vscode.commands.executeCommand("revealInExplorer");
           await vscode.commands.executeCommand("renameFile");
         }
@@ -863,14 +720,10 @@ function registerFileCommands(): CommandRegistration[] {
       command: "kdb.file.delete",
       callback: async (item: FileTreeItem) => {
         if (item && item.resourceUri) {
-          if (item.resourceUri.path.endsWith(".kxquery")) {
-            await openWith(item.resourceUri, QueryEditorProvider.viewType);
-          } else {
-            const document = await vscode.workspace.openTextDocument(
-              item.resourceUri,
-            );
-            await vscode.window.showTextDocument(document);
-          }
+          const document = await vscode.workspace.openTextDocument(
+            item.resourceUri,
+          );
+          await vscode.window.showTextDocument(document);
           await vscode.commands.executeCommand("revealInExplorer");
           await vscode.commands.executeCommand("deleteFile");
         }
@@ -883,36 +736,6 @@ function registerFileCommands(): CommandRegistration[] {
         if (uri) {
           await pickConnection(uri);
         }
-      },
-    },
-    {
-      command: "kdb.file.pickTarget",
-      callback: async (cell?: vscode.NotebookCell) => {
-        const uri = cell ? cell.notebook.uri : getActiveFileUri();
-        if (uri) {
-          await pickTarget(uri, cell);
-        }
-      },
-    },
-    {
-      command: "kdb.file.pickTimeout",
-      callback: async () => {
-        const uri = getActiveFileUri();
-        if (uri) {
-          await pickTimeout(uri);
-        }
-      },
-    },
-    {
-      command: "kdb.file.inputVariable",
-      callback: async (cell: vscode.NotebookCell) => {
-        await inputVariable(cell);
-      },
-    },
-    {
-      command: "kdb.file.populateScratchpad",
-      callback: async () => {
-        await runActiveEditor(ExecutionTypes.PopulateScratchpad);
       },
     },
   ];
@@ -983,7 +806,6 @@ function registerReplCommands(): CommandRegistration[] {
 function registerAllExtensionCommands(): void {
   const allCommands: CommandRegistration[] = [
     ...registerResultsPanelCommands(),
-    ...registerQueryCommands(),
     ...registerScratchpadCommands(),
     ...registerQueryHistoryCommands(),
     ...registerConnectionsCommands(),
@@ -1003,7 +825,6 @@ function registerAllExtensionCommands(): void {
 }
 
 export async function deactivate(): Promise<void> {
-
   if (ext.client) {
     return ext.client.stop();
   }

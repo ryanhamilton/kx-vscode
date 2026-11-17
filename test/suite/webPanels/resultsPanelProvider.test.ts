@@ -14,12 +14,9 @@
 import assert from "assert";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
-import { TreeItemCollapsibleState } from "vscode";
 
-import { InsightsConnection } from "../../../src/classes/insightsConnection";
 import { ext } from "../../../src/extensionVariables";
 import { StructuredTextResults } from "../../../src/models/queryResult";
-import { InsightsNode } from "../../../src/services/kdbTreeProvider";
 import { KdbResultsViewProvider } from "../../../src/services/resultsPanelProvider";
 import * as utils from "../../../src/utils/execution";
 import * as loggers from "../../../src/utils/loggers";
@@ -30,21 +27,6 @@ describe("ResultsPanelProvider", () => {
   let resultsPanel: KdbResultsViewProvider;
   let viewStub: any;
 
-  const insightsNode = new InsightsNode(
-    [],
-    "insightsnode1",
-    {
-      server: "insightsservername",
-      alias: "insightsserveralias",
-      auth: true,
-    },
-    TreeItemCollapsibleState.None,
-  );
-
-  const insightsConn = new InsightsConnection(
-    "insightsservername",
-    insightsNode,
-  );
   beforeEach(() => {
     resultsPanel = new KdbResultsViewProvider(uriTest);
     viewStub = {

@@ -17,7 +17,7 @@ import { ext } from "../extensionVariables";
 import { MessageKind, notify } from "./notifications";
 import { ConnectionLabel, Labels } from "../models/labels";
 import { NewConnectionPannel } from "../panels/newConnection";
-import { InsightsNode, KdbNode } from "../services/kdbTreeProvider";
+import { KdbNode } from "../services/kdbTreeProvider";
 
 const logger = "connLabel";
 
@@ -170,11 +170,8 @@ export async function handleLabelsConnMap(labels: string[], connName: string) {
     .update("kdb.labelsConnectionMap", ext.labelConnMapList, true);
 }
 
-export function retrieveConnLabelsNames(
-  conn: KdbNode | InsightsNode,
-): string[] {
-  const connName =
-    conn instanceof KdbNode ? conn.details.serverAlias : conn.details.alias;
+export function retrieveConnLabelsNames(conn: KdbNode): string[] {
+  const connName = conn.details.serverAlias;
   const labels: string[] = [];
   ext.labelConnMapList.forEach((labelConnMap) => {
     if (labelConnMap.connections.includes(connName)) {

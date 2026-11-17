@@ -14,11 +14,9 @@
 export const enum ConnectionType {
   BundledQ,
   Kdb,
-  Insights,
 }
 
 export enum ServerType {
-  INSIGHTS,
   KDB,
   undefined,
 }
@@ -44,21 +42,8 @@ export interface kdbAuthMap {
   };
 }
 
-export interface InsightDetails {
-  alias: string;
-  server: string;
-  auth: boolean;
-  realm?: string;
-  insecure?: boolean;
-}
-
-export interface Insights {
-  [name: string]: InsightDetails;
-}
-
 export interface ExportedConnections {
   connections: {
-    Insights: InsightDetails[];
     KDB: ServerDetails[];
   };
 }

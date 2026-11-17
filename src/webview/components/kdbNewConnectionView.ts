@@ -17,12 +17,7 @@ import { customElement } from "lit/decorators.js";
 import { baseStyles } from "./baseStyles";
 import { KdbSelect } from "./kdbSelect";
 import { kdbStyles, newConnectionStyles } from "./styles";
-import {
-  ConnectionType,
-  InsightDetails,
-  ServerDetails,
-  ServerType,
-} from "../../models/connectionsModels";
+import { ConnectionType, ServerDetails } from "../../models/connectionsModels";
 import { LabelColors, Labels } from "../../models/labels";
 import { EditConnectionMessage } from "../../models/messages";
 import { TEXT } from "../converters";
@@ -31,12 +26,10 @@ import { bind, checked, inputDefaults } from "../directives";
 const NEW_LABEL = "\u0000new-label";
 
 const AUTH_SECTION = "Authentication & TLS";
-const ADVANCED_SECTION = "Advanced";
 
 @customElement("kdb-new-connection-view")
 export class KdbNewConnectionView extends LitElement {
   static readonly styles = [baseStyles, kdbStyles, newConnectionStyles];
-  selectedTab = ConnectionType.Kdb;
   lblColorsList: LabelColors[] = [];
   lblNamesList: Labels[] = [];
   newLblName = "";
@@ -50,15 +43,7 @@ export class KdbNewConnectionView extends LitElement {
     username: "",
     password: "",
   };
-  insightsServer: InsightDetails = {
-    alias: "",
-    server: "",
-    auth: true,
-    realm: "",
-    insecure: false,
-  };
   labels: string[] = [];
-  serverType: ServerType = ServerType.KDB;
   oldAlias: string = "";
   editAuth: boolean = false;
   renderId: string = "";
@@ -66,10 +51,6 @@ export class KdbNewConnectionView extends LitElement {
   private readonly openSections = new Set<string>();
   private _connectionData: EditConnectionMessage | undefined = undefined;
   private readonly vscode = acquireVsCodeApi();
-  private tabConfig = {
-    2: { serverType: ServerType.INSIGHTS },
-    default: { serverType: ServerType.KDB },
-  };
 
   get connectionData(): EditConnectionMessage | undefined {
     return this._connectionData;
@@ -110,15 +91,6 @@ export class KdbNewConnectionView extends LitElement {
     this.requestUpdate();
   }
 
-  get selectConnection(): string {
-    switch (this.serverType) {
-      case ServerType.INSIGHTS:
-        return "tab-2";
-      default:
-        return "tab-1";
-    }
-  }
-
   handleMessage(event: { data: any }) {
     const message = event.data;
     if (message.command === "editConnection") {
@@ -135,14 +107,6 @@ export class KdbNewConnectionView extends LitElement {
 
   setKdbServer<K extends keyof ServerDetails>(key: K, value: ServerDetails[K]) {
     this.kdbServer[key] = value;
-    this.requestUpdate();
-  }
-
-  setInsightsServer<K extends keyof InsightDetails>(
-    key: K,
-    value: InsightDetails[K],
-  ) {
-    this.insightsServer[key] = value;
     this.requestUpdate();
   }
 
@@ -174,41 +138,26 @@ export class KdbNewConnectionView extends LitElement {
     return html`<span>Name the server.</span>`;
   }
 
-  renderServerNameField(serverType: ServerType) {
-    return serverType === ServerType.KDB
-      ? html`<label class="field"
-          ><span class="label">Server Name</span
-          ><input
-            class="text-field larger"
-            required
-            placeholder="Server-1"
-            ${inputDefaults()}
-            ${bind(this.kdbServer.serverAlias)}
-            @input="${(event: Event) =>
-              this.setKdbServer(
-                "serverAlias",
-                (event.target as HTMLInputElement).value,
-              )}"
-        /></label>`
-      : html`<label class="field"
-          ><span class="label">Server Name</span
-          ><input
-            class="text-field larger"
-            required
-            placeholder="Insights-1"
-            ${inputDefaults()}
-            ${bind(this.insightsServer.alias)}
-            @input="${(event: Event) =>
-              this.setInsightsServer(
-                "alias",
-                (event.target as HTMLInputElement).value,
-              )}"
-        /></label>`;
+  renderServerNameField() {
+    return html`<label class="field"
+      ><span class="label">Server Name</span
+      ><input
+        class="text-field larger"
+        required
+        placeholder="Server-1"
+        ${inputDefaults()}
+        ${bind(this.kdbServer.serverAlias)}
+        @input="${(event: Event) =>
+          this.setKdbServer(
+            "serverAlias",
+            (event.target as HTMLInputElement).value,
+          )}"
+    /></label>`;
   }
 
-  renderServerName(serverType: ServerType) {
+  renderServerName() {
     return html`
-      <div class="row">${this.renderServerNameField(serverType)}</div>
+      <div class="row">${this.renderServerNameField()}</div>
       <div class="row option-description  option-help">
         ${this.renderServerNameDesc()}
       </div>
@@ -246,14 +195,11 @@ export class KdbNewConnectionView extends LitElement {
     `;
   }
 
-  renderConnAddDesc(serverType: ServerType) {
-    return serverType === ServerType.KDB
-      ? html`Set the IP of your kdb+ database connection.`
-      : html`Set the IP of your kdb+ database connection, your Insights
-        connection must be deployed for kdb VS Code to access.`;
+  renderConnAddDesc() {
+    return html`Set the IP of your kdb+ database connection.`;
   }
 
-  renderConnAddress(serverType: ServerType) {
+  renderConnAddress() {
     return html`
       <div class="row">
         <label class="field"
@@ -261,81 +207,20 @@ export class KdbNewConnectionView extends LitElement {
           ><input
             class="text-field larger"
             required
-            placeholder="${serverType === ServerType.KDB
-              ? "127.0.0.1 or localhost"
-              : `https://myinsights.example.com`}"
+            placeholder="127.0.0.1 or localhost"
             ${inputDefaults()}
-            ${bind(
-              serverType === ServerType.KDB
-                ? this.kdbServer.serverName
-                : this.insightsServer.server,
-              TEXT,
-              serverType,
-            )}
-            @input="${(event: Event) => {
-              const value = (event.target as HTMLInputElement).value;
-
-              if (serverType === ServerType.KDB) {
-                this.setKdbServer("serverName", value);
-              } else {
-                this.setInsightsServer("server", value);
-              }
-            }}"
-        /></label>
-      </div>
-      <div class="row option-description option-help">
-        ${this.renderConnAddDesc(serverType)}
-      </div>
-    `;
-  }
-
-  renderRealm() {
-    return html`
-      <div class="row">
-        <label class="field"
-          ><span class="label">Define Realm (optional)</span
-          ><input
-            class="text-field larger"
-            ${inputDefaults()}
-            ${bind(this.insightsServer.realm ?? "")}
-            placeholder="insights"
+            ${bind(this.kdbServer.serverName, TEXT)}
             @input="${(event: Event) =>
-              this.setInsightsServer(
-                "realm",
+              this.setKdbServer(
+                "serverName",
                 (event.target as HTMLInputElement).value,
               )}"
         /></label>
       </div>
       <div class="row option-description option-help">
-        Specify the Keycloak realm for authentication. Use this field to connect
-        to a specific realm as configured on your server.
+        ${this.renderConnAddDesc()}
       </div>
     `;
-  }
-
-  renderInsecureSSL() {
-    return html`
-      <div class="row">
-        <label class="checkbox"
-          ><input
-            type="checkbox"
-            ${checked(this.insightsServer.insecure ?? false)}
-            @change="${(event: Event) =>
-              this.setInsightsServer(
-                "insecure",
-                (event.target as HTMLInputElement).checked,
-              )}" />
-          Accept insecure SSL certifcates
-        </label>
-      </div>
-    `;
-  }
-
-  tabClickAction(tabNumber: number) {
-    const config =
-      this.tabConfig[tabNumber as keyof typeof this.tabConfig] ??
-      this.tabConfig.default;
-    this.serverType = config.serverType;
   }
 
   renderTLSField() {
@@ -458,10 +343,10 @@ export class KdbNewConnectionView extends LitElement {
   renderNewMyQConnectionForm() {
     return html`<div class="col">
       <div class="row">
-        <div class="col gap-0">${this.renderServerName(ServerType.KDB)}</div>
+        <div class="col gap-0">${this.renderServerName()}</div>
       </div>
       <div class="row">
-        <div class="col gap-0">${this.renderConnAddress(ServerType.KDB)}</div>
+        <div class="col gap-0">${this.renderConnAddress()}</div>
       </div>
       <div class="row">
         <div class="col gap-0">${this.renderPortNumber()}</div>
@@ -514,31 +399,6 @@ export class KdbNewConnectionView extends LitElement {
     </div>`;
   }
 
-  renderNewInsightsConnectionForm() {
-    return html`<div class="col">
-      <div class="row">
-        <div class="col gap-0">
-          ${this.renderServerName(ServerType.INSIGHTS)}
-        </div>
-      </div>
-      <div class="row">
-        <div class="col gap-0">
-          ${this.renderConnAddress(ServerType.INSIGHTS)}
-        </div>
-      </div>
-      <div class="row">
-        <div class="col gap-0">
-          ${this.renderSection(
-            ADVANCED_SECTION,
-            html`${this.renderRealm()} ${this.renderInsecureSSL()}`,
-          )}
-        </div>
-      </div>
-      ${this.renderConnectionLabelsSection()}
-      ${this.renderCreateConnectionBtn()}
-    </div>`;
-  }
-
   renderNewConnectionForm() {
     return html`
       <div class="row mt-1 mb-1 content-wrapper">
@@ -556,49 +416,9 @@ export class KdbNewConnectionView extends LitElement {
                 error.</span
               >
             </div>
-            <br />
-            <div class="row option-description">
-              <span>
-                If you are an Insights user, then use an
-                <b>“Insights connection”.</b> You will be required to
-                authenticate the connection prior to its availability in the kdb
-                VS Code extension.</span
-              >
-            </div>
           </div>
           <div class="row">
-            <div class="col">
-              <div class="tabs" role="tablist">
-                <button
-                  class="tab"
-                  role="tab"
-                  aria-selected="${this.selectedTab === ConnectionType.Kdb}"
-                  @click="${() => {
-                    this.serverType = ServerType.KDB;
-                    this.selectedTab = ConnectionType.Kdb;
-                    this.requestUpdate();
-                  }}">
-                  My q
-                </button>
-                <button
-                  class="tab"
-                  role="tab"
-                  aria-selected="${this.selectedTab ===
-                  ConnectionType.Insights}"
-                  @click="${() => {
-                    this.serverType = ServerType.INSIGHTS;
-                    this.selectedTab = ConnectionType.Insights;
-                    this.requestUpdate();
-                  }}">
-                  Insights connection
-                </button>
-              </div>
-              <div role="tabpanel">
-                ${this.selectedTab === ConnectionType.Kdb
-                  ? this.renderNewMyQConnectionForm()
-                  : this.renderNewInsightsConnectionForm()}
-              </div>
-            </div>
+            <div class="col">${this.renderNewMyQConnectionForm()}</div>
           </div>
         </div>
       </div>
@@ -625,10 +445,6 @@ export class KdbNewConnectionView extends LitElement {
       this.renderId = "";
     }
     const connTypeName = this.defineConnTypeName(this.connectionData.connType);
-    this.serverType =
-      this.connectionData.connType === ConnectionType.Insights
-        ? ServerType.INSIGHTS
-        : ServerType.KDB;
     return html`
       <div class="row mt-1 mb-1 content-wrapper">
         ${this.isModalOpen ? this.renderNewLabelModal() : ""}
@@ -660,23 +476,15 @@ export class KdbNewConnectionView extends LitElement {
     `;
   }
 
-  defineConnTypeName(connType: number) {
-    if (connType === ConnectionType.Insights) {
-      return "Insights";
-    } else {
-      return "My q";
-    }
+  defineConnTypeName(_connType: ConnectionType) {
+    return "My q";
   }
 
   renderEditConnFields() {
     if (!this.connectionData) {
       return html`<div>No connection found to be edited</div>`;
     }
-    if (this.connectionData.connType === 1) {
-      return this.renderMyQEditForm();
-    } else {
-      return this.renderInsightsEditForm();
-    }
+    return this.renderMyQEditForm();
   }
 
   renderMyQEditForm() {
@@ -699,10 +507,10 @@ export class KdbNewConnectionView extends LitElement {
     return html`
       <div class="col">
         <div class="row">
-          <div class="col gap-0">${this.renderServerName(ServerType.KDB)}</div>
+          <div class="col gap-0">${this.renderServerName()}</div>
         </div>
         <div class="row">
-          <div class="col gap-0">${this.renderConnAddress(ServerType.KDB)}</div>
+          <div class="col gap-0">${this.renderConnAddress()}</div>
         </div>
         <div class="row">
           <div class="col gap-0">${this.renderPortNumber()}</div>
@@ -767,46 +575,6 @@ export class KdbNewConnectionView extends LitElement {
     `;
   }
 
-  renderInsightsEditForm() {
-    if (!this.connectionData) {
-      return html`<div>No connection found to be edited</div>`;
-    }
-
-    if (this.renderId === "") {
-      this.renderId = this.generateRenderId();
-      this.insightsServer.alias = this.connectionData.serverName;
-      this.insightsServer.server = this.connectionData.serverAddress;
-      this.insightsServer.realm = this.connectionData.realm ?? "";
-      this.insightsServer.insecure = this.connectionData.insecure ?? false;
-      if (this.insightsServer.realm || this.insightsServer.insecure) {
-        this.openSections.add(ADVANCED_SECTION);
-      }
-    }
-
-    return html`
-      <div class="col">
-        <div class="row">
-          <div class="col gap-0">
-            ${this.renderServerName(ServerType.INSIGHTS)}
-          </div>
-        </div>
-        <div class="row">
-          <div class="col gap-0">
-            ${this.renderConnAddress(ServerType.INSIGHTS)}
-          </div>
-        </div>
-        <div class="row">
-          <div class="col gap-0">
-            ${this.renderSection(
-              ADVANCED_SECTION,
-              html`${this.renderRealm()} ${this.renderInsecureSSL()}`,
-            )}
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
   render() {
     if (!this.connectionData) {
       return html` ${this.renderNewConnectionForm()} `;
@@ -815,33 +583,19 @@ export class KdbNewConnectionView extends LitElement {
     }
   }
 
-  private get data(): ServerDetails | InsightDetails {
-    switch (this.serverType) {
-      case ServerType.INSIGHTS:
-        return this.insightsServer;
-      case ServerType.KDB:
-      default:
-        this.kdbServer.username = this.kdbServer.username!.trim();
-        this.kdbServer.password = this.kdbServer.password!.trim();
-        this.kdbServer.auth = this.kdbServer.username !== "";
-        return this.kdbServer;
-    }
+  private get data(): ServerDetails {
+    this.kdbServer.username = this.kdbServer.username!.trim();
+    this.kdbServer.password = this.kdbServer.password!.trim();
+    this.kdbServer.auth = this.kdbServer.username !== "";
+    return this.kdbServer;
   }
 
   private save() {
-    if (this.serverType === ServerType.INSIGHTS) {
-      this.vscode.postMessage({
-        command: "kdb.connections.add.insights",
-        data: this.data,
-        labels: this.labels,
-      });
-    } else {
-      this.vscode.postMessage({
-        command: "kdb.connections.add.kdb",
-        data: this.data,
-        labels: this.labels,
-      });
-    }
+    this.vscode.postMessage({
+      command: "kdb.connections.add.kdb",
+      data: this.data,
+      labels: this.labels,
+    });
   }
 
   private createLabel() {
@@ -862,22 +616,13 @@ export class KdbNewConnectionView extends LitElement {
     if (!this.connectionData) {
       return;
     }
-    if (this.connectionData.connType === 1) {
-      this.vscode.postMessage({
-        command: "kdb.connections.edit.kdb",
-        data: this.data,
-        oldAlias: this.oldAlias,
-        editAuth: this.editAuth,
-        labels: this.labels,
-      });
-    } else {
-      this.vscode.postMessage({
-        command: "kdb.connections.edit.insights",
-        data: this.data,
-        oldAlias: this.oldAlias,
-        labels: this.labels,
-      });
-    }
+    this.vscode.postMessage({
+      command: "kdb.connections.edit.kdb",
+      data: this.data,
+      oldAlias: this.oldAlias,
+      editAuth: this.editAuth,
+      labels: this.labels,
+    });
   }
 
   private generateRenderId(): string {

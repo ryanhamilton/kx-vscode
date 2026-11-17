@@ -19,10 +19,7 @@ import { html } from "lit";
 import * as sinon from "sinon";
 
 import { ext } from "../../../../src/extensionVariables";
-import {
-  InsightDetails,
-  ServerType,
-} from "../../../../src/models/connectionsModels";
+import { ServerType } from "../../../../src/models/connectionsModels";
 import { EditConnectionMessage } from "../../../../src/models/messages";
 import { KdbNewConnectionView } from "../../../../src/webview/components/kdbNewConnectionView";
 
@@ -91,17 +88,6 @@ describe("KdbNewConnectionView", () => {
     });
   });
 
-  describe("selectConnection", () => {
-    it("should return tab-1", () => {
-      view.serverType = ServerType.KDB;
-      assert.strictEqual(view["selectConnection"], "tab-1");
-    });
-    it("should return tab-2", () => {
-      view.serverType = ServerType.INSIGHTS;
-      assert.strictEqual(view["selectConnection"], "tab-2");
-    });
-  });
-
   describe("changeTLS", () => {
     it("should update state", () => {
       view.changeTLS();
@@ -135,12 +121,6 @@ describe("KdbNewConnectionView", () => {
       assert.strictEqual(requestUpdate.called, true);
     });
 
-    it("should keep the Insights alias and ask for a render", () => {
-      fire(view.renderServerNameField(ServerType.INSIGHTS), "insights-1");
-      assert.strictEqual(view.insightsServer.alias, "insights-1");
-      assert.strictEqual(requestUpdate.called, true);
-    });
-
     it("should keep the port and ask for a render", () => {
       fire(view.renderPortNumber(), "5001");
       assert.strictEqual(view.kdbServer.serverPort, "5001");
@@ -150,24 +130,6 @@ describe("KdbNewConnectionView", () => {
     it("should keep the kdb address and ask for a render", () => {
       fire(view.renderConnAddress(ServerType.KDB), "localhost");
       assert.strictEqual(view.kdbServer.serverName, "localhost");
-      assert.strictEqual(requestUpdate.called, true);
-    });
-
-    it("should keep the Insights address and ask for a render", () => {
-      fire(view.renderConnAddress(ServerType.INSIGHTS), "https://insights");
-      assert.strictEqual(view.insightsServer.server, "https://insights");
-      assert.strictEqual(requestUpdate.called, true);
-    });
-
-    it("should keep the realm and ask for a render", () => {
-      fire(view.renderRealm(), "custom");
-      assert.strictEqual(view.insightsServer.realm, "custom");
-      assert.strictEqual(requestUpdate.called, true);
-    });
-
-    it("should keep the insecure flag and ask for a render", () => {
-      fire(view.renderInsecureSSL(), true);
-      assert.strictEqual(view.insightsServer.insecure, true);
       assert.strictEqual(requestUpdate.called, true);
     });
 
@@ -223,21 +185,6 @@ describe("KdbNewConnectionView", () => {
       const result = view.renderServerNameField(ServerType.KDB);
       assert.strictEqual(result.strings[0].includes("Server-1"), true);
     });
-
-    it("should render server name field for Insights", () => {
-      const result = view.renderServerNameField(ServerType.INSIGHTS, false);
-      assert.strictEqual(result.strings[0].includes("Insights-1"), true);
-    });
-  });
-
-  describe("renderServerName", () => {
-    it("should render server name", () => {
-      const result = view.renderServerName(ServerType.INSIGHTS, false);
-      assert.strictEqual(
-        result.strings[1].includes("row option-description  option-help"),
-        true,
-      );
-    });
   });
 
   describe("renderPortNumberDesc", () => {
@@ -269,11 +216,6 @@ describe("KdbNewConnectionView", () => {
         true,
       );
     });
-
-    it("should render connection address for Insights", () => {
-      const result = view.renderConnAddDesc(ServerType.INSIGHTS);
-      assert.strictEqual(result.strings[0].includes("your Insights"), true);
-    });
   });
 
   describe("renderConnAddress", () => {
@@ -281,14 +223,6 @@ describe("KdbNewConnectionView", () => {
       const result = view.renderConnAddress(ServerType.KDB);
       assert.strictEqual(
         JSON.stringify(result).includes("127.0.0.1 or localhost"),
-        true,
-      );
-    });
-
-    it("should render connection address for Insights", () => {
-      const result = view.renderConnAddress(ServerType.INSIGHTS);
-      assert.strictEqual(
-        JSON.stringify(result).includes("https://myinsights.example.com"),
         true,
       );
     });
@@ -360,23 +294,6 @@ describe("KdbNewConnectionView", () => {
         JSON.stringify(result).includes("Connection labels (optional)"),
         true,
       );
-    });
-  });
-
-  describe("tabClickAction", () => {
-    it("should select first tab", () => {
-      view.tabClickAction(1);
-      assert.strictEqual(view.serverType, ServerType.KDB);
-    });
-
-    it("should select second tab", () => {
-      view.tabClickAction(2);
-      assert.strictEqual(view.serverType, ServerType.INSIGHTS);
-    });
-
-    it("should select first tab as defaut", () => {
-      view.tabClickAction(4);
-      assert.strictEqual(view.serverType, ServerType.KDB);
     });
   });
 
@@ -453,15 +370,6 @@ describe("KdbNewConnectionView", () => {
       assert.equal(saveStub.called, false);
       assert.equal(changeTLSStub.called, false);
     });
-
-    it("should render tab-3", () => {
-      view.serverType = ServerType.INSIGHTS;
-      view.render();
-      assert.equal(renderServerNameStub.called, true);
-      assert.equal(renderConnAddressStub.called, true);
-      assert.equal(saveStub.called, false);
-      assert.equal(changeTLSStub.called, false);
-    });
   });
 
   describe("renderCreateConnectionBtn", () => {
@@ -486,65 +394,6 @@ describe("KdbNewConnectionView", () => {
         "<div>No connection found to be edited</div>",
       );
     });
-
-    it("should set MyQ to false and return correct HTML when connType is 1  and render is filled", () => {
-      view.connectionData = { connType: 1, serverName: "testServer" };
-      view.oldAlias = "testServer";
-      view.renderId = "test";
-      const result = view.renderEditConnectionForm();
-
-      assert.strictEqual(view.oldAlias, "testServer");
-      assert.strictEqual(view.serverType, ServerType.KDB);
-      assert.strictEqual(result.values[1].includes("My q"), true);
-    });
-
-    it("should set MyQ to false and return correct HTML when connType is 1", () => {
-      view.connectionData = { connType: 1, serverName: "testServer" };
-      view.oldAlias = "";
-      view.renderId = "";
-      const result = view.renderEditConnectionForm();
-
-      assert.strictEqual(view.oldAlias, "testServer");
-      assert.strictEqual(view.serverType, ServerType.KDB);
-      assert.strictEqual(result.values[1].includes("My q"), true);
-    });
-
-    it("should set serverType to INSIGHTS and return correct HTML when connType is 2 and render is filled", () => {
-      view.connectionData = { connType: 2, serverName: "testServer" };
-      view.oldAlias = "testServer";
-      view.renderId = "test";
-
-      const result = view.renderEditConnectionForm();
-
-      assert.strictEqual(view.oldAlias, "testServer");
-      assert.strictEqual(view.serverType, ServerType.INSIGHTS);
-      assert.strictEqual(result.values[1].includes("Insights"), true);
-    });
-
-    it("should set serverType to INSIGHTS and return correct HTML when connType is 2", () => {
-      view.connectionData = { connType: 2, serverName: "testServer" };
-      view.oldAlias = "";
-      view.renderId = "";
-
-      const result = view.renderEditConnectionForm();
-
-      assert.strictEqual(view.oldAlias, "testServer");
-      assert.strictEqual(view.serverType, ServerType.INSIGHTS);
-      assert.strictEqual(result.values[1].includes("Insights"), true);
-    });
-
-    it("should set serverType to INSIGHTS and open labels modal", () => {
-      view.connectionData = { connType: 2, serverName: "testServer" };
-      view.openModal();
-
-      const result = view.renderEditConnectionForm();
-      const resultsStrings = JSON.stringify(result);
-
-      assert.strictEqual(view.oldAlias, "testServer");
-      assert.strictEqual(view.serverType, ServerType.INSIGHTS);
-      assert.strictEqual(result.values[1].includes("Insights"), true);
-      assert.strictEqual(resultsStrings.includes("Add a New Label"), true);
-    });
   });
 
   describe("renderEditConnFields", () => {
@@ -565,16 +414,6 @@ describe("KdbNewConnectionView", () => {
       view.renderEditConnFields();
       assert.ok(renderMyQEditFormStub.calledOnce);
       renderMyQEditFormStub.restore();
-    });
-
-    it("should call renderInsightsEditForm when connectionData.connType is any other value", () => {
-      view.connectionData = { connType: 2 };
-      const renderInsightsEditFormStub = sinon
-        .stub(view, "renderInsightsEditForm")
-        .returns(html``);
-      view.renderEditConnFields();
-      assert.ok(renderInsightsEditFormStub.calledOnce);
-      renderInsightsEditFormStub.restore();
     });
   });
 
@@ -629,112 +468,6 @@ describe("KdbNewConnectionView", () => {
         false,
       );
     });
-
-    it("should open Advanced for a connection that has a realm", () => {
-      view.connectionData = {
-        serverAddress: "https://localhost",
-        serverName: "insights",
-        realm: "kx",
-      };
-      view.renderInsightsEditForm();
-      assert.strictEqual(view.renderSection("Advanced", "").values[0], true);
-    });
-
-    it("should open Advanced for a connection that skips SSL checks", () => {
-      view.connectionData = {
-        serverAddress: "https://localhost",
-        serverName: "insights",
-        insecure: true,
-      };
-      view.renderInsightsEditForm();
-      assert.strictEqual(view.renderSection("Advanced", "").values[0], true);
-    });
-
-    it("should leave Advanced closed for a plain connection", () => {
-      view.connectionData = {
-        serverAddress: "https://localhost",
-        serverName: "insights",
-      };
-      view.renderInsightsEditForm();
-      assert.strictEqual(view.renderSection("Advanced", "").values[0], false);
-    });
-  });
-
-  describe("renderInsightsEditForm", () => {
-    it('should return "No connection found to be edited" when connectionData is null', () => {
-      view.connectionData = null;
-      const result = view.renderInsightsEditForm();
-      assert.strictEqual(
-        result.strings[0],
-        "<div>No connection found to be edited</div>",
-      );
-    });
-
-    it("should return the correct HTML structure when connectionData is provided", () => {
-      view.connectionData = {
-        port: "5000",
-        serverAddress: "localhost",
-        serverName: "local",
-      };
-      const result = view.renderInsightsEditForm();
-      assert.ok(result.strings[0].includes('<div class="col gap-0">'));
-      assert.ok(result.strings[1].includes('<div class="col gap-0">'));
-      assert.ok(result.strings[2].includes('<div class="col gap-0">'));
-      assert.ok(!result.strings[3].includes('<div class="col gap-0">'));
-    });
-  });
-
-  describe("get data", () => {
-    it("should return Insights data", () => {
-      view.serverType = ServerType.INSIGHTS;
-      const expectedData: InsightDetails = {
-        alias: "",
-        server: "",
-        auth: true,
-        realm: "",
-        insecure: false,
-      };
-      const data = view["data"];
-      assert.deepEqual(data, expectedData);
-    });
-
-    it("should return KDB data", () => {
-      view.serverType = ServerType.KDB;
-      const expectedData = {
-        serverName: "",
-        serverPort: "",
-        auth: false,
-        serverAlias: "",
-        tls: false,
-        username: "",
-        password: "",
-      };
-      const data = view["data"];
-      assert.deepEqual(data, expectedData);
-    });
-  });
-
-  describe("save", () => {
-    it("should post a message", () => {
-      let result: any;
-      const api = acquireVsCodeApi();
-      sinon.stub(api, "postMessage").value(({ command, data }) => {
-        if (
-          command === "kdb.connections.add.kdb" ||
-          command === "kdb.connections.add.insights"
-        ) {
-          result = data;
-        }
-      });
-      view.save();
-      assert.ok(result);
-      view.save();
-      assert.ok(result);
-      view.serverType = ServerType.INSIGHTS;
-      view.save();
-      assert.ok(result);
-      sinon.restore();
-    });
   });
 
   describe("createLabel", () => {
@@ -776,34 +509,5 @@ describe("KdbNewConnectionView", () => {
       serverName: "test",
       serverAddress: "127.0.0.1",
     };
-
-    it("should post a message", () => {
-      const api = acquireVsCodeApi();
-      let result: any;
-      sinon.stub(api, "postMessage").value(({ command, data }) => {
-        if (
-          command === "kdb.connections.edit.kdb" ||
-          command === "kdb.connections.edit.insights"
-        ) {
-          result = data;
-        }
-      });
-      view.editConnection();
-      assert.ok(!result);
-      view.connectionData = editConn;
-      view.editConnection();
-      assert.ok(result);
-      editConn.connType = 1;
-      view.connectionData = editConn;
-      view.editConnection();
-      assert.ok(result);
-      editConn.connType = 2;
-      view.connectionData = editConn;
-      view.editConnection();
-      assert.ok(result);
-      sinon.restore();
-    });
   });
-
-  describe("createLabel", () => {});
 });

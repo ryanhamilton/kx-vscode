@@ -25,23 +25,14 @@ import {
 import { LanguageClient } from "vscode-languageclient/node";
 
 import { ConnectionConsole } from "./classes/connectionConsole";
-import { InsightsConnection } from "./classes/insightsConnection";
 import { LocalConnection } from "./classes/localConnection";
 import { kdbAuthMap } from "./models/connectionsModels";
 import { CustomAuth } from "./models/customAuth";
-import { DataSourceFiles } from "./models/dataSource";
 import { ConnectionLabel, LabelColors, Labels } from "./models/labels";
-import { MetaObjectPayload } from "./models/meta";
 import { QueryHistory } from "./models/queryHistory";
-import { ScratchpadFile } from "./models/scratchpad";
 import { ServerObject } from "./models/serverObject";
 import { TYPE_BY_NAME, TYPE_NAMES } from "./models/typeFormat";
-import { allowedEmptyRequiredTypes } from "./models/uda";
-import {
-  InsightsNode,
-  KdbNode,
-  KdbTreeProvider,
-} from "./services/kdbTreeProvider";
+import { KdbNode, KdbTreeProvider } from "./services/kdbTreeProvider";
 import { KxNotebookController } from "./services/notebookController";
 import { QueryHistoryProvider } from "./services/queryHistoryProvider";
 import { KdbResultsViewProvider } from "./services/resultsPanelProvider";
@@ -65,23 +56,15 @@ export namespace ext {
   // "kdb.showResultsInView" context key for the selector's menu state.
   export let isResultsTabVisible: boolean;
   export let scratchpadTreeProvider: WorkspaceTreeProvider;
-  export let queryTreeProvider: WorkspaceTreeProvider;
   export let runScratchpadItem: StatusBarItem;
   export let pickTimeoutItem: StatusBarItem;
-  export const activeScratchPadList: Array<ScratchpadFile> = [];
-  export const connectedScratchPadList: Array<ScratchpadFile> = [];
-  export const activeDatasourceList: Array<DataSourceFiles> = [];
-  export const connectedDatasourceList: Array<DataSourceFiles> = [];
   export let serverObjects: ServerObject;
   export let openSslVersion: string | null;
   export let resultPanelCSV: string;
-  export let isDatasourceExecution: boolean;
   export const rowLimit = 150000000;
 
-  export let activeConnection: LocalConnection | InsightsConnection | undefined;
-  export const connectedConnectionList: Array<
-    LocalConnection | InsightsConnection
-  > = [];
+  export let activeConnection: LocalConnection | undefined;
+  export const connectedConnectionList: Array<LocalConnection> = [];
   // One output-only console terminal per connected connection, keyed by
   // connLabel. Created on connect, disposed on disconnect.
   export const connectionConsoles = new Map<string, ConnectionConsole>();
@@ -97,19 +80,13 @@ export namespace ext {
   export const pendingImageTargets = new Map<string, CellExecutionTarget>();
   export const connectedContextStrings: Array<string> = [];
   export const queryHistoryAvailableToCopy: Array<string> = [];
-  export const connectionsList: Array<KdbNode | InsightsNode> = [];
+  export const connectionsList: Array<KdbNode> = [];
   export let networkChangesWatcher: boolean;
-  export let insightsHydrate: boolean;
-  export let connectionNode: KdbNode | InsightsNode | undefined;
-  export const kdbDataSourceFolder = ".kdb-datasources";
-  export const kdbDataSourceFileExtension = ".ds";
-  export const kdbDataSourceFileGlob = "*.ds";
-  export const kdbDataSourceRootNodes: string[] = [];
+  export let connectionNode: KdbNode | undefined;
   export const kdbQueryHistoryNodes: string[] = [];
   export const kdbQueryHistoryList: QueryHistory[] = [];
   export const kdbAuthMap: kdbAuthMap[] = [];
   export const kdbrootNodes: string[] = [];
-  export const kdbinsightsNodes: string[] = [];
   export const selectContentNodesContext: string[] = ["kdbVariable"];
   export const kdbNodesWithoutAuth: string[] = [];
   export const kdbNodesWithoutTls: string[] = [];
@@ -128,10 +105,8 @@ export namespace ext {
   export const jsonTypes = new Set([
     0, 1, 2, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 77, 98, 99,
   ]);
-  export const scratchpadStarted = new Set<string>();
 
   export let secretSettings: AuthSettings;
-
 
   export let client: LanguageClient;
 
@@ -139,41 +114,6 @@ export namespace ext {
   export const networkProtocols = {
     http: "http://",
     https: "https://",
-  };
-
-  export const insightsFileResponse = {
-    css: "",
-    path: "",
-  };
-
-  export const insightsAuthUrls = {
-    authURL: "auth/realms/insights/protocol/openid-connect/auth ",
-    revoke: "auth/realms/insights/protocol/openid-connect/revoke",
-    tokenURL: "auth/realms/insights/protocol/openid-connect/token",
-    scratchpadURL: "servicebroker/scratchpad/display",
-    configURL: "kxicontroller/config",
-    apiConfigUrl: "api/config",
-  };
-
-  export const insightsServiceGatewayUrls = {
-    meta: "servicegateway/meta",
-    data: "servicegateway/data",
-    sql: "servicegateway/qe/sql",
-    qsql: "servicegateway/qe/qsql",
-    ping: "servicegateway/kxi/ping",
-  };
-
-  export const insightsGrantType = {
-    authorizationCode: "authorization_code",
-    refreshToken: "refresh_token",
-  };
-
-  export const insightsMeta = <MetaObjectPayload>{};
-
-  export const insightsSigningIn = "Signing in";
-
-  export const globalStateKeys = {
-    insightsCredentialsCacheKey: "InsightsCache",
   };
 
   export const functions: Array<string> = [];
@@ -251,7 +191,6 @@ export namespace ext {
       "t",
       "s",
     ],
-    allowedEmptyRequiredTypes,
     dataTypes: new Map(
       [...TYPE_NAMES].map(([type, name]) => [type.toString(), name]),
     ),

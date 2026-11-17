@@ -35,10 +35,6 @@ function items() {
   const servers = configuration.get<{
     [key: string]: { serverAlias: string };
   }>("servers", {});
-  const insights = configuration.get<{ [key: string]: { alias: string } }>(
-    "insightsEnterpriseConnections",
-    {},
-  );
 
   const repls = vscode.window.terminals
     .map((found) => /^KX REPL \((.+)\)$/s.exec(found.name)?.[1])
@@ -50,7 +46,6 @@ function items() {
     "(active)",
     ...repls,
     ...Object.keys(servers).map((key) => servers[key].serverAlias),
-    ...Object.keys(insights).map((key) => insights[key].alias),
   ];
 }
 

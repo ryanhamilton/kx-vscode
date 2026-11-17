@@ -23,12 +23,11 @@ import {
   QNotFoundError,
   ReplConnection,
 } from "../../../src/classes/replConnection";
-import * as serverCommand from "../../../src/commands/serverCommand";
 import * as workspaceCommand from "../../../src/commands/workspaceCommand";
 import { ext } from "../../../src/extensionVariables";
 import { ExecutionTypes } from "../../../src/models/execution";
 import { ConnectionManagementService } from "../../../src/services/connectionManagerService";
-import { InsightsNode, KdbNode } from "../../../src/services/kdbTreeProvider";
+import { KdbNode } from "../../../src/services/kdbTreeProvider";
 import { WorkspaceTreeProvider } from "../../../src/services/workspaceTreeProvider";
 import * as coreUtils from "../../../src/utils/core";
 import * as notifications from "../../../src/utils/notifications";
@@ -36,20 +35,25 @@ import * as widgets from "../../../src/utils/widgets";
 
 describe("workspaceCommand", () => {
   const kdbUri = vscode.Uri.file("test-kdb.q");
-  const insightsUri = vscode.Uri.file("tests.q");
+  const remoteUri = vscode.Uri.file("tests.q");
   const pythonUri = vscode.Uri.file("test-python.q");
   const replUri = vscode.Uri.file("test-repl.q");
   const pinnedUri = vscode.Uri.file("test-pinned.q");
   const notebookUri = vscode.Uri.file("test.kxnb");
-  const queryUri = vscode.Uri.file("test.kxquery");
 
   const updateConfStub = sinon.stub();
 
   beforeEach(() => {
-    const insightNode = new InsightsNode(
+    const remoteNode = new KdbNode(
       [],
       "remote",
-      { alias: "connection1", auth: false, server: "" },
+      {
+        auth: false,
+        serverAlias: "connection1",
+        serverName: "",
+        serverPort: "2",
+        tls: false,
+      },
       vscode.TreeItemCollapsibleState.None,
     );
     const kdbNode = new KdbNode(
@@ -66,15 +70,15 @@ describe("workspaceCommand", () => {
     );
     ext.serverProvider = <any>{
       async getChildren() {
-        return [kdbNode, insightNode];
+        return [kdbNode, remoteNode];
       },
     };
     ext.connectionsList.push(kdbNode);
-    ext.connectionsList.push(insightNode);
+    ext.connectionsList.push(remoteNode);
 
     ext.activeTextEditor = <any>{
       document: {
-        uri: insightsUri,
+        uri: remoteUri,
         fileName: "tests.q",
         getText() {
           return "";
@@ -85,9 +89,6 @@ describe("workspaceCommand", () => {
     sinon
       .stub(ConnectionManagementService.prototype, "isConnected")
       .returns(true);
-    sinon
-      .stub(ConnectionManagementService.prototype, "retrieveMetaContent")
-      .returns(JSON.stringify([{ assembly: "assembly", target: "target" }]));
     sinon.stub(vscode.workspace, "getWorkspaceFolder").value(
       () =>
         <vscode.WorkspaceFolder>{
@@ -105,28 +106,18 @@ describe("workspaceCommand", () => {
         get(key: string) {
           switch (key) {
             case "servers":
-              return [{ serverAlias: "connection2" }];
-            case "insightsEnterpriseConnections":
-              return [{ alias: "connection1" }];
+              return [
+                { serverAlias: "connection2" },
+                { serverAlias: "connection1" },
+              ];
             case "connectionMap":
               return {
                 [relativePath(kdbUri)]: "connection2",
                 [relativePath(pythonUri)]: "connection1",
-                [relativePath(insightsUri)]: "connection1",
+                [relativePath(remoteUri)]: "connection1",
                 [relativePath(replUri)]: ext.REPL,
                 [relativePath(pinnedUri)]: "REPL (test/folderA)",
                 [relativePath(notebookUri)]: "connection1",
-                [relativePath(queryUri)]: "connection1",
-              };
-            case "targetMap":
-              return {
-                [relativePath(insightsUri)]: "assembly target",
-              };
-            case "defaultTimeout":
-              return 30;
-            case "timeoutMap":
-              return {
-                [relativePath(insightsUri)]: 45,
               };
           }
           return {};
@@ -146,30 +137,24 @@ describe("workspaceCommand", () => {
 
   describe("connectWorkspaceCommands", () => {
     it("should update views on delete and create", () => {
-      let cb1, cb2, dsTree, wbTree;
+      let cb1, cb2, wbTree;
       sinon.stub(vscode.workspace, "createFileSystemWatcher").value(() => ({
         onDidCreate: (cb) => (cb1 = cb),
         onDidDelete: (cb) => (cb2 = cb),
       }));
-      ext.queryTreeProvider = <WorkspaceTreeProvider>{
-        reload() {
-          dsTree = true;
-        },
-      };
       ext.scratchpadTreeProvider = <WorkspaceTreeProvider>{
         reload() {
           wbTree = true;
         },
       };
       workspaceCommand.connectWorkspaceCommands();
-      cb1(vscode.Uri.file("test.kxquery"));
-      assert.strictEqual(dsTree, true);
+      cb1(vscode.Uri.file("test.q"));
       cb2(vscode.Uri.file("test.kdb.q"));
       assert.strictEqual(wbTree, true);
     });
 
-    it("should reload both views when the workspace folders change", () => {
-      let dsTree, wbTree;
+    it("should reload the workbooks view when the workspace folders change", () => {
+      let wbTree;
       sinon.stub(vscode.workspace, "createFileSystemWatcher").value(() => ({
         onDidCreate: () => undefined,
         onDidDelete: () => undefined,
@@ -178,11 +163,6 @@ describe("workspaceCommand", () => {
         vscode.workspace,
         "onDidChangeWorkspaceFolders",
       );
-      ext.queryTreeProvider = <WorkspaceTreeProvider>{
-        reload() {
-          dsTree = true;
-        },
-      };
       ext.scratchpadTreeProvider = <WorkspaceTreeProvider>{
         reload() {
           wbTree = true;
@@ -192,7 +172,6 @@ describe("workspaceCommand", () => {
       workspaceCommand.connectWorkspaceCommands();
       folders.firstCall.args[0](<any>undefined);
 
-      assert.strictEqual(dsTree, true);
       assert.strictEqual(wbTree, true);
     });
   });
@@ -211,13 +190,6 @@ describe("workspaceCommand", () => {
       assert.strictEqual(ext.runScratchpadItem.text, "$(cloud) connection1");
     });
 
-    it("should show the timeout of the active notebook", async () => {
-      stubActiveTab(new vscode.TabInputNotebook(notebookUri, "kx-notebook"));
-      const spy = sinon.spy(ext.pickTimeoutItem, "show");
-      await workspaceCommand.updateStatusBarItems();
-      sinon.assert.called(spy);
-    });
-
     it("should offer the active connection for an unassigned notebook", async () => {
       stubActiveTab(
         new vscode.TabInputNotebook(
@@ -231,76 +203,12 @@ describe("workspaceCommand", () => {
       assert.strictEqual(ext.runScratchpadItem.text, "$(cloud) (active)");
     });
 
-    it("should show the connection of the active query", async () => {
-      stubActiveTab(new vscode.TabInputCustom(queryUri, "kdb.queryEditor"));
-      const spy = sinon.spy(ext.runScratchpadItem, "show");
-      await workspaceCommand.updateStatusBarItems();
-      sinon.assert.called(spy);
-      assert.strictEqual(ext.runScratchpadItem.text, "$(cloud) connection1");
-    });
-
-    it("should show the timeout of the active query", async () => {
-      stubActiveTab(new vscode.TabInputCustom(queryUri, "kdb.queryEditor"));
-      const spy = sinon.spy(ext.pickTimeoutItem, "show");
-      await workspaceCommand.updateStatusBarItems();
-      sinon.assert.called(spy);
-    });
-
-    it("should offer a connection for an unassigned query", async () => {
-      stubActiveTab(
-        new vscode.TabInputCustom(
-          vscode.Uri.file("unassigned.kxquery"),
-          "kdb.queryEditor",
-        ),
-      );
-      const spy = sinon.spy(ext.runScratchpadItem, "show");
-      await workspaceCommand.updateStatusBarItems();
-      sinon.assert.called(spy);
-      assert.strictEqual(ext.runScratchpadItem.text, "$(cloud) (none)");
-    });
-
-    it("should show the timeout of an unassigned query", async () => {
-      stubActiveTab(
-        new vscode.TabInputCustom(
-          vscode.Uri.file("unassigned.kxquery"),
-          "kdb.queryEditor",
-        ),
-      );
-      const spy = sinon.spy(ext.pickTimeoutItem, "show");
-      await workspaceCommand.updateStatusBarItems();
-      sinon.assert.called(spy);
-    });
-
-    it("should hide the items without an active file", async () => {
+    it("should hide the item without an active file", async () => {
       stubActiveTab();
       ext.activeTextEditor = undefined;
       const spy = sinon.spy(ext.runScratchpadItem, "hide");
-      const timeoutSpy = sinon.spy(ext.pickTimeoutItem, "hide");
       await workspaceCommand.updateStatusBarItems();
       sinon.assert.called(spy);
-      sinon.assert.called(timeoutSpy);
-    });
-  });
-
-  describe("getInsightsServers", () => {
-    it("should return insights server aliases as array", () => {
-      const result = workspaceCommand.getInsightsServers();
-      assert.strictEqual(result[0], "connection1");
-    });
-
-    it("should return the aliases in alphabetical order", () => {
-      sinon.stub(vscode.workspace, "getConfiguration").value(() => ({
-        get: (key: string) =>
-          key === "insightsEnterpriseConnections"
-            ? [{ alias: "zeta" }, { alias: "alpha" }, { alias: "Mid" }]
-            : {},
-      }));
-
-      assert.deepStrictEqual(workspaceCommand.getInsightsServers(), [
-        "alpha",
-        "Mid",
-        "zeta",
-      ]);
     });
   });
 
@@ -326,8 +234,6 @@ describe("workspaceCommand", () => {
 
     afterEach(async () => {
       await workspaceCommand.setServerForUri(outsideUri, undefined);
-      await workspaceCommand.setTargetForUri(outsideUri, undefined);
-      await workspaceCommand.setTimeoutForUri(outsideUri, undefined);
     });
 
     it("should associate a server in memory without notifying an error", async () => {
@@ -363,111 +269,6 @@ describe("workspaceCommand", () => {
         workspaceCommand.getServerForUri(vscode.Uri.file("/outside/other.q")),
         undefined,
       );
-    });
-
-    it("should associate a target in memory", async () => {
-      await workspaceCommand.setTargetForUri(outsideUri, "assembly target");
-      assert.strictEqual(
-        workspaceCommand.getTargetForUri(outsideUri),
-        "assembly target",
-      );
-      sinon.assert.notCalled(updateConfStub);
-    });
-
-    it("should associate a timeout in memory", async () => {
-      await workspaceCommand.setTimeoutForUri(outsideUri, 45);
-      assert.deepStrictEqual(workspaceCommand.getTimeoutForUri(outsideUri), {
-        source: "uri",
-        value: 45,
-      });
-      sinon.assert.notCalled(updateConfStub);
-    });
-
-    it("should fall back to the default timeout", async () => {
-      await workspaceCommand.setTimeoutForUri(outsideUri, undefined);
-      assert.deepStrictEqual(workspaceCommand.getTimeoutForUri(outsideUri), {
-        source: "workspace",
-        value: 30,
-      });
-    });
-  });
-
-  describe("timeouts", () => {
-    let unitStub: sinon.SinonStub;
-    let valueStub: sinon.SinonStub;
-    let notifyStub: sinon.SinonStub;
-
-    beforeEach(() => {
-      unitStub = sinon.stub(vscode.window, "showQuickPick");
-      valueStub = sinon.stub(vscode.window, "showInputBox");
-      notifyStub = sinon.stub(notifications, "notify");
-    });
-
-    it("should show timeout options for Insights connections", async () => {
-      const spy = sinon.spy(ext.pickTimeoutItem, "show");
-      await workspaceCommand.setTimeoutItem(insightsUri);
-      sinon.assert.called(spy);
-    });
-
-    it("should hide timeout options for q connections", async () => {
-      const spy = sinon.spy(ext.pickTimeoutItem, "hide");
-      await workspaceCommand.setTimeoutItem(kdbUri);
-      sinon.assert.called(spy);
-    });
-
-    it("should hide timeout options for other files", async () => {
-      const spy = sinon.spy(ext.pickTimeoutItem, "hide");
-      await workspaceCommand.setTimeoutItem(vscode.Uri.file("main.js"));
-      sinon.assert.called(spy);
-    });
-
-    it("should set a valid timeout", async () => {
-      unitStub.resolves({ label: "Seconds" });
-      valueStub.resolves("30");
-
-      await workspaceCommand.pickTimeout(insightsUri);
-
-      sinon.assert.calledOnceWithExactly(
-        updateConfStub,
-        "timeoutMap",
-        sinon.match({
-          [vscode.workspace.asRelativePath(insightsUri, false)]: 30,
-        }),
-      );
-    });
-
-    it("should set a long timeout if user accepts", async () => {
-      unitStub.resolves({ label: "Minutes" });
-      valueStub.resolves("30");
-      notifyStub.resolves("Keep Timeout");
-
-      await workspaceCommand.pickTimeout(insightsUri);
-
-      sinon.assert.calledOnceWithMatch(
-        notifyStub,
-        sinon.match("High timeout warning"),
-      );
-      sinon.assert.calledOnceWithExactly(
-        updateConfStub,
-        "timeoutMap",
-        sinon.match({
-          [vscode.workspace.asRelativePath(insightsUri, false)]: 1800,
-        }),
-      );
-    });
-
-    it("should not set a long timeout if user cancels", async () => {
-      unitStub.resolves({ label: "Minutes" });
-      valueStub.resolves("30");
-      notifyStub.resolves("Cancel");
-
-      await workspaceCommand.pickTimeout(insightsUri);
-
-      sinon.assert.calledOnceWithMatch(
-        notifyStub,
-        sinon.match("High timeout warning"),
-      );
-      sinon.assert.notCalled(updateConfStub);
     });
   });
 
@@ -505,9 +306,7 @@ describe("workspaceCommand", () => {
         get: (key: string) =>
           key === "servers"
             ? [{ serverAlias: "local2" }, { serverAlias: "local1" }]
-            : key === "insightsEnterpriseConnections"
-              ? [{ alias: "zeta" }, { alias: "alpha" }]
-              : {},
+            : {},
       }));
 
       let offered: readonly string[] = [];
@@ -520,12 +319,10 @@ describe("workspaceCommand", () => {
 
       await workspaceCommand.pickConnection(vscode.Uri.file("test.kdb.q"));
 
-      assert.deepStrictEqual(offered.slice(0, 5), [
+      assert.deepStrictEqual(offered.slice(0, 3), [
         "(active)",
         "local1",
         "local2",
-        "alpha",
-        "zeta",
       ]);
     });
   });
@@ -554,9 +351,9 @@ describe("workspaceCommand", () => {
     });
 
     it("should take the active text editor otherwise", () => {
-      activeTab(new vscode.TabInputText(insightsUri));
+      activeTab(new vscode.TabInputText(remoteUri));
       const result = workspaceCommand.getActiveFileUri();
-      assert.strictEqual(result, insightsUri);
+      assert.strictEqual(result, remoteUri);
     });
 
     it("should return undefined without an editor", () => {
@@ -569,13 +366,13 @@ describe("workspaceCommand", () => {
 
   describe("getConnectionForUri", () => {
     it("should return node", async () => {
-      workspaceCommand.getConnectionForUri(insightsUri);
+      workspaceCommand.getConnectionForUri(remoteUri);
       workspaceCommand.getConnectionForUri(kdbUri);
     });
 
     it("should return undefined", async () => {
       ext.connectionsList.length = 0;
-      const node = workspaceCommand.getConnectionForUri(insightsUri);
+      const node = workspaceCommand.getConnectionForUri(remoteUri);
       assert.strictEqual(node, undefined);
     });
   });
@@ -593,7 +390,7 @@ describe("workspaceCommand", () => {
 
       it("should return 2 lenses", async () => {
         const document: vscode.TextDocument = <any>{
-          uri: insightsUri,
+          uri: remoteUri,
         };
         const provider = new workspaceCommand.ConnectionLensProvider();
         const result = await provider.provideCodeLenses(document);
@@ -643,14 +440,6 @@ describe("workspaceCommand", () => {
         stubRepl();
         await workspaceCommand.runOnRepl(editor, ExecutionTypes.QuerySelection);
         sinon.assert.calledOnce(executeStub);
-      });
-
-      it("should notify for other execution types", async () => {
-        await workspaceCommand.runOnRepl(
-          editor,
-          ExecutionTypes.PopulateScratchpad,
-        );
-        sinon.assert.calledOnce(notifyStub);
       });
 
       it("should notify execution error", async () => {
@@ -891,67 +680,6 @@ describe("workspaceCommand", () => {
     it("should fall back to the REPL when there is no active target", async () => {
       const result = await workspaceCommand.resolveRunTarget(unassignedUri);
       assert.deepStrictEqual(result, { kind: "repl" });
-    });
-  });
-
-  describe("resetScratchpadFromEditor", () => {
-    let getServerForUriStub,
-      pickConnectionStub,
-      _getConnectionForServerStub,
-      resetScratchpadStub: sinon.SinonStub;
-
-    const insightsNode = new InsightsNode(
-      [],
-      "insightsnode1",
-      {
-        server: "https://insightsservername.com/",
-        alias: "insightsserveralias",
-        auth: true,
-      },
-      vscode.TreeItemCollapsibleState.None,
-    );
-
-    beforeEach(() => {
-      ext.activeTextEditor = <vscode.TextEditor>{
-        options: { insertSpaces: true, indentSize: 4 },
-        selection: { active: new vscode.Position(0, 0) },
-        document: {
-          uri: vscode.Uri.file("/tmp/some.q"),
-          getText: () => "",
-        },
-      };
-
-      getServerForUriStub = sinon.stub(workspaceCommand, "getServerForUri");
-      pickConnectionStub = sinon.stub(workspaceCommand, "pickConnection");
-      _getConnectionForServerStub = sinon
-        .stub(workspaceCommand, "getConnectionForServer")
-        .resolves(insightsNode);
-      resetScratchpadStub = sinon
-        .stub(serverCommand, "resetScratchpad")
-        .resolves();
-    });
-
-    afterEach(() => {
-      sinon.restore();
-    });
-
-    it("should call resetScratchpad with empty server label", async () => {
-      getServerForUriStub.returns("");
-      await workspaceCommand.resetScratchpadFromEditor();
-      assert.strictEqual(resetScratchpadStub.calledWith(""), true);
-    });
-
-    it("should set server to an empty string if no server is found", async () => {
-      getServerForUriStub.returns(undefined);
-      pickConnectionStub.resolves(undefined);
-      await workspaceCommand.resetScratchpadFromEditor();
-      assert.strictEqual(resetScratchpadStub.calledWith(""), true);
-    });
-
-    it("should not call resetScratchpad if activeTextEditor is not set", async () => {
-      ext.activeTextEditor = undefined;
-      await workspaceCommand.resetScratchpadFromEditor();
-      assert.strictEqual(resetScratchpadStub.called, false);
     });
   });
 });

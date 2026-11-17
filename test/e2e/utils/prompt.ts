@@ -22,8 +22,7 @@ import { until } from "./index";
  *
  * A notification's buttons are drawn by the workbench and there is no API that
  * presses one, so a command that asks before it acts cannot be driven to
- * either answer. This takes the same place the browser stand-in does in
- * utils/insights.ts: it replaces the part outside the extension — the reader —
+ * either answer. This replaces the part outside the extension — the reader —
  * and leaves the extension itself alone. Every notification is recorded, and
  * one is only answered when a test has said what to answer it with; anything
  * else is passed to the workbench and shown as usual.

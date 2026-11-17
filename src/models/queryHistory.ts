@@ -12,18 +12,15 @@
  */
 
 import { ServerType } from "./connectionsModels";
-import { DataSourceFiles, DataSourceTypes } from "./dataSource";
 
 export interface QueryHistory {
   executorName: string;
   connectionName: string;
   connectionType: ServerType;
-  query: string | DataSourceFiles;
+  query: string;
   time: string;
   success: boolean;
   language?: string;
-  isDatasource?: boolean;
-  datasourceType?: DataSourceTypes;
   isWorkbook?: boolean;
   duration?: string;
   isFromConnTree?: boolean;

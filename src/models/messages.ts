@@ -12,75 +12,12 @@
  */
 
 import { ConnectionType } from "./connectionsModels";
-import { DataSourceFiles } from "./dataSource";
-import { MetaObjectPayload } from "./meta";
-import { LabelSet, QueryFile } from "./query";
-import { UDA } from "./uda";
-
-export type DataSourceMessage = {
-  isInsights: boolean;
-  insightsMeta: MetaObjectPayload;
-  insightsUDAs: UDA[];
-  dataSourceName: string;
-  dataSourceFile: DataSourceFiles;
-  running?: boolean;
-  servers?: string[];
-  selectedServer?: string;
-};
-
-export const enum DataSourceCommand {
-  Update,
-  Change,
-  Server,
-  Timeout,
-  Save,
-  Run,
-  Populate,
-  Refresh,
-}
-
-export interface DataSourceMessage2 {
-  command: DataSourceCommand;
-  timeoutDefault: boolean;
-  timeoutUnit: string;
-  timeoutValue: number;
-  servers: string[];
-  selectedServer: string;
-  selectedServerVersion: string;
-  isInsights: boolean;
-  insightsMeta: MetaObjectPayload;
-  dataSourceFile: DataSourceFiles;
-  UDAs: UDA[];
-}
-
-export const enum QueryCommand {
-  Update,
-  Change,
-  Connection,
-  Save,
-  Run,
-  Populate,
-  Refresh,
-}
-
-export interface QueryMessage {
-  command: QueryCommand;
-  file: QueryFile;
-  queries: UDA[];
-  tables: { [table: string]: string[] };
-  targets: string[];
-  labels: LabelSet[];
-  isMetaLoaded: boolean;
-  selectedServer: string;
-}
 
 export interface EditConnectionMessage {
   connType: ConnectionType;
   serverName: string;
   serverAddress: string;
   port?: string;
-  realm?: string;
   auth?: boolean;
   tls?: boolean;
-  insecure?: boolean;
 }

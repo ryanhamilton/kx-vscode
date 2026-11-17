@@ -21,9 +21,8 @@ import * as vscode from "vscode";
  * A file dialog is drawn by the workbench — natively on macOS, as a quick
  * input when files.simpleDialog.enable is set — and there is no API that hands
  * one a path, so a command that asks for a file cannot be driven to an answer.
- * This takes the same place the reader does in utils/prompt.ts and the browser
- * does in utils/insights.ts: it replaces the part outside the extension, the
- * person choosing, and leaves the extension itself alone.
+ * This takes the same place the reader does in utils/prompt.ts: it replaces the
+ * part outside the extension, the person choosing, and leaves the extension itself alone.
  *
  * Every dialog is recorded together with the options it was raised with, so a
  * test can assert what the user was offered as well as what was done with the

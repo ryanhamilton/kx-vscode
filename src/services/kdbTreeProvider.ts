@@ -16,14 +16,8 @@ import * as vscode from "vscode";
 import { ext } from "../extensionVariables";
 import { ConnectionManagementService } from "./connectionManagerService";
 import { KdbTreeService } from "./kdbTreeService";
-import { InsightsConnection } from "../classes/insightsConnection";
 import { LocalConnection } from "../classes/localConnection";
-import {
-  InsightDetails,
-  Insights,
-  Server,
-  ServerDetails,
-} from "../models/connectionsModels";
+import { Server, ServerDetails } from "../models/connectionsModels";
 import { Labels } from "../models/labels";
 import {
   clearWorkspaceLabels,
@@ -32,29 +26,23 @@ import {
   retrieveConnLabelsNames,
 } from "../utils/connLabel";
 import {
-  getInsightsAlias,
   getServerAlias,
   getServerIconState,
   getServerName,
   getStatus,
 } from "../utils/core";
 import { getIconPath } from "../utils/iconsUtils";
-import { MessageKind, notify } from "../utils/notifications";
 
 export class KdbTreeProvider
   implements vscode.TreeDataProvider<vscode.TreeItem>
 {
   private _onDidChangeTreeData: vscode.EventEmitter<
-    KdbNode | InsightsNode | undefined | void
-  > = new vscode.EventEmitter<KdbNode | InsightsNode | undefined | void>();
-  readonly onDidChangeTreeData: vscode.Event<
-    KdbNode | InsightsNode | undefined | void
-  > = this._onDidChangeTreeData.event;
+    KdbNode | undefined | void
+  > = new vscode.EventEmitter<KdbNode | undefined | void>();
+  readonly onDidChangeTreeData: vscode.Event<KdbNode | undefined | void> =
+    this._onDidChangeTreeData.event;
 
-  constructor(
-    private serverList: Server,
-    private insightsList: Insights,
-  ) {}
+  constructor(private serverList: Server) {}
 
   reload(): void {
     this._onDidChangeTreeData.fire();
@@ -70,22 +58,7 @@ export class KdbTreeProvider
     this._onDidChangeTreeData.fire();
   }
 
-  refreshInsights(insightsList: Insights): void {
-    this.insightsList = insightsList;
-    this._onDidChangeTreeData.fire();
-  }
-
-  getTreeItem(element: KdbNode | InsightsNode): vscode.TreeItem {
-    if (
-      element instanceof InsightsMetaNode ||
-      element instanceof MetaObjectPayloadNode
-    ) {
-      element.command = {
-        command: "kdb.connections.open.meta",
-        title: "Open Meta Object",
-        arguments: [element],
-      };
-    }
+  getTreeItem(element: KdbNode): vscode.TreeItem {
     if (element instanceof QServerNode) {
       element.contextValue = ext.selectContentNodesContext[0];
     }
@@ -94,7 +67,7 @@ export class KdbTreeProvider
 
   async getChildren(element?: vscode.TreeItem): Promise<vscode.TreeItem[]> {
     clearWorkspaceLabels();
-    if (!this.serverList || !this.insightsList) {
+    if (!this.serverList) {
       return [];
     }
 
@@ -106,7 +79,7 @@ export class KdbTreeProvider
       let orphan, found;
       for (const item of items) {
         orphan = true;
-        if (item instanceof KdbNode || item instanceof InsightsNode) {
+        if (item instanceof KdbNode) {
           const labels = retrieveConnLabelsNames(item);
           for (const label of labels) {
             found = nodes.find((node) => label === node.source.name);
@@ -128,11 +101,6 @@ export class KdbTreeProvider
       ext.kdbrootNodes.indexOf(element.contextValue) !== -1
     ) {
       return Promise.resolve(await this.getNamespaces(element.contextValue));
-    } else if (
-      element.contextValue !== undefined &&
-      ext.kdbinsightsNodes.indexOf(element.contextValue) !== -1
-    ) {
-      return Promise.resolve(await this.getMetas(element.contextValue));
     } else if (element.contextValue === "ns") {
       return Promise.resolve(
         this.getCategories(
@@ -141,11 +109,6 @@ export class KdbTreeProvider
           (element as QNamespaceNode).connLabel,
         ),
       );
-    } else if (
-      element.contextValue === "meta" &&
-      element instanceof InsightsMetaNode
-    ) {
-      return Promise.resolve(this.getMetaObjects(element.connLabel));
     } else {
       return Promise.resolve(this.getServerObjects(element));
     }
@@ -154,40 +117,14 @@ export class KdbTreeProvider
   private getMergedElements(_element?: vscode.TreeItem): vscode.TreeItem[] {
     ext.connectionsList.length = 0;
     const servers = this.getChildElements(_element);
-    const insights = this.getInsightsChildElements();
-    ext.connectionsList.push(...servers, ...insights);
+    ext.connectionsList.push(...servers);
     ext.kdbConnectionAliasList.length = 0;
     getServerAlias(servers.map((x) => x.details));
-    getInsightsAlias(insights.map((x) => x.details));
-    return [...servers, ...insights];
+    return servers;
   }
 
   private getChildElements(_element?: vscode.TreeItem): KdbNode[] {
     return this.createLeafItems(this.serverList);
-  }
-
-  private getInsightsChildElements(_element?: InsightsNode): InsightsNode[] {
-    return this.createInsightLeafItems(this.insightsList);
-  }
-
-  private async getMetas(connLabel: string): Promise<InsightsMetaNode[]> {
-    /* c8 ignore start */
-    const connMng = new ConnectionManagementService();
-    const conn = connMng.retrieveConnectedConnection(connLabel);
-    if (conn) {
-      return [
-        new InsightsMetaNode(
-          [],
-          "meta",
-          "",
-          vscode.TreeItemCollapsibleState.Collapsed,
-          connLabel,
-        ),
-      ];
-    } else {
-      return new Array<InsightsMetaNode>();
-    }
-    /* c8 ignore stop */
   }
 
   private async getNamespaces(connLabel: string): Promise<QNamespaceNode[]> {
@@ -195,14 +132,6 @@ export class KdbTreeProvider
     const connMng = new ConnectionManagementService();
     const conn = connMng.retrieveConnectedConnection(connLabel);
     if (!conn) {
-      return new Array<QNamespaceNode>();
-    }
-    if (conn instanceof InsightsConnection) {
-      // For Insights connections, namespaces are not applicable for now
-      notify(
-        "Please connect to a KDB instance to view the objects",
-        MessageKind.INFO,
-      );
       return new Array<QNamespaceNode>();
     }
     const ns = await KdbTreeService.loadNamespaces(conn);
@@ -281,15 +210,6 @@ export class KdbTreeProvider
     const conn = connMng.retrieveConnectedConnection(connLabel);
 
     if (!conn) {
-      return null;
-    }
-
-    if (conn instanceof InsightsConnection) {
-      // For Insights connections server objects are not applicable now
-      notify(
-        "Please connect to a KDB instance to view the objects",
-        MessageKind.INFO,
-      );
       return null;
     }
 
@@ -430,87 +350,6 @@ export class KdbTreeProvider
     );
   }
 
-  private async getMetaObjects(
-    connLabel: string,
-  ): Promise<MetaObjectPayloadNode[]> {
-    /* c8 ignore start */
-    const connMng = new ConnectionManagementService();
-    const conn = connMng.retrieveConnectedConnection(connLabel);
-    const isInsights = conn instanceof InsightsConnection;
-    if (conn && isInsights) {
-      const meta = conn.meta;
-      if (!meta) {
-        return new Array<MetaObjectPayloadNode>();
-      }
-      const objects: MetaObjectPayloadNode[] = [];
-      if (meta.payload.schema) {
-        objects.push(
-          new MetaObjectPayloadNode(
-            [],
-            "schema",
-            "",
-            vscode.TreeItemCollapsibleState.None,
-            "schemaicon",
-            connLabel,
-          ),
-        );
-      }
-      if (meta.payload.api) {
-        objects.push(
-          new MetaObjectPayloadNode(
-            [],
-            "api",
-            "",
-            vscode.TreeItemCollapsibleState.None,
-            "apiicon",
-            connLabel,
-          ),
-        );
-      }
-      if (meta.payload.dap) {
-        objects.push(
-          new MetaObjectPayloadNode(
-            [],
-            "dap",
-            "",
-            vscode.TreeItemCollapsibleState.None,
-            "dapicon",
-            connLabel,
-          ),
-        );
-      }
-      if (meta.payload.rc) {
-        objects.push(
-          new MetaObjectPayloadNode(
-            [],
-            "rc",
-            "",
-            vscode.TreeItemCollapsibleState.None,
-            "rcicon",
-            connLabel,
-          ),
-        );
-      }
-      if (meta.payload.agg) {
-        objects.push(
-          new MetaObjectPayloadNode(
-            [],
-            "agg",
-            "",
-            vscode.TreeItemCollapsibleState.None,
-            "aggicon",
-            connLabel,
-          ),
-        );
-      }
-
-      return objects;
-    } else {
-      return new Array<MetaObjectPayloadNode>();
-    }
-    /* c8 ignore stop */
-  }
-
   private createLeafItems(servers: Server): KdbNode[] {
     const keys: string[] = Object.keys(servers);
     return keys.map(
@@ -524,24 +363,6 @@ export class KdbTreeProvider
             : vscode.TreeItemCollapsibleState.None,
         ),
     );
-  }
-
-  private createInsightLeafItems(insights: Insights): InsightsNode[] {
-    const connMng = new ConnectionManagementService();
-    const keys: string[] = Object.keys(insights);
-    return keys.map((x) => {
-      const isConnected = connMng.retrieveConnectedConnection(
-        insights[x].alias,
-      );
-      return new InsightsNode(
-        [],
-        insights[x].alias,
-        insights[x],
-        isConnected
-          ? vscode.TreeItemCollapsibleState.Collapsed
-          : vscode.TreeItemCollapsibleState.None,
-      );
-    });
   }
 }
 
@@ -638,90 +459,6 @@ export class KdbNode extends vscode.TreeItem {
   contextValue = this.label; // "root";
 }
 
-export class InsightsNode extends vscode.TreeItem {
-  constructor(
-    public readonly children: string[],
-    public readonly label: string,
-    public readonly details: InsightDetails,
-    public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-  ) {
-    super(label, collapsibleState);
-    this.initializeNode();
-  }
-
-  async initializeNode() {
-    // set context for root nodes
-    if (ext.kdbinsightsNodes.indexOf(this.label) === -1) {
-      const indexOriginalLabel = ext.kdbinsightsNodes.indexOf(this.label);
-      if (indexOriginalLabel !== -1) {
-        ext.kdbinsightsNodes.splice(indexOriginalLabel, 1);
-      }
-      ext.kdbinsightsNodes.push(this.label);
-      vscode.commands.executeCommand(
-        "setContext",
-        "kdb.insightsNodes",
-        ext.kdbinsightsNodes,
-      );
-    }
-
-    this.tooltip = await this.getTooltip();
-    this.description = this.getDescription();
-  }
-
-  async getTooltip(): Promise<vscode.MarkdownString> {
-    const connService = new ConnectionManagementService();
-    const tooltipMd = new vscode.MarkdownString();
-    const title = `${this.label} ${getStatus(this.label)}`;
-    tooltipMd.appendMarkdown(`### ${title} \n`);
-    tooltipMd.appendMarkdown(
-      `${this.details.server.replace(/:\/\//g, "&#65279;://")}`,
-    );
-    tooltipMd.appendMarkdown(`${this.details.alias} \n`);
-    const version = await connService.retrieveInsightsConnVersion(this.label);
-    const qeEnabled = await connService.retrieveInsightsConnQEEnabled(
-      this.label,
-    );
-    if (version !== "0") {
-      tooltipMd.appendMarkdown(`\nVersion: ${version}\n`);
-    }
-    if (qeEnabled !== undefined) {
-      tooltipMd.appendMarkdown(`\nQuery Environment(s): ${qeEnabled}`);
-    }
-    return tooltipMd;
-  }
-
-  getDescription(): string {
-    return this.collapsibleState === vscode.TreeItemCollapsibleState.None &&
-      this.children.length > 2
-      ? `${this.children[2]}:${"*".repeat(this.children[3].length)}`
-      : "";
-  }
-
-  iconPath = getNamedIconPath("conn-insights", this.label);
-
-  contextValue = this.label; // "root";
-}
-
-export class InsightsMetaNode extends vscode.TreeItem {
-  constructor(
-    public readonly children: string[],
-    public readonly label: string,
-    public readonly details: string,
-    public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-    public readonly connLabel: string,
-  ) {
-    super(label, collapsibleState);
-    this.description = this.getDescription();
-  }
-
-  getDescription(): string {
-    return "";
-  }
-
-  iconPath = getOtherIconPath("metaicon");
-  contextValue = "meta";
-}
-
 export class QNamespaceNode extends vscode.TreeItem {
   constructor(
     public readonly children: string[],
@@ -764,21 +501,6 @@ export class QCategoryNode extends vscode.TreeItem {
 
   iconPath = getOtherIconPath(this.label.toLowerCase());
   contextValue = this.ns; // "category";
-}
-
-export class MetaObjectPayloadNode extends vscode.TreeItem {
-  constructor(
-    public readonly children: string[],
-    public readonly label: string,
-    public readonly details: string,
-    public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-    public readonly coreIcon: string,
-    public readonly connLabel: string,
-  ) {
-    super(label, collapsibleState);
-    this.description = "";
-  }
-  iconPath = getOtherIconPath(this.coreIcon);
 }
 
 export class QServerNode extends vscode.TreeItem {

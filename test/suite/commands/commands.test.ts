@@ -42,8 +42,6 @@ describe("Commands", () => {
     });
     it("should have certain always visible commands", () => {
       const visible = [
-        "kdb.show.welcome",
-        "kdb.install.kdbx",
         "kdb.connections.export.all",
         "kdb.connections.import",
         "kdb.scratchpad.create",
@@ -52,8 +50,6 @@ describe("Commands", () => {
         "kdb.connections.add",
         "kdb.repl.start",
         "kdb.createNotebook",
-        "kdb.query.create",
-        "kdb.query.convert",
       ];
       const shown = palette.filter((cmd: any) => cmd.when === "true");
       assert.strictEqual(shown.length, visible.length);
@@ -64,9 +60,6 @@ describe("Commands", () => {
     it("should have certain visible commands depending on context", () => {
       const visible = [
         "kdb.file.pickConnection",
-        "kdb.file.pickTarget",
-        "kdb.file.populateScratchpad",
-        "kdb.scratchpad.editor.reset",
         "kdb.execute.selectedQuery",
         "kdb.execute.fileQuery",
         "kdb.scratchpad.python.run",
@@ -97,11 +90,8 @@ describe("Commands", () => {
         "kdb.execute.fileQuery",
         "kdb.scratchpad.python.run",
         "kdb.scratchpad.python.run.file",
-        "kdb.scratchpad.editor.reset",
-        "kdb.file.populateScratchpad",
         "kdb.execute.block",
         "kdb.toggleParameterCache",
-        "kdb.file.pickTarget",
       ];
       assert.strictEqual(bindings.length, keybindings.length);
       for (let i = 0; i < bindings.length; i++) {

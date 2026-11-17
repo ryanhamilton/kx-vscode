@@ -18,7 +18,7 @@ import { TreeItemCollapsibleState } from "vscode";
 
 import { ext } from "../../../src/extensionVariables";
 import { NewConnectionPannel } from "../../../src/panels/newConnection";
-import { InsightsNode, KdbNode } from "../../../src/services/kdbTreeProvider";
+import { KdbNode } from "../../../src/services/kdbTreeProvider";
 import * as connLabel from "../../../src/utils/connLabel";
 import * as loggers from "../../../src/utils/loggers";
 
@@ -35,16 +35,6 @@ describe("kdbNewConnectionPanel", () => {
   let _kdbOutputLogStub: sinon.SinonStub;
 
   const uriTest: vscode.Uri = vscode.Uri.parse("test");
-  const insightsNode = new InsightsNode(
-    [],
-    "insightsnode1",
-    {
-      server: "insightsservername",
-      alias: "insightsserveralias",
-      auth: true,
-    },
-    TreeItemCollapsibleState.None,
-  );
   const kdbNode = new KdbNode(
     [],
     "kdbnode1",
@@ -184,26 +174,6 @@ describe("kdbNewConnectionPanel", () => {
     NewConnectionPannel.render(uriTest);
     const expectedHtml = `<kdb-new-connection-view/>`;
     const actualHtml = mockWebview.html;
-    assert.ok(
-      actualHtml.indexOf(expectedHtml) !== -1,
-      "Panel HTML should include expected web component",
-    );
-  });
-
-  it("should render panel with edit connection data for insights", () => {
-    NewConnectionPannel.render(uriTest, insightsNode);
-    const expectedHtml = `<kdb-new-connection-view/>`;
-    const actualHtml = mockWebview.html;
-
-    assert.ok(
-      postMessageStub.calledWith(
-        sinon.match({
-          command: "editConnection",
-        }),
-      ),
-      "editConnection message should be posted",
-    );
-
     assert.ok(
       actualHtml.indexOf(expectedHtml) !== -1,
       "Panel HTML should include expected web component",

@@ -13,11 +13,9 @@
 
 import { ChildProcess } from "child_process";
 import { createHash } from "crypto";
-import { writeFile } from "fs/promises";
 import { pathExists } from "fs-extra";
 import { homedir } from "node:os";
 import path, { isAbsolute } from "node:path";
-import { tmpdir } from "os";
 import { join } from "path";
 import * as semver from "semver";
 import {
@@ -33,12 +31,7 @@ import { tryExecuteCommand } from "./cpUtils";
 import { MessageKind, notify } from "./notifications";
 import { errorMessage } from "./shared";
 import { readTextFile, stat, which } from "./shell";
-import {
-  InsightDetails,
-  Insights,
-  Server,
-  ServerDetails,
-} from "../models/connectionsModels";
+import { Server, ServerDetails } from "../models/connectionsModels";
 import { QueryResult } from "../models/queryResult";
 
 const logger = "core";
@@ -90,17 +83,9 @@ export function getKeyForServerName(name: string) {
     "servers",
     {},
   );
-  let result = Object.keys(servers).find(
+  const result = Object.keys(servers).find(
     (key) => servers[key].serverAlias === name,
   );
-  if (result) {
-    return result;
-  }
-  const insgihts = conf.get<{ [key: string]: { alias: string } }>(
-    "insightsEnterpriseConnections",
-    {},
-  );
-  result = Object.keys(insgihts).find((key) => insgihts[key].alias === name);
   return result || "";
 }
 
@@ -295,6 +280,12 @@ export async function getWorkspaceFolder(
   return undefined;
 }
 
+export async function updateServers(servers: Server): Promise<void> {
+  await workspace
+    .getConfiguration()
+    .update("kdb.servers", servers, ConfigurationTarget.Global);
+}
+
 export function getServers(): Server {
   const servers = workspace.getConfiguration().get<Server>("kdb.servers");
 
@@ -343,54 +334,6 @@ export function setOutputWordWrapper(): void {
   }
 }
 
-export function getInsights(): Insights {
-  const configuration = workspace.getConfiguration();
-  const insights = configuration.get<Insights>(
-    "kdb.insightsEnterpriseConnections",
-  );
-
-  if (insights && Object.keys(insights).length > 0) {
-    return Object.fromEntries(
-      Object.entries(insights).sort(([, a], [, b]) =>
-        a.alias.localeCompare(b.alias),
-      ),
-    );
-  } else {
-    const insightsList = configuration.get<Insights>("kdb.insights");
-    if (insightsList && Object.keys(insightsList).length > 0) {
-      updateInsights(insightsList);
-      configuration.update(
-        "kdb.insights",
-        undefined,
-        ConfigurationTarget.Global,
-      );
-      return Object.fromEntries(
-        Object.entries(insightsList).sort(([, a], [, b]) =>
-          a.alias.localeCompare(b.alias),
-        ),
-      );
-    }
-    updateInsights({});
-    return {};
-  }
-}
-
-export async function updateServers(servers: Server): Promise<void> {
-  await workspace
-    .getConfiguration()
-    .update("kdb.servers", servers, ConfigurationTarget.Global);
-}
-
-export async function updateInsights(insights: Insights): Promise<void> {
-  await workspace
-    .getConfiguration()
-    .update(
-      "kdb.insightsEnterpriseConnections",
-      insights,
-      ConfigurationTarget.Global,
-    );
-}
-
 export function getServerName(server: ServerDetails): string {
   return server.serverAlias != ""
     ? `${server.serverAlias} [${server.serverName}:${server.serverPort}]`
@@ -400,7 +343,7 @@ export function getServerName(server: ServerDetails): string {
 /**
  * The short display name of a connection label — the inverse of
  * {@link getServerName}. KDB labels carry a " [host:port]" suffix; strip it to
- * get the serverAlias. Insights labels and the REPL have no suffix and pass
+ * get the serverAlias. The REPL has no suffix and passes
  * through unchanged.
  */
 export function getConnShortName(connLabel: string): string {
@@ -414,22 +357,6 @@ export function getServerAlias(serverList: ServerDetails[]): void {
       ext.kdbConnectionAliasList.push(serverAlias);
     }
   });
-}
-
-export function tokenUndefinedError(connLabel: string): void {
-  notify(
-    `Error retrieving access token for Insights connection named: ${connLabel}`,
-    MessageKind.ERROR,
-    { logger },
-  );
-}
-
-export function invalidUsernameJWT(connLabel: string): void {
-  notify(
-    `JWT did not contain a valid preferred username for Insights connection: ${connLabel}`,
-    MessageKind.ERROR,
-    { logger },
-  );
 }
 
 export async function offerConnectAction(connLabel?: string) {
@@ -484,12 +411,6 @@ export function offerReconnectionAfterEdit(connLabel: string): void {
     }
   });
   /* c8 ignore stop */
-}
-
-export function getInsightsAlias(insightsList: InsightDetails[]): void {
-  insightsList.forEach((x) => {
-    ext.kdbConnectionAliasList.push(x.alias);
-  });
 }
 
 export function getServerIconState(connLabel: string): string {
@@ -727,19 +648,6 @@ export function isQuickAlias(alias: string | undefined) {
   return alias?.startsWith("(");
 }
 
-export function calculateSeconds(value: number, unit: string): number {
-  switch (unit) {
-    case "Seconds":
-      return value;
-    case "Minutes":
-      return value * 60;
-    case "Hours":
-      return value * 60 * 60;
-    default:
-      return value;
-  }
-}
-
 export function deconstructSeconds(seconds: number): {
   value: number;
   unit: "Seconds" | "Minutes" | "Hours";
@@ -753,18 +661,5 @@ export function deconstructSeconds(seconds: number): {
     return { value: minutes, unit: "Minutes" };
   } else {
     return { value: seconds, unit: "Seconds" };
-  }
-}
-
-export function formatSeconds(seconds: number): string {
-  const minutes = seconds / 60;
-  const hours = minutes / 60;
-
-  if (hours >= 1 && hours % 1 === 0) {
-    return `${hours}h`;
-  } else if (minutes >= 1 && minutes % 1 === 0) {
-    return `${minutes}m`;
-  } else {
-    return `${seconds}s`;
   }
 }

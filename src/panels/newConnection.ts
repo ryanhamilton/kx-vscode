@@ -16,7 +16,7 @@ import * as vscode from "vscode";
 import { ext } from "../extensionVariables";
 import { ConnectionType } from "../models/connectionsModels";
 import { EditConnectionMessage } from "../models/messages";
-import { InsightsNode, KdbNode } from "../services/kdbTreeProvider";
+import { KdbNode } from "../services/kdbTreeProvider";
 import {
   clearWorkspaceLabels,
   retrieveConnLabelsNames,
@@ -100,25 +100,10 @@ export class NewConnectionPannel {
 
     this._panel.webview.onDidReceiveMessage((message) => {
       /* c8 ignore start */
-      if (message.command === "kdb.connections.add.insights") {
-        vscode.commands.executeCommand(
-          "kdb.connections.add.insights",
-          message.data,
-          message.labels,
-        );
-      }
       if (message.command === "kdb.connections.add.kdb") {
         vscode.commands.executeCommand(
           "kdb.connections.add.kdb",
           message.data,
-          message.labels,
-        );
-      }
-      if (message.command === "kdb.connections.edit.insights") {
-        vscode.commands.executeCommand(
-          "kdb.connections.edit.insights",
-          message.data,
-          message.oldAlias,
           message.labels,
         );
       }
@@ -184,36 +169,21 @@ export class NewConnectionPannel {
         `;
   }
 
-  private static getConnectionType(
-    conn: KdbNode | InsightsNode,
-  ): ConnectionType {
-    if (conn instanceof InsightsNode) {
-      return ConnectionType.Insights;
-    } else {
-      return ConnectionType.Kdb;
-    }
+  private static getConnectionType(_conn: KdbNode): ConnectionType {
+    return ConnectionType.Kdb;
   }
 
   private static createEditConnectionMessage(
-    conn: KdbNode | InsightsNode,
+    conn: KdbNode,
     connType: ConnectionType,
   ): EditConnectionMessage {
     return {
       connType,
-      serverName:
-        conn instanceof InsightsNode
-          ? conn.details.alias
-          : conn.details.serverAlias,
-      serverAddress:
-        conn instanceof InsightsNode
-          ? conn.details.server
-          : conn.details.serverName,
-      realm: conn instanceof InsightsNode ? conn.details.realm : undefined,
-      port: conn instanceof KdbNode ? conn.details.serverPort : undefined,
+      serverName: conn.details.serverAlias,
+      serverAddress: conn.details.serverName,
+      port: conn.details.serverPort,
       auth: conn.details.auth,
-      tls: conn instanceof KdbNode ? conn.details.tls : undefined,
-      insecure:
-        conn instanceof InsightsNode ? conn.details.insecure : undefined,
+      tls: conn.details.tls,
     };
   }
 }

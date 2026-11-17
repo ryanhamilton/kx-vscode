@@ -21,10 +21,8 @@ import {
   QueryHistoryProvider,
   QueryHistoryTreeItem,
 } from "../../../../src/services/queryHistoryProvider";
-import { createMockDatasource } from "../../../fixtures/config/datasource";
 
 describe("queryHistoryProvider", () => {
-  const dummyDS = createMockDatasource();
   const dummyQueryHistory: QueryHistory[] = [
     {
       executorName: "testExecutorName",
@@ -32,7 +30,7 @@ describe("queryHistoryProvider", () => {
       time: "testTime",
       query: `testQuery\n long test query line counter ${"a".repeat(80)}`,
       success: true,
-      connectionType: ServerType.INSIGHTS,
+      connectionType: ServerType.KDB,
     },
     {
       executorName: "testExecutorName2",
@@ -58,7 +56,7 @@ describe("queryHistoryProvider", () => {
       executorName: "testExecutorName3",
       connectionName: "testConnectionName3",
       time: "testTime3",
-      query: dummyDS,
+      query: "testQuery3",
       success: false,
       connectionType: ServerType.KDB,
     },
