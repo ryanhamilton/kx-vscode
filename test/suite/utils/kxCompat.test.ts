@@ -200,5 +200,20 @@ describe("kxCompat", () => {
       assert.strictEqual(kx.kxMapEntry("connectionMap", uri, "a.q"), "SERVER");
       assert.strictEqual(kx.kxMapEntry("connectionMap", uri, "b.q"), undefined);
     });
+
+    it("hides a cleared entry from the kdb map", () => {
+      settings({
+        kdb: { connectionMap: { workspaceValue: { "a.q": "SERVER" } } },
+      });
+      const uri = vscode.Uri.file("/w/a.q");
+      assert.strictEqual(
+        kx.kxClearedEntry("connectionMap", uri, "a.q", ""),
+        "",
+      );
+      assert.strictEqual(
+        kx.kxClearedEntry("connectionMap", uri, "b.q", ""),
+        undefined,
+      );
+    });
   });
 });

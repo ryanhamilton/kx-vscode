@@ -16,7 +16,7 @@ import * as fs from "node:fs";
 import * as vscode from "vscode";
 
 import { file, focus, until, waitForLanguageServer } from "./utils";
-import { dial } from "./utils/connection";
+import { dial, labelOf } from "./utils/connection";
 import * as prompt from "./utils/prompt";
 import { FakeQ } from "./utils/qserver";
 
@@ -87,6 +87,7 @@ describe(KX ? "Beside the KX extension" : "Without the KX extension", () => {
       serverAlias,
       auth: false,
       tls: false,
+      managed: false,
     });
     const KX_SERVER = server("TESTKX", "25120");
     const OTHER_SERVER = server("TESTKXOTHER", "25121");
@@ -114,10 +115,10 @@ describe(KX ? "Beside the KX extension" : "Without the KX extension", () => {
     });
 
     after(async () => {
-      for (const label of ["TESTKX", "TESTKXOTHER"]) {
+      for (const server of [KX_SERVER, OTHER_SERVER]) {
         await vscode.commands.executeCommand(
           "peachq.connections.disconnect",
-          `${label} [127.0.0.1:${label === "TESTKX" ? 25120 : 25121}]`,
+          labelOf(server),
         );
       }
       await kx.close();
@@ -151,9 +152,9 @@ describe(KX ? "Beside the KX extension" : "Without the KX extension", () => {
     it("runs a file the workspace kdb.connectionMap assigns", async () => {
       // Connecting by label needs the tree rebuilt with the imported entries.
       await vscode.commands.executeCommand("peachq-servers.focus");
-      await dial("TESTKX [127.0.0.1:25120]", kx);
+      await dial(labelOf(KX_SERVER), kx);
       // Connected last, so it is what an unassigned file would run on.
-      await dial("TESTKXOTHER [127.0.0.1:25121]", other);
+      await dial(labelOf(OTHER_SERVER), other);
       await focus(MAPPED);
       kx.clear();
       other.clear();

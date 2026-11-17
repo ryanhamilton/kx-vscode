@@ -63,6 +63,7 @@ describe("Rebrand", () => {
       ["notebook", c.notebooks.map((x) => x.type)],
       ["custom editor", c.customEditors.map((x) => x.viewType)],
       ["keybinding", c.keybindings.map((x) => x.command)],
+      ["language", c.languages.map((x) => x.id)],
     ];
     for (const [kind, ids] of contributed) {
       it(`contributes no ${kind} with a KX prefix`, () => {

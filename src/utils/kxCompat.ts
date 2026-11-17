@@ -176,13 +176,25 @@ export async function offerImportFromKx(
   }
 }
 
+type KxMap = "connectionMap" | "targetMap" | "timeoutMap";
+
 // A team repo may still map files under kdb.*: read those until it migrates.
 export function kxMapEntry<T>(
-  setting: "connectionMap" | "targetMap" | "timeoutMap",
+  setting: KxMap,
   uri: Uri,
   path: string,
 ): T | undefined {
   return workspace
     .getConfiguration(KX_SECTION, uri)
     .get<Record<string, T | undefined>>(setting)?.[path];
+}
+
+// What clearing a peachq entry stores, so the kdb.* one stays hidden.
+export function kxClearedEntry<T>(
+  setting: KxMap,
+  uri: Uri,
+  path: string,
+  cleared: T,
+): T | undefined {
+  return kxMapEntry(setting, uri, path) === undefined ? undefined : cleared;
 }

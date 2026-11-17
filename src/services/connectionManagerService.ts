@@ -39,6 +39,10 @@ import {
 } from "../utils/core";
 import { MessageKind, notify } from "../utils/notifications";
 import { resetScratchpadStarted, sanitizeQuery } from "../utils/queryUtils";
+import {
+  validateServerPassword,
+  validateServerUsername,
+} from "../validators/kdbValidator";
 
 const logger = "connectionManagerService";
 
@@ -138,7 +142,11 @@ export class ConnectionManagementService {
     const title = `Connect to ${connection.details.serverAlias}`;
     const username =
       connection.details.username ??
-      (await window.showInputBox({ title, prompt: "Username" }));
+      (await window.showInputBox({
+        title,
+        prompt: "Username",
+        validateInput: validateServerUsername,
+      }));
     if (!username) {
       return undefined;
     }
@@ -146,6 +154,7 @@ export class ConnectionManagementService {
       title,
       prompt: `Password for ${username}`,
       password: true,
+      validateInput: validateServerPassword,
     });
     if (password === undefined) {
       return undefined;
@@ -171,6 +180,9 @@ export class ConnectionManagementService {
         const authCredentials = connection.details.auth
           ? await this.retrieveAuthData(connection)
           : undefined;
+        if (connection.details.auth && !authCredentials) {
+          return;
+        }
         const localConnection = new LocalConnection(
           connectionString,
           connLabel,

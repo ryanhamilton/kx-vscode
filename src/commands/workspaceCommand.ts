@@ -59,7 +59,7 @@ import {
   isQuickAlias,
   offerConnectAction,
 } from "../utils/core";
-import { kxMapEntry } from "../utils/kxCompat";
+import { kxClearedEntry, kxMapEntry } from "../utils/kxCompat";
 import { MessageKind, notify } from "../utils/notifications";
 import {
   RunFlag,
@@ -334,7 +334,8 @@ export async function setServerForUri(uri: Uri, server: string | undefined) {
     "connectionMap",
     {},
   );
-  map[relativePath(uri)] = server;
+  map[relativePath(uri)] =
+    server ?? kxClearedEntry("connectionMap", uri, relativePath(uri), "");
   await conf.update("connectionMap", map);
 }
 
@@ -371,7 +372,8 @@ export async function setTargetForUri(uri: Uri, target: string | undefined) {
   }
   const conf = workspace.getConfiguration("peachq", uri);
   const map = conf.get<{ [key: string]: string | undefined }>("targetMap", {});
-  map[relativePath(uri)] = target;
+  map[relativePath(uri)] =
+    target ?? kxClearedEntry("targetMap", uri, relativePath(uri), "");
   await conf.update("targetMap", map);
 }
 
@@ -433,7 +435,8 @@ export async function setTimeoutForUri(uri: Uri, timeout: number | undefined) {
         "timeoutMap",
         {},
       );
-      map[relativePath(uri)] = timeout;
+      map[relativePath(uri)] =
+        timeout ?? kxClearedEntry("timeoutMap", uri, relativePath(uri), 0);
       await conf.update("timeoutMap", map);
     }
     setTimeouttemText(uri, { source: "uri", value: timeout });
