@@ -9,7 +9,6 @@
     "type": "git",
     "url": "https://github.com/KxSystems/kx-vscode.git"
   },
-  "aiConnString": "InstrumentationKey=7efda3fc-3ece-4716-8512-703e8b3d5f9e;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/;ApplicationId=de289870-7089-416e-99f5-a7c4d2f16da6",
   "capabilities": {
     "untrustedWorkspaces": {
       "supported": true
@@ -96,12 +95,6 @@
           "default": false,
           "scope": "machine"
         },
-        "kdb.hideSubscribeRegistrationNotification": {
-          "type": "boolean",
-          "description": "Hide subscribe for registration notification",
-          "default": false,
-          "scope": "machine"
-        },
         "kdb.linting": {
           "type": "boolean",
           "description": "Enable linting",
@@ -152,12 +145,6 @@
           "type": "array",
           "description": "Labels connection map",
           "default": [],
-          "scope": "machine"
-        },
-        "kdb.hideSurvey": {
-          "type": "boolean",
-          "default": false,
-          "description": "Hide the extension survey dialog box",
           "scope": "machine"
         },
         "kdb.notebookRowLimit": {
@@ -553,11 +540,6 @@
         "category": "KX",
         "command": "kdb.help.suggestFeature",
         "title": "Suggest a Feature"
-      },
-      {
-        "category": "KX",
-        "command": "kdb.help.provideFeedback",
-        "title": "Provide Feedback"
       },
       {
         "category": "KX",
@@ -1012,10 +994,6 @@
           "when": "false"
         },
         {
-          "command": "kdb.help.provideFeedback",
-          "when": "false"
-        },
-        {
           "command": "kdb.help.reportBug",
           "when": "false"
         },
@@ -1459,7 +1437,7 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/KxSystems/kx-vscode/issues"
+    "url": "https://github.com/ryanhamilton/kx-vscode/issues"
   },
   "homepage": "https://kx.com",
   "prettier": {
@@ -1510,7 +1488,6 @@
     "@types/vscode-webview": "1.57.5",
     "@types/ws": "8.18.1",
     "@vscode/codicons": "0.0.46-24",
-    "@vscode/extension-telemetry": "1.4.0",
     "@vscode/python-environments": "1.4.0",
     "@vscode/test-electron": "3.1.0",
     "@vscode/vsce": "3.9.2",
@@ -1554,10 +1531,6 @@
     "ws": "8.21.3"
   },
   "overrides": {
-    "@microsoft/applicationinsights-core-js": "3.3.11",
-    "@microsoft/applicationinsights-channel-js": "3.3.11",
-    "@microsoft/applicationinsights-common": "3.3.11",
-    "@microsoft/applicationinsights-web-basic": "3.3.11",
     "lodash-es": ">=4.18.0",
     "serialize-javascript": ">=7.0.5",
     "fast-uri": ">=4.1.5",

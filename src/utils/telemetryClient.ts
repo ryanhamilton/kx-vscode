@@ -11,28 +11,16 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import { TelemetryReporter } from "@vscode/extension-telemetry";
 import { OutputChannel, window } from "vscode";
 
 export class ExtensionTelemetry {
   private readonly output?: OutputChannel;
-  private readonly reporter?: TelemetryReporter;
 
   private readonly defaultProperties: { [key: string]: any } = {};
 
-  constructor(aiConnString: string, enableTelemetry = true) {
-    const isTestRun = process.env.CODE_TEST || false;
-
-    if (enableTelemetry) {
-      if (isTestRun) {
-        this.output = window.createOutputChannel("telemetry-client-test");
-      } else {
-        try {
-          this.reporter = new TelemetryReporter(aiConnString);
-        } catch (error) {
-          console.log(error);
-        }
-      }
+  constructor(enableTelemetry = true) {
+    if (enableTelemetry && process.env.CODE_TEST) {
+      this.output = window.createOutputChannel("telemetry-client-test");
     }
   }
 
@@ -42,9 +30,6 @@ export class ExtensionTelemetry {
     measurements?: { [key: string]: number },
   ): void {
     const props = Object.assign({}, this.defaultProperties, properties);
-    if (this.reporter) {
-      this.reporter.sendTelemetryEvent(eventName, props, measurements);
-    }
     if (this.output) {
       this.output.appendLine(
         `telemetry/${eventName} ${JSON.stringify({ props, measurements })}`,
@@ -65,10 +50,6 @@ export class ExtensionTelemetry {
       stack: error.stack ?? "",
     };
 
-    if (this.reporter) {
-      this.reporter.sendTelemetryErrorEvent(error.name, props, measurements);
-    }
-
     if (this.output) {
       this.output.appendLine(
         `telemetry/exception ${JSON.stringify({ props, measurements })}`,
@@ -77,10 +58,6 @@ export class ExtensionTelemetry {
   }
 
   public async dispose(): Promise<void> {
-    if (this.reporter) {
-      await this.reporter.dispose();
-    }
-
     if (this.output) {
       await this.output.dispose();
     }

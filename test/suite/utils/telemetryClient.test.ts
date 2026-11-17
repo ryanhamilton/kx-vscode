@@ -11,29 +11,23 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import * as telemetryModule from "@vscode/extension-telemetry";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 
 import { ExtensionTelemetry } from "../../../src/utils/telemetryClient";
 
 describe("ExtensionTelemetry", () => {
-  let telemetryReporterMock: sinon.SinonStubbedInstance<telemetryModule.TelemetryReporter>;
+  let createOutputChannel: sinon.SinonStub;
   let outputChannelMock: any;
 
   beforeEach(() => {
-    telemetryReporterMock = sinon.createStubInstance(
-      telemetryModule.TelemetryReporter,
-    );
-    sinon
-      .stub(telemetryModule, "TelemetryReporter")
-      .returns(telemetryReporterMock as any);
-
     outputChannelMock = {
       appendLine: sinon.spy(),
       dispose: sinon.stub().resolves(),
     };
-    sinon.stub(vscode.window, "createOutputChannel").returns(outputChannelMock);
+    createOutputChannel = sinon
+      .stub(vscode.window, "createOutputChannel")
+      .returns(outputChannelMock);
   });
 
   afterEach(() => {
@@ -41,46 +35,20 @@ describe("ExtensionTelemetry", () => {
     delete process.env.CODE_TEST;
   });
 
-  it("should verify sendTelemetryEvent was called correctly", () => {
-    process.env.CODE_TEST = ""; // Production mode
-    const ext = new ExtensionTelemetry("conn-string", true);
-    const props = { category: "testing" };
-    const measurements = { duration: 100 };
-
-    ext.sendEvent("testEvent", props, measurements);
-
-    sinon.assert.calledOnce(telemetryReporterMock.sendTelemetryEvent);
-    sinon.assert.calledWith(
-      telemetryReporterMock.sendTelemetryEvent,
-      "testEvent",
-      sinon.match(props),
-      sinon.match(measurements),
-    );
-  });
-
-  it("should verify sendTelemetryErrorEvent was called correctly", () => {
+  it("should send nothing anywhere outside a test run", async () => {
     process.env.CODE_TEST = "";
-    const ext = new ExtensionTelemetry("conn-string", true);
-    const testError = new Error("critical failure");
-    testError.name = "DatabaseError";
+    const ext = new ExtensionTelemetry(true);
 
-    ext.sendError(testError, { userRole: "admin" });
+    ext.sendEvent("testEvent", { category: "testing" }, { duration: 100 });
+    ext.sendError(new Error("critical failure"));
+    await ext.dispose();
 
-    sinon.assert.calledOnce(telemetryReporterMock.sendTelemetryErrorEvent);
-    sinon.assert.calledWith(
-      telemetryReporterMock.sendTelemetryErrorEvent,
-      "DatabaseError",
-      sinon.match({
-        name: "DatabaseError",
-        message: "critical failure",
-        userRole: "admin",
-      }),
-    );
+    sinon.assert.notCalled(createOutputChannel);
   });
 
   it("should verify output channel logging in test mode", () => {
-    process.env.CODE_TEST = "true"; // Test mode
-    const ext = new ExtensionTelemetry("conn-string", true);
+    process.env.CODE_TEST = "true";
+    const ext = new ExtensionTelemetry(true);
 
     ext.sendEvent("clickAction", { button: "left" });
 
@@ -91,12 +59,27 @@ describe("ExtensionTelemetry", () => {
     );
   });
 
+  it("should log errors to the output channel in test mode", () => {
+    process.env.CODE_TEST = "true";
+    const ext = new ExtensionTelemetry(true);
+    const testError = new Error("critical failure");
+    testError.name = "DatabaseError";
+
+    ext.sendError(testError, { userRole: "admin" });
+
+    sinon.assert.calledWithMatch(
+      outputChannelMock.appendLine,
+      /telemetry\/exception .*DatabaseError.*critical failure/,
+    );
+  });
+
   it("should verify nothing is called when telemetry is disabled", () => {
-    const ext = new ExtensionTelemetry("conn-string", false);
+    process.env.CODE_TEST = "true";
+    const ext = new ExtensionTelemetry(false);
 
     ext.sendEvent("unusedEvent");
 
-    sinon.assert.notCalled(telemetryReporterMock.sendTelemetryEvent);
+    sinon.assert.notCalled(createOutputChannel);
     sinon.assert.notCalled(outputChannelMock.appendLine);
   });
 });

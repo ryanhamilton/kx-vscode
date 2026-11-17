@@ -32,8 +32,4 @@ Project Wiki is available at:
 
 ## Data and Telemetry
 
-The KX kdb Extension for Visual Studio Code collects usage data and sends it to
-KX to help improve our products and services. Read our
-[privacy statement](https://kx.com/privacy-policy/) to learn more. This
-extension respects the telemetry settings. To learn more, see the
-[Visual Studio Code telemetry documentation](https://code.visualstudio.com/docs/supporting/faq#_how-to-disable-telemetry-reporting).
+This extension collects no usage data and sends no telemetry.

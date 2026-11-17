@@ -1,5 +1,16 @@
 # CLAUDE.md
 
+> **RULE ZERO — WE NEVER, EVER RUN KX q.** Not kdb+, not KDB-X, not kdb+ Personal
+> Edition, not in a container, not "just to check". Never download, install or
+> license it. Every q we run is peachq (`/home/ubuman/dev/rayforce/q`) or a test
+> stand-in. Expected kdb behaviour comes from published docs
+> (`/home/ubuman/dev/rayforce/qdocs/`) or third-party code, never from running it.
+> End users may run KX q with this extension and report bugs; we reproduce them
+> on peachq or from the docs. This means `npm run q-test` (qcumber in the
+> `qpbuild` image) and the KX-q path of `tools/manual-test` are off limits —
+> their replacements are qunit on peachq and the manual-test tool pointed at
+> peachq, headless.
+
 ## Overview
 
 The **kdb VS Code extension** (`KX.kdb`) — an IDE for the q language and the kdb
@@ -188,7 +199,8 @@ events change.
 - **Dependencies**: pin every package to an absolute version (no `^`/`~`) and
   commit the updated `package-lock.json`.
 - **Branching**: PRs target `dev` (the default branch), not `main`.
-- **Commit messages**: a single line, no body and no `Co-Authored-By` trailer.
+- **Commit messages**: a single line, no body and no `Co-Authored-By` trailer,
+  and no tool or model names in commits or PR text.
   Lead with the affected area, then a comma-separated summary, e.g.
   `REPL: add word nav/delete keys, route orphan files to active REPL, dedupe query normalization`.
 - **Squashing**: interactive rebase isn't available here — soft-reset instead,

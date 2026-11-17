@@ -121,10 +121,8 @@ import {
   getServers,
   hasWorkspaceOrShowOption,
 } from "./utils/core";
-import { handleFeedbackSurvey } from "./utils/feedbackSurveyUtils";
 import { getIconPath } from "./utils/iconsUtils";
 import { MessageKind, notify, Runner } from "./utils/notifications";
-import { showRegistrationNotification } from "./utils/registration";
 import AuthSettings from "./utils/secretStorage";
 import { ExtensionTelemetry } from "./utils/telemetryClient";
 import { addWorkspaceFile, openWith, setUriContent } from "./utils/workspace";
@@ -156,7 +154,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const extensionPackage = context.extension.packageJSON;
   const extensionVersion = extensionPackage.version || "unknown";
-  const aiConnString = extensionPackage.aiConnString;
 
   const isRCExtension = extensionVersion.includes("rc");
   const enableTelemetry = isRCExtension
@@ -164,7 +161,7 @@ export async function activate(context: vscode.ExtensionContext) {
     : vscode.workspace.getConfiguration("telemetry").get("telemetryLevel") !==
       "off";
 
-  ext.telemetry = new ExtensionTelemetry(aiConnString, enableTelemetry);
+  ext.telemetry = new ExtensionTelemetry(enableTelemetry);
 
   getWorkspaceLabelsConnMap();
   getWorkspaceLabels();
@@ -425,8 +422,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
   setTimeout(() => {
     checkLocalInstall();
-    showRegistrationNotification();
-    handleFeedbackSurvey();
   }, 500);
 
   notify("kdb extension is now active.", MessageKind.DEBUG, {
@@ -471,16 +466,6 @@ function registerHelpCommands(): CommandRegistration[] {
           telemetry: "Help.Open.SuggestFeature",
         });
         vscode.env.openExternal(vscode.Uri.parse(ext.urlLinks.suggestFeature));
-      },
-    },
-    {
-      command: "kdb.help.provideFeedback",
-      callback: () => {
-        notify("Help&Feedback survey selected.", MessageKind.DEBUG, {
-          logger,
-          telemetry: "Help.Open.Survey",
-        });
-        vscode.env.openExternal(vscode.Uri.parse(ext.urlLinks.survey));
       },
     },
     {
