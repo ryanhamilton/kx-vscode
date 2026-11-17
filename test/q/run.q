@@ -8,7 +8,7 @@ if[not 10h=type @[value;`.pq.version;0]; -2 "run.q: this q is not peachq (no .pq
 
 target:$[count .z.x; first .z.x; "test/q/qunit"];
 isDir:{11h=type key hsym `$x};
-child:{[file] " " sv (.z.X 0; .z.X 1; file),.z.X where .z.X like "-*"};
+child:{[file] " " sv {"'",ssr[x; "'"; "'\\''"],"'"} each (.z.X 0; .z.X 1; file),.z.X where .z.X like "-*"};
 
 runFile:{[file]
     out:system child[file]," 2>&1; echo qtest-exit=$?";
