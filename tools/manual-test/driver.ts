@@ -89,6 +89,7 @@ async function main() {
   if (process.env.MT_LD_LIBRARY_PATH)
     env.LD_LIBRARY_PATH = process.env.MT_LD_LIBRARY_PATH;
 
+  const headless = !!process.env.HEADLESS && !a.headed;
   const app = await electron.launch({
     executablePath: exe,
     env,
@@ -102,10 +103,23 @@ async function main() {
       "--disable-gpu",
       "--disable-workspace-trust",
       "--skip-release-notes",
+      // No OS keyring on CI runners: VS Code would block on a modal about it.
+      "--password-store=basic",
+      ...(headless ? ["--ozone-platform=headless"] : []),
     ],
   });
   const win = await app.firstWindow();
   await win.waitForSelector(".monaco-workbench", { timeout: 90000 });
+  // A headless window opens at about 400x270, too small to lay the workbench out.
+  if (headless)
+    await app.evaluate(({ BrowserWindow }) =>
+      BrowserWindow.getAllWindows()[0].setBounds({
+        x: 0,
+        y: 0,
+        width: 1600,
+        height: 1000,
+      }),
+    );
   // First-run onboarding modal (two steps); harmless if absent.
   await win
     .getByText("Continue without Signing In")

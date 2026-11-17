@@ -91,3 +91,40 @@ jobs:
       - run: npm run q-test
       - name: A failing qunit file makes the runner exit non-zero
         run: '! "$PEACHQ_Q" test/q/run.q test/q/qunit-fixture -classic < /dev/null'
+
+  manual-test-smoke:
+    name: Manual-test walkthrough (headless, peachq)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.x
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            tools/manual-test/package-lock.json
+      - name: Read the pinned peachq build
+        id: peachq-version
+        run: echo "version=$(cat .peachq-version)" >> "$GITHUB_OUTPUT"
+      - uses: peachq-org/setup-peachq@79cbbe80c40ee7450a2f9bb6db16d64b5b08946c # v1.0.0
+        with:
+          version: ${{ steps.peachq-version.outputs.version }}
+      - run: npm ci
+      - run: npm run build
+      - run: npm ci
+        working-directory: tools/manual-test
+      - run: node smoke.ts
+        working-directory: tools/manual-test
+        env:
+          HEADLESS: 1
+      - name: Upload the walkthrough screenshot
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: manual-test-smoke
+          path: |
+            tools/manual-test/.work/shots/
+            tools/manual-test/.work/driver.log
+          retention-days: 14
+          include-hidden-files: true

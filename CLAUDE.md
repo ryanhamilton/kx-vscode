@@ -8,8 +8,8 @@
 > End users may run KX q with this extension and report bugs; we reproduce them
 > on peachq or from the docs. The old qcumber path (`qcumber.sh`, the `qpbuild`
 > image) is gone; `npm run q-test` now runs qunit on peachq only and refuses any
-> q without `.pq.version`. The KX-q path of `tools/manual-test` is off limits —
-> its replacement is the manual-test tool pointed at peachq, headless.
+> q without `.pq.version`. `tools/manual-test` likewise starts only peachq, and
+> agents run it headless.
 
 ## Overview
 
@@ -39,13 +39,18 @@ F5 launches the Extension Development Host (needs a prior `build` or `watch`).
 ### Manual testing (agent-driven)
 
 An agent can test the extension like a human tester: it drives a real VS Code
-window (via Playwright) against real authenticated q, one command at a time,
-reading what is on screen and adapting. Read
+(via Playwright) against authenticated peachq, one command at a time, reading
+what is on screen and adapting. Read
 [tools/manual-test/README.md](tools/manual-test/README.md) first; it covers
 setup, the commands and the pinned VS Code version.
 
+Agents run it **headless and on peachq only**: `HEADLESS=1` with `DISPLAY` and
+`WAYLAND_DISPLAY` unset, never `--headed` (that flag is for a human watching).
+`qserver.ts` starts only a q that answers `.pq.version`. `node smoke.ts` in
+`tools/manual-test` is the scripted walkthrough CI runs.
+
 It is slow and token-expensive, so use it only when asked, or for what
-`test:e2e` (below) can't cover: real q, real webview rendering and interaction,
+`test:e2e` (below) can't cover: real peachq, real webview rendering and interaction,
 exploratory or release walkthroughs. Otherwise prefer `test:e2e`. On native
 Windows, where e2e doesn't run, tell the user `test:e2e` would be faster under
 WSL.
@@ -78,7 +83,7 @@ extension through its real commands with nothing stubbed — real workspace
 settings, real language server. The test files sit in `test/e2e/`, everything
 they are built out of in `test/e2e/utils/`. Stand-ins replace everything outside
 the extension and record what they are sent: `fakeq/bin/q` for the REPL (reached
-through `kdb.qHomeDirectoryWorkspace`, writing a `.transcript.log` per REPL),
+through `peachq.qHomeDirectoryWorkspace`, writing a `.transcript.log` per REPL),
 `utils/qserver.ts`, an in-process kdb+ IPC server for connections, and
 `utils/insightsServer.ts`, an Insights instance over HTTPS with a self-signed
 certificate (`test/e2e/certs/`, generated on the first run) whose reported
@@ -148,7 +153,7 @@ asset.
 q language features over LSP. Parsing uses **Chevrotain** in
 `server/src/parser/` (lexer, tokens, parser, semantic checks); `qlint` rules
 live in `server/src/linter/`. The client connects in `extension.ts`
-(`documentSelector` = language `q`, including q cells in `kx-notebook`).
+(`documentSelector` = language `q`, including q cells in `peachq-notebook`).
 
 ### q runtime scripts (`resources/q/`)
 
@@ -164,7 +169,7 @@ model used by locked-down processes.
 Custom file types the extension owns: `.kxquery` (Query editor — getData, qSQL,
 SQL and UDAs), `.plot` (Chart viewer), `.kxnb` (KX Notebook), `.kdb.q`/
 `.kdb.py`/`.kdb.sql` (Workbooks/scratchpads). Each workbook/query is mapped to a
-connection and execution target via the `kdb.connectionMap`/`kdb.targetMap`
+connection and execution target via the `peachq.connectionMap`/`peachq.targetMap`
 workspace settings.
 
 Datasources (`.kdb.json`) are gone: opening one converts it to a `.kxquery` —

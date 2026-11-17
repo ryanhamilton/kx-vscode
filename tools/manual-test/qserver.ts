@@ -11,8 +11,9 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Start/stop real q processes for manual testing. A listening port ALWAYS gets
-// a -U users file: this tool refuses to start an unauthenticated q.
+// Start/stop peachq processes for manual testing. A listening port ALWAYS gets
+// a -U users file: this tool refuses to start an unauthenticated q, or any q
+// that is not peachq.
 //
 //   node qserver.ts start [--port 5000] [--user tester] [--password pw] [--q <path>]
 //   node qserver.ts stop [--port 5000]      (no --port: stop all)
@@ -23,7 +24,6 @@ import net from "node:net";
 
 import {
   fs,
-  os,
   path,
   p,
   ensure,
@@ -38,32 +38,38 @@ const dir = () => ensure(p("q"));
 const stateFile = (port: number | string) => path.join(dir(), `q-${port}.json`);
 
 function findQ(explicit?: string) {
-  if (explicit && !fs.existsSync(explicit))
-    throw new Error(`q not found at ${explicit}`);
-  const cands = [explicit, process.env.QBIN];
-  const exe = process.platform === "win32" ? "q.exe" : "q";
-  const home = os.homedir();
-  cands.push(path.join(home, ".kx", "bin", exe));
-  if (process.env.QHOME) {
-    const sub = (
-      { win32: "w64", darwin: "m64", linux: "l64" } as Record<string, string>
-    )[process.platform];
-    cands.push(path.join(process.env.QHOME, sub, exe));
-  }
+  let q = explicit || process.env.PEACHQ_Q;
+  if (!q)
+    try {
+      q = execFileSync(
+        process.platform === "win32" ? "where" : "which",
+        ["q"],
+        { encoding: "utf8" },
+      )
+        .split(/\r?\n/)[0]
+        .trim();
+    } catch {
+      // q is not on PATH
+    }
+  if (!q) throw new Error("q not found: pass --q <path> or set PEACHQ_Q");
+  if (!fs.existsSync(q)) throw new Error(`q not found at ${q}`);
+  let version = "";
   try {
-    const w = execFileSync(
-      process.platform === "win32" ? "where" : "which",
-      ["q"],
-      { encoding: "utf8" },
-    )
-      .split(/\r?\n/)[0]
-      .trim();
-    if (w) cands.push(w);
+    version = execFileSync(q, ["-q"], {
+      input: '-1 "pq:",.pq.version;exit 0\n',
+      encoding: "utf8",
+      timeout: 10000,
+      stdio: ["pipe", "pipe", "ignore"],
+    });
   } catch {
-    // q is not on PATH: fall through to the other candidates
+    // did not start or did not exit: not peachq either way
   }
-  for (const c of cands) if (c && fs.existsSync(c)) return c;
-  throw new Error("q not found: pass --q <path> or set QBIN");
+  const m = version.match(/^pq:(\S+)/m);
+  if (!m)
+    throw new Error(
+      `${q} is not peachq (no .pq.version); refusing to start it. Install peachq: see tools/manual-test/README.md`,
+    );
+  return { q, version: m[1] };
 }
 
 function probe(port: number | string) {
@@ -79,13 +85,13 @@ async function start(a: ParsedArgs) {
   if (readJson(stateFile(port)) && isAlive(readJson(stateFile(port)).keeper))
     throw new Error(`a q is already managed on port ${port}; stop it first`);
   if (await probe(port)) throw new Error(`port ${port} is already in use`);
+  const { q, version } = findQ(a.q);
   const user = a.user || "tester";
   const password = a.password || "pw" + Math.random().toString(36).slice(2, 10);
   const users = path.join(dir(), `users-${port}.txt`);
   // q's -U file takes user:md5(password): keep the plain password off disk.
   const md5 = crypto.createHash("md5").update(password).digest("hex");
   fs.writeFileSync(users, `${user}:${md5}\n`, { mode: 0o600 });
-  const q = findQ(a.q);
   const keeper = spawn(
     process.execPath,
     [import.meta.filename, "_keeper", String(port), q, users],
@@ -96,13 +102,21 @@ async function start(a: ParsedArgs) {
     await sleep(200);
     if (await probe(port)) {
       const st = readJson(stateFile(port));
-      return { port, user, password, q, pid: st && st.pid, host: "127.0.0.1" };
+      return {
+        port,
+        user,
+        password,
+        q,
+        version,
+        pid: st && st.pid,
+        host: "127.0.0.1",
+      };
     }
   }
   // Never leave the credentials behind when q failed to come up.
   fs.rmSync(users, { force: true });
   fs.rmSync(stateFile(port), { force: true });
-  throw new Error("q did not start listening within 10s (licence problem?)");
+  throw new Error("q did not start listening within 10s");
 }
 
 // Long-lived parent that owns q's stdin, so q does not exit on EOF.
@@ -136,7 +150,7 @@ async function stop(a: ParsedArgs) {
   const out: number[] = [];
   for (const f of files) {
     const st = readJson(path.join(dir(), f));
-    if (!st || (a.port && Number(a.port) !== st.port)) continue;
+    if (!st || (a.port && Number(a.port) !== Number(st.port))) continue;
     // The keeper deletes the state file when q exits, so a state file whose
     // keeper is gone or whose port is not listening is stale and its pids may
     // have been reused by unrelated processes: clean up, but never kill.
