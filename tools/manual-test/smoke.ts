@@ -25,13 +25,19 @@ delete env.DISPLAY;
 delete env.WAYLAND_DISPLAY;
 delete env.ELECTRON_RUN_AS_NODE;
 
-const tool = (script: string, ...args: string[]) => {
-  console.log(`$ node ${script} ${args.join(" ")}`);
-  const out = execFileSync(
+const run = (script: string, ...args: string[]) =>
+  execFileSync(
     process.execPath,
     [path.join(import.meta.dirname, script), ...args],
-    { env, encoding: "utf8", timeout: 300000 },
+    {
+      env,
+      encoding: "utf8",
+      timeout: 300000,
+    },
   );
+const tool = (script: string, ...args: string[]) => {
+  console.log(`$ node ${script} ${args.join(" ")}`);
+  const out = run(script, ...args);
   console.log(out.trimEnd());
   return out;
 };
@@ -98,7 +104,9 @@ async function main() {
   const port = await freePort();
   refusesFakeQ(port);
 
-  const q = JSON.parse(tool("qserver.ts", "start", "--port", String(port)));
+  console.log(`$ node qserver.ts start --port ${port}`);
+  const q = JSON.parse(run("qserver.ts", "start", "--port", String(port)));
+  console.log(`peachq ${q.version} on ${port}, user ${q.user}`);
   try {
     cli("start");
     cli("palette", "peachq: New Connection", "--settle", "3000");
@@ -110,7 +118,8 @@ async function main() {
     fill("Define connection address", "127.0.0.1");
     fill("Set port number", String(port));
     fill("Username", q.user);
-    fill("Password", q.password);
+    console.log("$ node cli.ts wv.fill 0 label:Password *** --no-snap");
+    run("cli.ts", "wv.fill", "0", "label:Password", q.password, "--no-snap");
     cli("wv.click", "0", "Create Connection", "--settle", "3000");
 
     const node = `smoke [127.0.0.1:${port}]`;
