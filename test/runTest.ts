@@ -24,7 +24,13 @@ async function main() {
       // The same isolation the debug configurations run under: nothing but the
       // extension under development, and a throwaway profile rather than the
       // developer's own.
-      launchArgs: ["--disable-extensions", "--profile-temp"],
+      launchArgs: [
+        "--disable-extensions",
+        "--profile-temp",
+        ...(process.env.HEADLESS
+          ? ["--ozone-platform=headless", "--disable-gpu"]
+          : []),
+      ],
     });
   } catch (err) {
     console.error(err);
