@@ -406,7 +406,7 @@ describe("REPL", () => {
 
     it("should activate the environment before starting q", async () => {
       await ReplConnectionClass.openInFolder(folder);
-      sinon.assert.calledWith(spawnStub, started("/q/bin/q"));
+      sinon.assert.calledWith(spawnStub, started("/q/bin/q -q"));
     });
 
     it("should pass a q path the shell would change through the environment", async () => {
@@ -417,7 +417,7 @@ describe("REPL", () => {
       await ReplConnectionClass.openInFolder(folder);
       sinon.assert.calledWithMatch(
         spawnStub,
-        started(win32 ? '"%KX_REPL_ARG_0%"' : '"$KX_REPL_ARG_0"'),
+        started(win32 ? '"%KX_REPL_ARG_0%" -q' : '"$KX_REPL_ARG_0" -q'),
         { env: sinon.match({ KX_REPL_ARG_0: "/Users/Jo $HOME/q/bin/q" }) },
       );
     });
@@ -454,7 +454,7 @@ describe("REPL", () => {
         spawnStub.firstCall.args[1].env.PYKX_EXECUTABLE,
         undefined,
       );
-      sinon.assert.calledWith(spawnStub, started("/q/bin/q"));
+      sinon.assert.calledWith(spawnStub, started("/q/bin/q -q"));
     });
 
     it("should name the environment in the prompt", async () => {
@@ -469,7 +469,7 @@ describe("REPL", () => {
       });
       const instance = await ReplConnectionClass.openInFolder(folder);
       assert.strictEqual(instance["prefix"], "");
-      sinon.assert.calledWith(spawnStub, "/q/bin/q");
+      sinon.assert.calledWith(spawnStub, "/q/bin/q -q");
     });
 
     it("should point PyKX at an environment with nothing to activate", async () => {
@@ -478,7 +478,7 @@ describe("REPL", () => {
         execInfo: { run: venv.execInfo.run },
       });
       await ReplConnectionClass.openInFolder(folder);
-      sinon.assert.calledWithMatch(spawnStub, "/q/bin/q", {
+      sinon.assert.calledWithMatch(spawnStub, "/q/bin/q -q", {
         env: sinon.match({ PYKX_EXECUTABLE: "/ws/py/.venv/bin/python" }),
       });
     });
@@ -486,7 +486,7 @@ describe("REPL", () => {
     it("should ignore an environment with an error", async () => {
       getEnvironmentStub.resolves({ ...venv, error: "python is missing" });
       await ReplConnectionClass.openInFolder(folder);
-      sinon.assert.calledWith(spawnStub, "/q/bin/q");
+      sinon.assert.calledWith(spawnStub, "/q/bin/q -q");
       assert.strictEqual(
         spawnStub.firstCall.args[1].env.PYKX_EXECUTABLE,
         undefined,
@@ -496,7 +496,7 @@ describe("REPL", () => {
     it("should start q without the Python Environments extension", async () => {
       apiStub.rejects(new Error("not installed"));
       await ReplConnectionClass.openInFolder(folder);
-      sinon.assert.calledWith(spawnStub, "/q/bin/q");
+      sinon.assert.calledWith(spawnStub, "/q/bin/q -q");
     });
   });
 

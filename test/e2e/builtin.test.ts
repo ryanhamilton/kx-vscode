@@ -19,7 +19,16 @@ import * as os from "node:os";
 import * as path from "node:path";
 import * as vscode from "vscode";
 
-import { activate, focus, terminal, terminalText, until } from "./utils";
+import {
+  activate,
+  discardNotebook,
+  executeNotebook,
+  focus,
+  qNotebook,
+  terminal,
+  terminalText,
+  until,
+} from "./utils";
 
 // Run by `npm run test:e2e:bare`, in a window test/runE2E.ts opens with an
 // empty HOME, PATH and workspace: the bundled peachq is the only q there is.
@@ -133,5 +142,15 @@ describe("The built-in peachq connection, with no q installed", () => {
     );
     await until(() => bundledProcess() === undefined, "peachq to stop");
     assert.ok(!fs.existsSync(users), `${users} is still there`);
+  });
+
+  it("runs the REPL on the bundled peachq", async () => {
+    const folder = vscode.workspace.workspaceFolders![0].uri;
+    const notebook = await qNotebook(vscode.Uri.joinPath(folder, "repl.kxnb"), [
+      "1+1",
+    ]);
+    assert.deepStrictEqual(await executeNotebook(notebook), ["2\r\n"]);
+    assert.ok(bundledProcess()?.args.includes("-q"), "no bundled peachq REPL");
+    await discardNotebook(notebook);
   });
 });

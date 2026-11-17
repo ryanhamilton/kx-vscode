@@ -1,0 +1,31 @@
+name: CI (macOS)
+
+# Separate from ci.yml, whose concurrency cancels a run on every newer push:
+# the macOS job waited so long for a hosted runner that it was always
+# cancelled before it started. Pull requests skip it.
+on:
+  push:
+    branches: [dev]
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-macos
+  cancel-in-progress: false
+
+jobs:
+  unit:
+    name: Unit tests (macos-latest)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci
+      - run: npm test
