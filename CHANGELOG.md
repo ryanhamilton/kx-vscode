@@ -23,3 +23,6 @@ history: https://github.com/KxSystems/kx-vscode/blob/main/CHANGELOG.md
   without it. The connections panel lists **peachq (built-in)**, which starts
   that peachq on `127.0.0.1` with a one-off password on connect and stops it on
   disconnect. The REPL falls back to it only when no other q is found.
+- The REPL starts q in quiet mode (`-q`), so piped input is not echoed back
+  with a `q)` prompt, and an error in a query is printed with its backtrace and
+  no longer leaves the REPL waiting: the next query runs.

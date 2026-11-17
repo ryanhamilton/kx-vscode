@@ -37,8 +37,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Hosted macOS runners are often unavailable, so pull requests skip them.
-        os: ${{ github.event_name == 'pull_request' && fromJSON('["ubuntu-latest","windows-latest"]') || fromJSON('["ubuntu-latest","macos-latest","windows-latest"]') }}
+        # macOS runs in ci-macos.yml, where a newer push cannot cancel it.
+        os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -82,6 +82,16 @@ jobs:
           HEADLESS: 1
       - name: End to end tests with no q installed but the bundled peachq
         run: npm run test:e2e:bare
+        env:
+          HEADLESS: 1
+      - name: Read the pinned peachq build
+        id: peachq-version
+        run: echo "version=$(cat .peachq-version)" >> "$GITHUB_OUTPUT"
+      - uses: peachq-org/setup-peachq@79cbbe80c40ee7450a2f9bb6db16d64b5b08946c # v1.0.0
+        with:
+          version: ${{ steps.peachq-version.outputs.version }}
+      - name: REPL contract on peachq
+        run: npm run test:e2e:peachq
         env:
           HEADLESS: 1
 

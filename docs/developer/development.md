@@ -220,7 +220,15 @@ any. It builds files only and publishes nothing; CI uploads them as an artifact.
 empty `HOME`, `PATH` and workspace, where the bundled peachq is the only q: the
 built-in connection answers `1+1`, listens on `127.0.0.1` only, and stops on
 disconnect. `node smoke.ts --builtin` in `tools/manual-test` is the same
-walkthrough as `node smoke.ts` on that connection.
+walkthrough as `node smoke.ts` on that connection. It also runs the REPL there,
+which falls back to the bundled peachq.
+
+`PEACHQ_Q=<peachq binary> npm run test:e2e:peachq` runs
+`test/e2e/replPeachq.test.ts` in a window whose only q is that peachq, pinning
+the REPL contract as qdocs documents kdb: exact output, errors that leave the
+next query running, multi-line cells and the fatal timestamped exit. Rows
+peachq breaks are skipped, each with its `NOTES-FOR-PEACHQ.md` line. Without
+`PEACHQ_Q` the suite skips itself. CI runs it on the pinned peachq.
 
 ## Restart Extension Host
 

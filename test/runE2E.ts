@@ -17,18 +17,28 @@ import * as os from "os";
 import * as path from "path";
 
 // E2E_BARE runs test/e2e/builtin.test.ts on a machine that has no q at all: an
-// empty HOME, PATH and workspace, so only the bundled peachq can answer.
+// empty HOME, PATH and workspace, so only the bundled peachq can answer. PATH
+// holds bash alone, which the REPL starts q through.
 function bare() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "peachq-bare-"));
   const workspace = path.join(root, "workspace");
   for (const dir of ["home", "path", path.join("workspace", ".vscode")]) {
     fs.mkdirSync(path.join(root, dir), { recursive: true });
   }
+  const bash = ["/bin/bash", "/usr/bin/bash"].find((found) =>
+    fs.existsSync(found),
+  );
+  if (bash) {
+    fs.symlinkSync(bash, path.join(root, "path", "bash"));
+  }
   fs.writeFileSync(path.join(workspace, "builtin.q"), "1+1\n");
   fs.writeFileSync(
     path.join(workspace, ".vscode", "settings.json"),
     JSON.stringify({
-      "peachq.connectionMap": { "builtin.q": "peachq (built-in)" },
+      "peachq.connectionMap": {
+        "builtin.q": "peachq (built-in)",
+        "repl.kxnb": "REPL",
+      },
     }),
   );
   return {
@@ -43,6 +53,28 @@ function bare() {
       PEACHQ_Q: undefined,
     },
   };
+}
+
+// E2E_PEACHQ runs test/e2e/replPeachq.test.ts on a workspace whose only q is
+// the peachq PEACHQ_Q names; without one the suite skips itself.
+function peachq() {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "peachq-repl-"));
+  const workspace = path.join(root, "workspace");
+  const home = path.join(root, "qhome");
+  for (const dir of [path.join(home, "bin"), path.join(workspace, ".vscode")]) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  if (process.env.PEACHQ_Q) {
+    fs.symlinkSync(
+      path.resolve(process.env.PEACHQ_Q),
+      path.join(home, "bin", "q"),
+    );
+  }
+  fs.writeFileSync(
+    path.join(workspace, ".vscode", "settings.json"),
+    JSON.stringify({ "peachq.qHomeDirectoryWorkspace": home }),
+  );
+  return { root, workspace, env: { E2E_PEACHQ: "1" } };
 }
 
 // A second VS Code window, opened on test/e2e/workspace so the extension sees
@@ -62,13 +94,17 @@ async function main() {
     const fakeKx = process.env.E2E_FAKE_KX
       ? [path.join(extensionDevelopmentPath, "test", "e2e", "fakekx")]
       : [];
-    const empty = process.env.E2E_BARE ? bare() : undefined;
+    const isolated = process.env.E2E_BARE
+      ? bare()
+      : process.env.E2E_PEACHQ
+        ? peachq()
+        : undefined;
     await runTests({
       extensionDevelopmentPath: [extensionDevelopmentPath, ...fakeKx],
       extensionTestsPath: path.join(__dirname, "./e2e/index"),
-      extensionTestsEnv: empty?.env,
+      extensionTestsEnv: isolated?.env,
       launchArgs: [
-        empty?.workspace ??
+        isolated?.workspace ??
           path.join(extensionDevelopmentPath, "test", "e2e", "workspace"),
         "--disable-workspace-trust",
         // Everything but the extension under development, which VS Code keeps
@@ -83,8 +119,8 @@ async function main() {
           : []),
       ],
     });
-    if (empty) {
-      fs.rmSync(empty.root, { recursive: true, force: true });
+    if (isolated) {
+      fs.rmSync(isolated.root, { recursive: true, force: true });
     }
   } catch (err) {
     console.error(err);

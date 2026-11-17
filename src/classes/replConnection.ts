@@ -129,6 +129,9 @@ export interface Result {
   output?: string;
 }
 
+// kdb's last two frames are .Q.trp and .z.pi (qdocs ref/dotq.md .Q.trp).
+const TRAP = `{if[x~"stop";'x];-2 "'",x;2 .Q.sbt -2_y;}`;
+
 const TRAILING_NEWLINES = /(?<![\r\n])[\r\n]+$/;
 
 export class QNotFoundError extends Error {}
@@ -343,7 +346,9 @@ export class ReplConnection {
 
     const name = this.venv?.name.replace(/\s*\([^()]*\)$/, ANSI.EMPTY);
     this.prefix = activate ? `(${name}) ` : ANSI.EMPTY;
-    const q = quote(this.env.qBinPath, shell, this.env);
+    // Quiet mode drops the banner and session prompts (qdocs basics/cmdline.md
+    // -q); the REPL draws its own prompt.
+    const q = `${quote(this.env.qBinPath, shell, this.env)} -q`;
 
     let command = q;
     if (activate) {
@@ -388,9 +393,12 @@ export class ReplConnection {
     );
   }
 
+  // An error would abort the handler before its tokens, leaving the execution
+  // waiting forever, so it is printed and trapped (qdocs ref/dotq.md .Q.trp).
+  // An interrupt is signalled on, so it still ends the execution as cancelled.
   private createHandler() {
     return normalizeQuery(
-      `.z.pi:{show value x;${this.createToken(1)}${this.createToken(2)}};`,
+      `.z.pi:{.Q.trp['[show;value];x;${TRAP}];${this.createToken(1)}${this.createToken(2)}};`,
     );
   }
 

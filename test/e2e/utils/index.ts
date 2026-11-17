@@ -227,12 +227,20 @@ export async function waitForLanguageServer(uri: vscode.Uri) {
   assert.fail("the language server did not answer");
 }
 
-/**
- * Runs every cell of a notebook on the KX kernel, and waits for each to show
- * what came back. The outputs are cleared first, so what is waited for is this
- * run's and not a previous one's.
- */
-export async function executeNotebook(notebook: vscode.NotebookDocument) {
+// Writes a notebook of q cells to `uri` and opens it.
+export async function qNotebook(uri: vscode.Uri, sources: string[]) {
+  const cells = sources.map((value) => ({
+    kind: 2,
+    languageId: "q",
+    value,
+    outputs: [],
+  }));
+  fs.writeFileSync(uri.fsPath, JSON.stringify({ cells }));
+  return vscode.workspace.openNotebookDocument(uri);
+}
+
+// Starts every cell of a notebook on the KX kernel, its outputs cleared first.
+export async function startNotebook(notebook: vscode.NotebookDocument) {
   await vscode.window.showNotebookDocument(notebook);
   await vscode.commands.executeCommand("notebook.selectKernel", {
     id: "peachq-notebook-1",
@@ -244,6 +252,15 @@ export async function executeNotebook(notebook: vscode.NotebookDocument) {
     "the previous outputs to be cleared",
   );
   await vscode.commands.executeCommand("notebook.execute");
+}
+
+/**
+ * Runs every cell of a notebook on the KX kernel, and waits for each to show
+ * what came back. The outputs are cleared first, so what is waited for is this
+ * run's and not a previous one's.
+ */
+export async function executeNotebook(notebook: vscode.NotebookDocument) {
+  await startNotebook(notebook);
   await until(
     () => notebook.getCells().every((cell) => cell.outputs.length > 0),
     `every cell of ${path.basename(notebook.uri.path)} to show its result`,
