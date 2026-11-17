@@ -8,6 +8,20 @@ queries and view results as text, grids or charts.
 
 This extension is a fork of the KX extension, published as `peachq.peachq`.
 
+## Run q with nothing installed
+
+The Linux (x64, arm64), macOS (Apple silicon) and Windows (x64) packages carry
+[peachq](https://peachq.org), an open-source (MIT) q. The connections panel
+lists **peachq (built-in)**: connect to it and the extension starts that peachq
+on `127.0.0.1` with a one-off password, and stops it when you disconnect or
+close the window. It is never written to your connection settings and cannot be
+edited or removed.
+
+Your own q always comes first. The bundled peachq is used by the REPL only when
+no q is found through `peachq.qHomeDirectoryWorkspace`, `QHOME`,
+`peachq.qHomeDirectory`, `~/.kx/bin/q` or `PATH`. Other platforms get a package
+without it.
+
 ## Beside the KX extension
 
 If the KX extension is also enabled, peachq pauses its q features (language

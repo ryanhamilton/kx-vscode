@@ -32,11 +32,13 @@ import {
   retrieveConnLabelsNames,
 } from "../utils/connLabel";
 import {
+  BUILTIN_ALIAS,
   getInsightsAlias,
   getServerAlias,
   getServerIconState,
   getServerName,
   getStatus,
+  isBuiltinAlias,
 } from "../utils/core";
 import { getIconPath } from "../utils/iconsUtils";
 import { MessageKind, notify } from "../utils/notifications";
@@ -512,17 +514,31 @@ export class KdbTreeProvider
   }
 
   private createLeafItems(servers: Server): KdbNode[] {
+    const builtin = ext.builtinServer
+      ? [
+          new KdbNode(
+            [],
+            BUILTIN_ALIAS,
+            ext.builtinServer.details,
+            ext.connectionNode?.label === BUILTIN_ALIAS
+              ? vscode.TreeItemCollapsibleState.Collapsed
+              : vscode.TreeItemCollapsibleState.None,
+          ),
+        ]
+      : [];
     const keys: string[] = Object.keys(servers);
-    return keys.map(
-      (x) =>
-        new KdbNode(
-          x.split(":"),
-          x,
-          servers[x],
-          ext.connectionNode?.label === getServerName(servers[x])
-            ? vscode.TreeItemCollapsibleState.Collapsed
-            : vscode.TreeItemCollapsibleState.None,
-        ),
+    return builtin.concat(
+      keys.map(
+        (x) =>
+          new KdbNode(
+            x.split(":"),
+            x,
+            servers[x],
+            ext.connectionNode?.label === getServerName(servers[x])
+              ? vscode.TreeItemCollapsibleState.Collapsed
+              : vscode.TreeItemCollapsibleState.None,
+          ),
+      ),
     );
   }
 
@@ -552,10 +568,12 @@ export class KdbNode extends vscode.TreeItem {
     public readonly details: ServerDetails,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
   ) {
-    if (details.serverAlias != "") {
-      label = label + ` `;
+    if (!isBuiltinAlias(details.serverAlias)) {
+      if (details.serverAlias != "") {
+        label = label + ` `;
+      }
+      label = label + `[${details.serverName}:${details.serverPort}]`;
     }
-    label = label + `[${details.serverName}:${details.serverPort}]`;
 
     // set context for root nodes
     if (ext.kdbrootNodes.indexOf(label) === -1) {
@@ -621,7 +639,9 @@ export class KdbNode extends vscode.TreeItem {
     const title = `${this.details.serverAlias} ${getStatus(this.label)}`;
     tooltipMd.appendMarkdown(`### ${title}\n`);
     tooltipMd.appendMarkdown(
-      `${this.details.serverName}:${this.details.serverPort}`,
+      isBuiltinAlias(this.details.serverAlias) && !this.details.serverPort
+        ? "Starts the bundled peachq on 127.0.0.1"
+        : `${this.details.serverName}:${this.details.serverPort}`,
     );
     return tooltipMd;
   }

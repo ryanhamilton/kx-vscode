@@ -14,6 +14,7 @@
 // Headless walkthrough: peachq up, a connection made through the UI, a query
 // run, its result read from the results webview, a screenshot checked.
 //   node smoke.ts            exits non-zero on any failure
+//   node smoke.ts --builtin  the same on the bundled peachq (built-in) connection
 import { execFileSync, spawnSync } from "node:child_process";
 import net from "node:net";
 import zlib from "node:zlib";
@@ -100,35 +101,51 @@ function pngStats(file: string) {
   };
 }
 
-async function main() {
-  const port = await freePort();
-  refusesFakeQ(port);
+/** Connects a node of the connections tree; returns its first context menu. */
+function connect(node: string) {
+  cli("click", ".activitybar [aria-label^='peachq']", "--settle", "1500");
+  const offered = cli("click", node, "--right");
+  cli("click", ".monaco-menu .action-label >> text='Connect server'");
+  const menu = cli("click", node, "--right");
+  check(/CONTEXT MENU: Disconnect/.test(menu), "connected");
+  cli("esc", "--no-snap");
+  return offered;
+}
 
+function connectBuiltin() {
+  cli("start");
+  const offered = connect("peachq (built-in)");
+  check(!/Edit connection|Remove connection/.test(offered), "not editable");
+}
+
+async function connectToQServer(port: number) {
   console.log(`$ node qserver.ts start --port ${port}`);
   const q = JSON.parse(run("qserver.ts", "start", "--port", String(port)));
   console.log(`peachq ${q.version} on ${port}, user ${q.user}`);
-  try {
-    cli("start");
-    cli("palette", "peachq: New Connection", "--settle", "3000");
-    cli("click", ".tab[aria-label*='New Connection']", "--settle", "1500");
-    cli("wv.click", "0", "Authentication & TLS", "--no-snap");
-    const fill = (label: string, v: string) =>
-      cli("wv.fill", "0", "label:" + label, v, "--no-snap");
-    fill("Connection Name", "smoke");
-    fill("Define connection address", "127.0.0.1");
-    fill("Set port number", String(port));
-    fill("Username", q.user);
-    console.log("$ node cli.ts wv.fill 0 label:Password *** --no-snap");
-    run("cli.ts", "wv.fill", "0", "label:Password", q.password, "--no-snap");
-    cli("wv.click", "0", "Create Connection", "--settle", "3000");
+  cli("start");
+  cli("palette", "peachq: New Connection", "--settle", "3000");
+  cli("click", ".tab[aria-label*='New Connection']", "--settle", "1500");
+  cli("wv.click", "0", "Authentication & TLS", "--no-snap");
+  const fill = (label: string, v: string) =>
+    cli("wv.fill", "0", "label:" + label, v, "--no-snap");
+  fill("Connection Name", "smoke");
+  fill("Define connection address", "127.0.0.1");
+  fill("Set port number", String(port));
+  fill("Username", q.user);
+  console.log("$ node cli.ts wv.fill 0 label:Password *** --no-snap");
+  run("cli.ts", "wv.fill", "0", "label:Password", q.password, "--no-snap");
+  cli("wv.click", "0", "Create Connection", "--settle", "3000");
+  connect(`smoke [127.0.0.1:${port}]`);
+}
 
-    const node = `smoke [127.0.0.1:${port}]`;
-    cli("click", ".activitybar [aria-label^='peachq']", "--settle", "1500");
-    cli("click", node, "--right", "--no-snap");
-    cli("click", ".monaco-menu .action-label >> text='Connect server'");
-    const menu = cli("click", node, "--right");
-    check(/CONTEXT MENU: Disconnect/.test(menu), "connected");
-    cli("esc", "--no-snap");
+async function main() {
+  const builtin = process.argv.includes("--builtin");
+  const port = await freePort();
+  refusesFakeQ(port);
+
+  try {
+    if (builtin) connectBuiltin();
+    else await connectToQServer(port);
 
     fs.writeFileSync(p("workspace", "smoke.q"), "([]a:1 2 3; b:`x`y`z)\n");
     cli("file.open", "smoke.q", "--settle", "1000");
@@ -157,7 +174,7 @@ async function main() {
     const { stopped } = JSON.parse(
       tool("qserver.ts", "stop", "--port", String(port)),
     );
-    if (!stopped.map(Number).includes(port)) {
+    if (!builtin && !stopped.map(Number).includes(port)) {
       console.error(`FAILED: peachq on port ${port} was not stopped`);
       process.exitCode = 1;
     }

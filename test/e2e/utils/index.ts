@@ -131,9 +131,12 @@ export const settle = () => new Promise((resolve) => setTimeout(resolve, 250));
 
 // Generous enough for a loaded CI runner; it only costs that long when
 // something is actually wrong.
-export async function until(condition: () => boolean, what: string) {
+export async function until(
+  condition: () => boolean | Promise<boolean>,
+  what: string,
+) {
   for (let attempt = 0; attempt < 500; attempt++) {
-    if (condition()) {
+    if (await condition()) {
       return;
     }
     await new Promise((resolve) => setTimeout(resolve, 20));

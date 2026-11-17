@@ -15,6 +15,7 @@ import * as assert from "assert";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 
+import { BuiltinServer } from "../../../src/classes/builtinServer";
 import { InsightsConnection } from "../../../src/classes/insightsConnection";
 import { LocalConnection } from "../../../src/classes/localConnection";
 import { ext } from "../../../src/extensionVariables";
@@ -26,6 +27,7 @@ import {
   KdbNode,
   KdbTreeProvider,
 } from "../../../src/services/kdbTreeProvider";
+import { BUILTIN_ALIAS } from "../../../src/utils/core";
 import * as loggers from "../../../src/utils/loggers";
 import AuthSettings from "../../../src/utils/secretStorage";
 import { getMetaResponse } from "../../fixtures/api/getMeta";
@@ -193,6 +195,73 @@ describe("ConnectionManagementService", () => {
       const result = await connectionManagerService.connect("testLabel");
 
       assert.strictEqual(result, undefined);
+    });
+  });
+
+  describe("the built-in connection", () => {
+    const server = new BuiltinServer("q", "storage");
+    const node = new KdbNode(
+      [],
+      BUILTIN_ALIAS,
+      server.details,
+      vscode.TreeItemCollapsibleState.None,
+    );
+    let start: sinon.SinonStub;
+    let stop: sinon.SinonStub;
+
+    beforeEach(() => {
+      ext.builtinServer = server;
+      start = sinon.stub(server, "start").resolves({
+        connectionString: "127.0.0.1:5999",
+        credentials: ["peachq", "secret"],
+      });
+      stop = sinon.stub(server, "stop");
+      sinon.stub(connectionManagerService, "retrieveConnection").returns(node);
+      sinon.stub(connectionManagerService, "connectSuccessBehaviour");
+    });
+
+    afterEach(() => {
+      ext.builtinServer = undefined;
+      ext.connectedConnectionList.length = 0;
+      sinon.restore();
+    });
+
+    it("starts peachq once when asked to connect twice at once", async () => {
+      sinon.stub(LocalConnection.prototype, "connect").resolves(<any>{});
+
+      await Promise.all([
+        connectionManagerService.connect(BUILTIN_ALIAS),
+        connectionManagerService.connect(BUILTIN_ALIAS),
+      ]);
+
+      sinon.assert.calledOnce(start);
+      assert.strictEqual(ext.connectedConnectionList.length, 1);
+    });
+
+    it("stops peachq when the connection to it fails", async () => {
+      sinon
+        .stub(LocalConnection.prototype, "connect")
+        .rejects(new Error("refused"));
+
+      await connectionManagerService.connect(BUILTIN_ALIAS);
+
+      sinon.assert.calledOnce(stop);
+      assert.strictEqual(ext.connectedConnectionList.length, 0);
+    });
+
+    it("stops peachq on disconnect", () => {
+      const connection = new LocalConnection(
+        "127.0.0.1:5999",
+        BUILTIN_ALIAS,
+        [],
+      );
+      sinon.stub(connection, "disconnect");
+      sinon.stub(connectionManagerService, "disconnectBehaviour");
+      ext.connectedConnectionList.push(connection);
+
+      connectionManagerService.disconnect(BUILTIN_ALIAS);
+
+      sinon.assert.calledOnce(stop);
     });
   });
 

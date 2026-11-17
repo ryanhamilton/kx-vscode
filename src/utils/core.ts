@@ -153,6 +153,27 @@ export function resolveQHome(
   return undefined;
 }
 
+export const BUILTIN_ALIAS = "peachq (built-in)";
+
+export function isBuiltinAlias(alias: string | undefined) {
+  return alias === BUILTIN_ALIAS;
+}
+
+export function bundledQ(
+  extensionPath: string | undefined = ext.context?.extensionPath,
+  platform: string = process.platform,
+  arch: string = process.arch,
+  exists: (target: string) => boolean = stat,
+): string | undefined {
+  if (!extensionPath) {
+    return undefined;
+  }
+  const name = platform === "win32" ? "q.exe" : "q";
+  const target = `${platform}-${arch}`;
+  const binary = path.join(extensionPath, "bin", "peachq", target, name);
+  return exists(binary) ? binary : undefined;
+}
+
 export function classifyQBinary(
   target: string,
   platform: string = process.platform,
@@ -277,6 +298,13 @@ export function getEnvironment(resource?: WorkspaceFolder): {
     }
   } catch (error) {
     notify(errorMessage(error), MessageKind.DEBUG, { logger });
+  }
+
+  const bundled = env.qBinPath ? undefined : bundledQ();
+  if (bundled) {
+    env.qBinKdbX = "";
+    env.QHOME = path.dirname(bundled);
+    env.qBinPath = bundled;
   }
 
   return env;
@@ -495,6 +523,9 @@ export async function updateInsights(insights: Insights): Promise<void> {
 }
 
 export function getServerName(server: ServerDetails): string {
+  if (isBuiltinAlias(server.serverAlias)) {
+    return server.serverAlias;
+  }
   return server.serverAlias != ""
     ? `${server.serverAlias} [${server.serverName}:${server.serverPort}]`
     : `[${server.serverName}:${server.serverPort}]`;

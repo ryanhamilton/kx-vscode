@@ -80,6 +80,32 @@ jobs:
         run: npm run test:e2e:kx
         env:
           HEADLESS: 1
+      - name: End to end tests with no q installed but the bundled peachq
+        run: npm run test:e2e:bare
+        env:
+          HEADLESS: 1
+
+  package:
+    name: Package the per-platform and universal vsix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci
+      - run: npm run package:targets
+      - name: Only the targeted vsix carry peachq
+        run: |
+          version=$(node -p 'require("./package.json").version')
+          unzip -l "dist/peachq-linux-x64-$version.vsix" | grep -q ' extension/bin/peachq/linux-x64/q$'
+          ! unzip -l "dist/peachq-$version.vsix" | grep -q 'extension/bin/'
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: vsix
+          path: dist/*.vsix
+          retention-days: 14
 
   qunit:
     name: q tests (qunit on peachq)
@@ -119,6 +145,12 @@ jobs:
       - run: npm ci
         working-directory: tools/manual-test
       - run: node smoke.ts
+        working-directory: tools/manual-test
+        env:
+          HEADLESS: 1
+      - run: node tools/fetch-peachq.mjs
+      - name: Walkthrough on the built-in peachq connection
+        run: node smoke.ts --builtin
         working-directory: tools/manual-test
         env:
           HEADLESS: 1

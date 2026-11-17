@@ -16,6 +16,7 @@ import * as path from "path";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 
+import { BuiltinServer } from "../../../../src/classes/builtinServer";
 import { ext } from "../../../../src/extensionVariables";
 import { Insights, Server } from "../../../../src/models/connectionsModels";
 import { ConnectionManagementService } from "../../../../src/services/connectionManagerService";
@@ -24,7 +25,11 @@ import {
   KdbNode,
   KdbTreeProvider,
 } from "../../../../src/services/kdbTreeProvider";
-import { getInsights, getServers } from "../../../../src/utils/core";
+import {
+  BUILTIN_ALIAS,
+  getInsights,
+  getServers,
+} from "../../../../src/utils/core";
 import {
   INSIGHTS_ALIASES,
   KDB_ALIASES,
@@ -183,6 +188,44 @@ describe("connections panel", () => {
       const aliases = (await shown()).map(aliasOf);
 
       assert.deepStrictEqual(aliases, ["local", ...INSIGHTS_ALIASES]);
+    });
+  });
+
+  describe("built-in peachq", () => {
+    afterEach(() => {
+      ext.builtinServer = undefined;
+    });
+
+    it("is listed first, without a host and port, when peachq is bundled", async () => {
+      ext.builtinServer = new BuiltinServer("q", "storage");
+      declare(stored.servers, stored.insights);
+
+      const nodes = await shown();
+
+      assert.deepStrictEqual(nodes.map(aliasOf), [
+        BUILTIN_ALIAS,
+        ...SORTED_ALIASES,
+      ]);
+      assert.strictEqual(nodes[0].label, BUILTIN_ALIAS);
+    });
+
+    it("is not listed when no peachq is bundled", async () => {
+      declare(stored.servers, stored.insights);
+
+      const aliases = (await shown()).map(aliasOf);
+
+      assert.ok(!aliases.includes(BUILTIN_ALIAS));
+    });
+
+    it("is never exported with the user's connections", async () => {
+      ext.builtinServer = new BuiltinServer("q", "storage");
+      declare(stored.servers, stored.insights);
+      await shown();
+
+      const service = new ConnectionManagementService();
+
+      assert.ok(!service.exportConnection().includes(BUILTIN_ALIAS));
+      assert.strictEqual(service.exportConnection(BUILTIN_ALIAS), "");
     });
   });
 
