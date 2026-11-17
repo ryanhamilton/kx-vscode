@@ -1,0 +1,36 @@
+name: No tool names
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check PR title, body and commit messages
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          pattern='claude|codex|anthropic|astra|fable|co-authored-by'
+          status=0
+          for part in TITLE BODY; do
+            if printf '%s' "${!part}" | grep -Eiq "$pattern"; then
+              echo "::error::PR ${part,,} names a tool or model"
+              status=1
+            fi
+          done
+          if git log --format='%H %B' "$BASE..$HEAD" | grep -Ei "$pattern"; then
+            echo "::error::a commit message names a tool or model"
+            status=1
+          fi
+          exit $status
