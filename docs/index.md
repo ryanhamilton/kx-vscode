@@ -1,17 +1,17 @@
 ---
 type: Index
-title: kdb VS Code Extension Wiki
+title: peachq Extension Wiki
 description:
-  In-tree documentation for the kdb VS Code extension, split into user notes and
-  developer notes.
+  In-tree documentation for the peachq VS Code extension, split into user notes
+  and developer notes.
 tags: [kdb, vscode, documentation]
 timestamp: 2026-07-10
 ---
 
-# kdb VS Code Extension Wiki
+# peachq Extension Wiki
 
 This is the in-repo wiki for the
-[kdb VS Code extension](https://marketplace.visualstudio.com/items?itemName=KX.kdb),
+[peachq VS Code extension](https://marketplace.visualstudio.com/items?itemName=peachq.peachq),
 covering developer and user notes.
 
 These pages follow the
@@ -20,8 +20,8 @@ plain markdown files with YAML frontmatter, `index.md` files for navigation, and
 relative cross-links. They were ported from the project's
 [GitHub wiki](https://github.com/KxSystems/kx-vscode/wiki).
 
-> The end-user product documentation is hosted separately at
-> <https://code.kx.com/vscode/>.
+> The q language is documented at <https://peachq.org/docs/>. The upstream KX
+> extension's documentation is at <https://code.kx.com/vscode/>.
 
 ## User Notes
 

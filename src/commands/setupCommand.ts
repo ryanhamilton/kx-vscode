@@ -49,7 +49,7 @@ export async function showSetupError(workspace?: vscode.WorkspaceFolder) {
   // instead of offering an installation that cannot run.
   if (process.platform === "win32") {
     const res = await notify(
-      `KDB installation not found${scope}. Set the q home directory to a kdb+ installation.`,
+      `q installation not found${scope}. Set the q home directory to a kdb+ installation.`,
       MessageKind.WARNING,
       { logger, params: workspace?.name },
       "Set q Home Directory",
@@ -65,7 +65,7 @@ export async function showSetupError(workspace?: vscode.WorkspaceFolder) {
   }
 
   const res = await notify(
-    `KDB installation not found${scope}.`,
+    `q installation not found${scope}.`,
     MessageKind.WARNING,
     { logger, params: workspace?.name },
     "Install KDB-X",
@@ -88,7 +88,7 @@ export function showWelcome(folder?: vscode.WorkspaceFolder) {
   } else {
     panel = vscode.window.createWebviewPanel(
       "kdbWelcomeView",
-      "Welcome to KDB-X",
+      "Welcome to peachq",
       vscode.ViewColumn.One,
       {
         enableScripts: true,
@@ -153,7 +153,7 @@ function getWebviewContent(webview: vscode.Webview) {
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       ${webviewReset(getNonce())}
       <script type="module" nonce="${getNonce()}" src="${getResource("out/webview.js")}"></script>
-      <title>Welcome to KDB-X</title>
+      <title>Welcome to peachq</title>
     </head>
     <body>
       <kdb-welcome-view image="${getResource("resources/images/kx_welcome.png")}" checked="${getShowWelcome()}" dark="${isDark() ? "dark" : ""}" windows="${process.platform === "win32" ? "true" : ""}" q="${getQBinary()}"></kdb-welcome-view>

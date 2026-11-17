@@ -523,7 +523,7 @@ describe("executionConsole", () => {
             /^<<< ERROR - {2}blockServer {2}@ .* >>>$/,
           );
           assert.deepStrictEqual(writes.slice(1), [
-            ["error", "Please connect to a KDB or Insights server"],
+            ["error", "Please connect to a q or Insights server"],
             ["error", "<<< >>>"],
             ["line", ""],
           ]);
@@ -539,7 +539,7 @@ describe("executionConsole", () => {
           runDisconnected();
 
           assert.deepStrictEqual(writes, [
-            ["error", "Please connect to a KDB or Insights server"],
+            ["error", "Please connect to a q or Insights server"],
             ["line", ""],
           ]);
           sinon.assert.calledOnce(notifyStub);

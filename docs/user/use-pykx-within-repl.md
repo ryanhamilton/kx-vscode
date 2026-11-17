@@ -10,7 +10,9 @@ timestamp: 2026-09-30
 
 ## Installation Steps
 
-1. Install [kdb](https://marketplace.visualstudio.com/items?itemName=KX.kdb) and
+1. Install
+   [peachq](https://marketplace.visualstudio.com/items?itemName=peachq.peachq)
+   and
    [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
    extensions in VS Code. The Python extension installs
    [Python Environments](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-python-envs)

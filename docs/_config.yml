@@ -2,9 +2,9 @@
 # Enable via repo Settings -> Pages -> Source: "Deploy from a branch",
 # then pick the branch and the /docs folder. No Actions workflow required.
 
-title: kdb VS Code Extension Wiki
+title: peachq Extension Wiki
 description:
-  In-tree documentation for the kdb VS Code extension, ported from the GitHub
+  In-tree documentation for the peachq VS Code extension, ported from the GitHub
   wiki in Open Knowledge Format.
 theme: jekyll-theme-cayman
 

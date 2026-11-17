@@ -264,7 +264,7 @@ describe("queryUtils", () => {
       ServerType.KDB,
       ServerType.undefined,
     ];
-    const expectedRes = ["insights", "kdb", "undefined"];
+    const expectedRes = ["insights", "q", "undefined"];
 
     for (let i = 0; i < params.length; i++) {
       const result = queryUtils.getConnectionType(params[i]);

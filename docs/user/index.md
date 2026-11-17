@@ -2,7 +2,7 @@
 type: Index
 title: User Notes
 description:
-  Reference material and configuration guidance for users of the kdb VS Code
+  Reference material and configuration guidance for users of the peachq VS Code
   extension.
 tags: [kdb, vscode, user]
 timestamp: 2026-07-10
@@ -10,7 +10,7 @@ timestamp: 2026-07-10
 
 # User Notes
 
-Reference material and configuration guidance for users of the kdb VS Code
+Reference material and configuration guidance for users of the peachq VS Code
 extension. See also the [developer notes](../developer/index.md).
 
 - [Reference Card](reference-card.md) — command palette entries and keybindings.

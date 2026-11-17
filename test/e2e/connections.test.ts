@@ -347,7 +347,7 @@ describe("Connections panel", () => {
       await importFrom(empty);
 
       await prompt.untilRaised(
-        "There is no KDB or Insights connections to import",
+        "There are no q or Insights connections to import",
       );
     });
 

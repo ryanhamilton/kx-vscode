@@ -39,3 +39,35 @@ for (const file of ["out/extension.js", "package.json"]) {
     }
   });
 }
+
+describe("The shipped wording and links", () => {
+  const read = (file: string) => fs.readFileSync(path.join(ROOT, file), "utf8");
+  const extension = read("out/extension.js");
+  const webview = read("out/webview.js");
+
+  for (const word of [
+    "code.kx.com/q/kb/ssl",
+    "of the kdb server",
+    "KDB or Insights server",
+    "Welcome to KDB-X",
+    "kdb connection",
+    "KDB connection",
+  ]) {
+    it(`carry no ${word}`, () => {
+      assert.ok(!extension.includes(word), `extension.js has ${word}`);
+      assert.ok(!webview.includes(word), `webview.js has ${word}`);
+    });
+  }
+
+  it("point TLS help and the welcome page at peachq.org", () => {
+    assert.ok(extension.includes("peachq.org/docs"));
+    assert.ok(webview.includes("peachq.org/docs"));
+    assert.ok(webview.includes("peachq.org/download"));
+  });
+
+  it("keep the Insights schema URLs", () => {
+    assert.ok(
+      extension.includes("code.kx.com/insights/enterprise/packaging/schemas"),
+    );
+  });
+});

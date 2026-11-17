@@ -6,7 +6,7 @@ Open q extension (`peachq.peachq`), carved from the KX fork. Staged PRs into `de
 2. Rename to `peachq.peachq`, coexist with the KX extension, one-time import of KX settings and connections — PR #2 (done, ed41311c)
 3. CI on GitHub Actions with qunit on peachq, replacing the KX workflows and quke/qcumber — PR #3 (done, 765d0b80)
 4. `tools/manual-test` pointed at peachq, headless — PR #4 (done, 4fef5c98)
-5. Documentation links to peachq docs instead of code.kx.com
+5. Documentation links to peachq docs instead of code.kx.com, wording and a fresh CHANGELOG — PR #5, in review
 6. Bundle peachq in the vsix (per-platform packages)
 7. Release: upload to timestored.com/peachq.org (dry-run default, GO=1) and the MS marketplace
 8. Results text view: reuse qStudio/peachq toString renderings
@@ -28,4 +28,4 @@ The owner's hands-on VS Code pass at the end of the programme, for what no one h
 - The KX import pop-up.
 - The first-connect password prompt.
 - Results grid and chart rendering against peachq (the headless walkthrough reads the grid's text, not its look).
-- The Welcome tab still says "Welcome to KDB-X" and offers the KDB-X install flow.
+- Welcome page peachq section and wording.
