@@ -1,9 +1,9 @@
 # Manual testing the extension, driven by an agent
 
 An interactive, adaptive way to test the extension like a human would: launch a
-**real VS Code window** with the extension loaded, talk to **real, authenticated
-q processes**, and drive the UI step by step - observe, decide, act. It is not a
-script runner; each command returns what is on screen so the next step can
+**real VS Code** with the extension loaded, talk to **real, authenticated
+peachq processes**, and drive the UI step by step - observe, decide, act. It is
+not a script runner; each command returns what is on screen so the next step can
 adapt. Works on Windows, macOS and Linux (Playwright over the Electron app).
 
 If you are an agent asked to "test X" or "test the release like a manual
@@ -19,16 +19,37 @@ cd ../.. && npm run build        # the extension under test is the repo's out/
 The tool is TypeScript run directly by Node (type stripping), so it needs
 Node **22.18 or newer**. Type-check it with `npx tsc -p tools/manual-test`.
 
-You need a q licence and a q binary (found via `--q`, `QBIN`, `~/.kx/bin/q`,
-`QHOME`, or PATH). VS Code is downloaded into `.work/` on first start, at the
+The q is **peachq only**: `qserver.ts` takes `--q <path>`, else `PEACHQ_Q`, else
+`q` on PATH, and refuses any q that does not answer `.pq.version`. Install the
+build pinned in `.peachq-version` with
+
+```
+curl -fsSL https://raw.githubusercontent.com/peachq-org/setup-peachq/v1.0.0/install.sh | bash -s -- --version $(cat .peachq-version)
+```
+
+VS Code is downloaded into `.work/` on first start, at the
 version pinned by `VSCODE_VERSION` in `driver.ts` (currently **1.142.0**), not
 `stable`.
+
+## Headless
+
+With `HEADLESS=1` the window is never shown: VS Code runs with
+`--ozone-platform=headless` at 1600x1000, and snapshots, webviews and `shot` work
+as usual. Without it a window opens; `start --headed` forces one even with
+`HEADLESS=1`. **Agents always run headless and never pass `--headed`**; it is
+for a human who wants to watch. On Linux, run with `DISPLAY` and
+`WAYLAND_DISPLAY` unset as well.
+
+`node smoke.ts` is the headless walkthrough CI runs: peachq up, a connection
+added and connected through the UI, a query run, its rows read back from the
+results webview, a non-blank 1600x1000 screenshot (`.work/shots/smoke.png`), and
+a fake non-peachq `q` refused. It exits non-zero on any failure.
 
 ## The loop
 
 ```
-node qserver.ts start --port 5000     # real q; prints user/password. ALWAYS authenticated (-U)
-node cli.ts start                     # VS Code, fresh profile, fixture workspace; prints a snapshot
+node qserver.ts start --port 5000     # peachq; prints user/password. ALWAYS authenticated (-U)
+HEADLESS=1 node cli.ts start          # VS Code, fresh profile, fixture workspace; prints a snapshot
 node cli.ts <command> ...             # act; most commands print a fresh snapshot
 node cli.ts stop ; node qserver.ts stop
 ```
@@ -45,7 +66,7 @@ and cheap; **prefer it to screenshots**. Use `shot` only when text cannot answer
 
 | Goal                          | Command                                                             |
 | ----------------------------- | ------------------------------------------------------------------- |
-| Run any extension command     | `palette "KX: New Connection"` (the title from `package.json`)      |
+| Run any extension command     | `palette "peachq: New Connection"` (the title from `package.json`)      |
 | Pick/enter in quick inputs    | `qi.pick "text"`, `qi.type "text"`, `qi.enter`, `esc`               |
 | Click workbench UI            | `click "css selector"` or `click "visible text"` (`--right`)        |
 | Notification/dialog button    | `button "Dismiss"`                                                  |
@@ -54,7 +75,7 @@ and cheap; **prefer it to screenshots**. Use `shot` only when text cannot answer
 | Terminal / REPL output        | `term.read`, `term.send "type 123"`                                 |
 | Editors                       | `file.open sample.q`, `editor.read`, `editor.set "text"`            |
 | Wait for something            | `wait term "regex"`, `wait webview "regex" --wv 0`, `wait snapshot` |
-| Extension log                 | `log 40`                                                            |
+| Extension log                 | `log 40` (`peachq.log`)                                                            |
 | Anything else                 | `eval "return await win.title()"` (Playwright `win`, `app`)        |
 
 Webview indexes (`wv 0`, `1`...) come from `wv.list`; `*` marks the one on
@@ -69,16 +90,19 @@ screen. Omitting the index means the visible one.
   & TLS"): expand first, then fill. `wv.controls` shows each field's current value.
 - The connection tree shows `name [host:port]`; connected state is an icon, so
   confirm a connection by running a query and reading the result, not the tree.
-- Query results land in the **Terminal** panel (`term.read`) or the **KDB Results**
-  view, depending on `setResultsDestination`. Check both.
+- Query results land in the **Terminal** panel (`term.read`) or the **peachq
+  Results** view, chosen by the editor toolbar's "Output Destination" menu
+  (Terminal by default). Check both.
+- Monaco auto-closes brackets in `editor.set`/`editor.type` text (`(x` becomes
+  `(x)`): write query files into `.work/workspace/` and `file.open` them instead.
 - `palette` runs a command only on an exact title match, including its prefix
-  (`KX: New Connection`, not `New Connection`). Otherwise it runs nothing and
+  (`peachq: New Connection`, not `New Connection`). Otherwise it runs nothing and
   lists the closest matches: re-run with one of those titles. Commands that
-  need an editor or connection (e.g. `KX: Execute Entire File`) are missing from
+  need an editor or connection (e.g. `peachq: Execute Entire File`) are missing from
   the palette until a q file has focus.
 - Palette results include other extensions' commands; the isolated profile has
-  only this extension, so the `KX:` prefix is a reliable filter.
-- Settings live in `.work/ud/User/settings.json` (pass `--settings '{"kdb.x":1}'`
+  only this extension, so the `peachq:` prefix is a reliable filter.
+- Settings live in `.work/ud/User/settings.json` (pass `--settings '{"peachq.x":1}'`
   to `start`). Dialogs and file pickers are set to in-window ones so they are
   scriptable. Native OS dialogs cannot be driven.
 - `start` always wipes the profile; `--keep` keeps it. `--workspace dir` uses your
@@ -106,7 +130,7 @@ screen. Omitting the index means the visible one.
 
 1. **Know the expected behaviour first**: `docs/user/`, the command titles and
    settings in `package.json`, `CHANGELOG.md`, and the code in `src/`.
-2. **Set up real state**: real q via `qserver.ts`, the connection through the UI
+2. **Set up real state**: peachq via `qserver.ts`, the connection through the UI
    (not by editing settings), real files in the workspace.
 3. **Act, read the result, verify it is *correct*** (compare against what q
    returns, e.g. run the same expression in `term.send` on a REPL), not merely
@@ -131,5 +155,6 @@ flows a user hits in the first ten minutes.
 ## Layout
 
 `cli.ts` client; `driver.ts` daemon that owns the window; `lib/handlers.ts` the
-commands (add one here when a pattern repeats); `qserver.ts` real q management;
+commands (add one here when a pattern repeats); `qserver.ts` peachq management;
+`smoke.ts` the headless walkthrough;
 `fixtures/` seed workspace; `.work/` (ignored) runtime state, profile, shots.

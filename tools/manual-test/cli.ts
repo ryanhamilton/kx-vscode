@@ -17,7 +17,8 @@ import { spawn } from "node:child_process";
 import { fs, path, p, ensure, readJson, sleep, isAlive } from "./lib/common.ts";
 
 const USAGE = `usage: node cli.ts <command> [args]
-  start [--ext dir] [--workspace dir] [--vscode ver (default: pinned in driver.ts)] [--keep] [--settings '{json}']
+  start [--ext dir] [--workspace dir] [--vscode ver (default: pinned in driver.ts)] [--keep] [--headed] [--settings '{json}']
+                                   HEADLESS=1 runs without a window; --headed forces one (humans only)
   stop | status
   snapshot                         compact state of the whole window
   palette "<exact title>"          run a command-palette item (exact title only)
@@ -33,14 +34,21 @@ const USAGE = `usage: node cli.ts <command> [args]
   editor.read | editor.set "<text>" | editor.type "<text>" | file.open <name>
   wait <term|snapshot|editor|webview> "<regex>" [--timeout ms] [--wv n]
   shot [name] [--sel css]          screenshot -> prints the png path
-  log [lines]                      tail of the extension's kdb.log
+  log [lines]                      tail of the extension's peachq.log
   eval "<js>" | eval --file f.js   Playwright escape hatch: win, app, ctx, sleep
 Any command accepts --json '{...}' to pass raw arguments.
 Commands that print a snapshot also take --settle <ms> (default 700; raise it
 for slow UI) and --no-snap. Only the flags above are flags: other text starting
 with "--" is passed as text, and "--" ends flag parsing.`;
 
-const BOOL_FLAGS = new Set(["keep", "right", "dbl", "no-enter", "no-snap"]);
+const BOOL_FLAGS = new Set([
+  "keep",
+  "headed",
+  "right",
+  "dbl",
+  "no-enter",
+  "no-snap",
+]);
 const VALUE_FLAGS = new Set([
   "ext",
   "workspace",

@@ -1,8 +1,8 @@
 {
-  "name": "kx-vscode-manual-test",
+  "name": "peachq-manual-test",
   "private": true,
   "type": "module",
-  "description": "Agent-driven manual testing of the kdb VS Code extension (Playwright over the real VS Code window)",
+  "description": "Agent-driven manual testing of the peachq VS Code extension (Playwright over the real VS Code window)",
   "license": "Apache-2.0",
   "engines": {
     "node": ">=22.18"

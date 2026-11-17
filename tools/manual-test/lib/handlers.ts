@@ -464,7 +464,7 @@ function makeHandlers(ctx: Ctx): Record<string, Handler> {
       );
       if (idx < 0)
         await bail(
-          `no palette command has exactly the title ${JSON.stringify(text)}; closest matches (use the full title, e.g. "KX: ..."):\n` +
+          `no palette command has exactly the title ${JSON.stringify(text)}; closest matches (use the full title, e.g. "peachq: ..."):\n` +
             labels
               .slice(0, 8)
               .map((l) => `  ${l}`)
@@ -622,11 +622,12 @@ function makeHandlers(ctx: Ctx): Record<string, Handler> {
         for (const e of fs.readdirSync(d, { withFileTypes: true })) {
           const fp = path.join(d, e.name);
           if (e.isDirectory()) walk(fp);
-          else if (e.name === (file || "kdb.log")) found.push(fp);
+          else if (e.name === (file || "peachq.log")) found.push(fp);
         }
       };
       if (fs.existsSync(logs)) walk(logs);
-      if (!found.length) return `no ${file || "kdb.log"} found under ${logs}`;
+      if (!found.length)
+        return `no ${file || "peachq.log"} found under ${logs}`;
       found.sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
       return fs
         .readFileSync(found[0], "utf8")

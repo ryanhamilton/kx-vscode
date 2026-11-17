@@ -18,3 +18,14 @@ Open q extension (`peachq.peachq`), carved from the KX fork. Staged PRs into `de
 - test/suite clientCommand "should execute current block" fails when run alone, passes in the full suite (inherited).
 - Marketplace itemName=KX.kdb links, code.kx.com links and package.json keywords: repoint in item 5.
 - `test/q/tests/evaluatePy.quke` is unrun: its 115 checks (and 8 upstream-skipped) need PyKX.
+
+## Final review
+
+The owner's hands-on VS Code pass at the end of the programme, for what no one has eyeballed yet:
+
+- Logo and activity-bar icon in light and dark themes.
+- The "KX extension is active" status-bar item and its prompt.
+- The KX import pop-up.
+- The first-connect password prompt.
+- Results grid and chart rendering against peachq (the headless walkthrough reads the grid's text, not its look).
+- The Welcome tab still says "Welcome to KDB-X" and offers the KDB-X install flow.
