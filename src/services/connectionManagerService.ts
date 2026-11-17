@@ -281,7 +281,6 @@ export class ConnectionManagementService {
     }
     notify(`Connection ${connNode.label} removed`, MessageKind.DEBUG, {
       logger,
-      telemetry: "Connection.Delete" + kind,
     });
   }
 

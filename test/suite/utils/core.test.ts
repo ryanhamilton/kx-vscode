@@ -1048,49 +1048,6 @@ describe("core", () => {
     });
   });
 
-  describe("checkLocalInstall", () => {
-    let getConfigurationStub,
-      updateConfigurationStub,
-      showInformationMessageStub,
-      executeCommandStub: sinon.SinonStub;
-    let QHOME = "";
-
-    beforeEach(() => {
-      getConfigurationStub = sinon
-        .stub(vscode.workspace, "getConfiguration")
-        .returns({
-          get: sinon.stub().returns(false),
-          update: sinon.stub().resolves(),
-        } as any);
-      updateConfigurationStub = getConfigurationStub()
-        .update as sinon.SinonStub;
-      showInformationMessageStub = sinon
-        .stub(vscode.window, "showInformationMessage")
-        .resolves();
-      executeCommandStub = sinon
-        .stub(vscode.commands, "executeCommand")
-        .resolves();
-      QHOME = env.QHOME;
-      env.QHOME = "";
-    });
-
-    afterEach(() => {
-      env.QHOME = QHOME;
-      sinon.restore();
-    });
-
-    it("should return if 'neverShowQInstallAgain' is true", async () => {
-      getConfigurationStub()
-        .get.withArgs("kdb.neverShowQInstallAgain")
-        .returns(true);
-
-      await coreUtils.checkLocalInstall();
-
-      assert.strictEqual(showInformationMessageStub.called, false);
-      assert.strictEqual(executeCommandStub.called, false);
-    });
-  });
-
   describe("Seconds", () => {
     it("should calculate seconds correctly", () => {
       assert.strictEqual(coreUtils.calculateSeconds(30, "Seconds"), 30);

@@ -534,12 +534,12 @@ describe("qLangServer", () => {
   describe("notify", () => {
     it("", () => {
       const stub = sinon.stub(connection, "sendNotification");
-      server["notify"]("test", <any>"DEBUG", { telemetry: true });
+      server["notify"]("test", <any>"DEBUG", { logger: "test" });
       sinon.assert.calledOnceWithExactly(stub, "notify", <any>{
         message: "test",
         kind: "DEBUG",
         options: {
-          telemetry: true,
+          logger: "test",
         },
       });
     });

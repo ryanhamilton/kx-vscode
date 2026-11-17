@@ -92,8 +92,6 @@ export function createNewLabel(name: string, colorName: string) {
 
     notify("Connection label created.", MessageKind.DEBUG, {
       logger,
-      telemetry: "Connection.Label.Create",
-      measurements: getLabelStatistics(),
     });
   } else {
     notify("No Color selected for the label.", MessageKind.ERROR, {
@@ -244,8 +242,6 @@ export function deleteLabel(name: string) {
 
   notify("Connection label deleted.", MessageKind.DEBUG, {
     logger,
-    telemetry: "Connection.Label.Delete",
-    measurements: getLabelStatistics(),
   });
 
   NewConnectionPannel.refreshLabels();

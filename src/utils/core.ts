@@ -33,7 +33,6 @@ import { tryExecuteCommand } from "./cpUtils";
 import { MessageKind, notify } from "./notifications";
 import { errorMessage } from "./shared";
 import { readTextFile, stat, which } from "./shell";
-import { showWelcome } from "../commands/setupCommand";
 import {
   InsightDetails,
   Insights,
@@ -522,24 +521,6 @@ export function getStatus(label: string): string {
     return "- connected";
   }
   return "- disconnected";
-}
-
-export async function checkLocalInstall() {
-  const hide = workspace
-    .getConfiguration()
-    .get<boolean>("kdb.neverShowQInstallAgain", false);
-
-  if (hide) return;
-  showWelcome();
-}
-
-export async function convertBase64License(
-  encodedLicense: string,
-  tempDir: string = tmpdir(),
-): Promise<Uri> {
-  const decodedLicense = Buffer.from(encodedLicense, "base64");
-  await writeFile(join(tempDir, "kc.lic"), decodedLicense);
-  return Uri.parse(join(tmpdir(), "kc.lic"));
 }
 
 export function isTable(result: QueryResult): boolean {

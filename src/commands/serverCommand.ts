@@ -168,7 +168,6 @@ export async function addInsightsConnection(
       ext.serverProvider.refreshInsights(newInsights);
       notify("Created Insights connection.", MessageKind.DEBUG, {
         logger,
-        telemetry: "Connection.Create.ie",
       });
     }
 
@@ -275,7 +274,6 @@ export async function editInsightsConnection(
           ext.serverProvider.refreshInsights(newInsights);
           notify("Edited Insights connection.", MessageKind.DEBUG, {
             logger,
-            telemetry: "Connection.Edit.ie",
           });
           if (isConnectedConn) {
             offerReconnectionAfterEdit(insightsData.alias);
@@ -481,7 +479,6 @@ export async function addKdbConnection(
       }
       notify("Created kdb connection.", MessageKind.DEBUG, {
         logger,
-        telemetry: "Connection.Create.kdb",
       });
       ext.serverProvider.refresh(newServers);
     }
@@ -604,7 +601,6 @@ export async function editKdbConnection(
           ext.serverProvider.refresh(newServers);
           notify("Edited kdb connection.", MessageKind.DEBUG, {
             logger,
-            telemetry: "Connection.Edit.kdb",
           });
           const connLabelToReconn = `${kdbData.serverName}:${kdbData.serverPort} [${kdbData.serverAlias}]`;
           if (isConnectedConn) {
@@ -1367,10 +1363,6 @@ export async function writeQueryResultsToPlot(
 ): Promise<void> {
   notify("GG Plot displayed", MessageKind.DEBUG, {
     logger,
-    telemetry:
-      "Results.Graphics.Displayed" +
-      (isInsights ? ".ie" : ".kdb") +
-      (isPython ? ".py" : ".q"),
   });
   await writePlotToFile(data);
   addQueryHistory(

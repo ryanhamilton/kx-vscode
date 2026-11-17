@@ -646,7 +646,6 @@ export function notifyExecution(flags: number, dsType?: string) {
 
   notify(`Query ${telemetry} executed.`, MessageKind.DEBUG, {
     logger,
-    telemetry,
   });
 
   return telemetry;

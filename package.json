@@ -9,7 +9,6 @@
     "type": "git",
     "url": "https://github.com/KxSystems/kx-vscode.git"
   },
-  "aiConnString": "InstrumentationKey=7efda3fc-3ece-4716-8512-703e8b3d5f9e;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/;ApplicationId=de289870-7089-416e-99f5-a7c4d2f16da6",
   "capabilities": {
     "untrustedWorkspaces": {
       "supported": true
@@ -53,12 +52,6 @@
           "description": "kdb insights enterprise connections for explorer",
           "scope": "machine"
         },
-        "kdb.hideInstallationNotification": {
-          "type": "boolean",
-          "description": "Hide notification for installation path, after first install",
-          "scope": "machine",
-          "deprecationMessage": "This setting is deprecated, use kdb.neverShowQInstallAgain instead"
-        },
         "kdb.hideDetailedConsoleQueryOutput": {
           "type": "boolean",
           "description": "Hide detailed console query output",
@@ -89,18 +82,6 @@
           "description": "QHOME directory for q runtime for the workspace",
           "default": "",
           "scope": "resource"
-        },
-        "kdb.neverShowQInstallAgain": {
-          "type": "boolean",
-          "description": "Never show q install walkthrough again",
-          "default": false,
-          "scope": "machine"
-        },
-        "kdb.hideSubscribeRegistrationNotification": {
-          "type": "boolean",
-          "description": "Hide subscribe for registration notification",
-          "default": false,
-          "scope": "machine"
         },
         "kdb.linting": {
           "type": "boolean",
@@ -153,26 +134,10 @@
           "description": "Labels connection map",
           "default": [],
           "scope": "machine"
-        },
-        "kdb.hideSurvey": {
-          "type": "boolean",
-          "default": false,
-          "description": "Hide the extension survey dialog box",
-          "scope": "machine"
         }
       }
     },
     "commands": [
-      {
-        "category": "KX",
-        "command": "kdb.show.welcome",
-        "title": "Welcome to KDB-X"
-      },
-      {
-        "category": "KX",
-        "command": "kdb.install.kdbx",
-        "title": "Install KDB-X"
-      },
       {
         "category": "KX",
         "command": "kdb.connections.export.all",
@@ -452,26 +417,6 @@
       },
       {
         "category": "KX",
-        "command": "kdb.help.openDocumentation",
-        "title": "Extension Documentation"
-      },
-      {
-        "category": "KX",
-        "command": "kdb.help.suggestFeature",
-        "title": "Suggest a Feature"
-      },
-      {
-        "category": "KX",
-        "command": "kdb.help.provideFeedback",
-        "title": "Provide Feedback"
-      },
-      {
-        "category": "KX",
-        "command": "kdb.help.reportBug",
-        "title": "Report a Bug"
-      },
-      {
-        "category": "KX",
         "command": "kdb.createNotebook",
         "title": "New Notebook"
       },
@@ -665,11 +610,6 @@
           "name": "Query History",
           "contextualTitle": "Query History",
           "icon": "resources/images/server.svg"
-        },
-        {
-          "id": "kdb-help-feedback-view",
-          "name": "Help and Feedback",
-          "icon": "resources/images/server.svg"
         }
       ],
       "kdb-results": [
@@ -704,14 +644,6 @@
         {
           "command": "kdb.repl.openFolder",
           "when": "false"
-        },
-        {
-          "command": "kdb.show.welcome",
-          "when": "true"
-        },
-        {
-          "command": "kdb.install.kdbx",
-          "when": "true"
         },
         {
           "command": "kdb.connections.export.all",
@@ -907,22 +839,6 @@
         },
         {
           "command": "kdb.connections.labels.delete",
-          "when": "false"
-        },
-        {
-          "command": "kdb.help.openDocumentation",
-          "when": "false"
-        },
-        {
-          "command": "kdb.help.suggestFeature",
-          "when": "false"
-        },
-        {
-          "command": "kdb.help.provideFeedback",
-          "when": "false"
-        },
-        {
-          "command": "kdb.help.reportBug",
           "when": "false"
         },
         {
@@ -1335,7 +1251,6 @@
     "@types/vscode-webview": "1.57.5",
     "@types/ws": "8.18.1",
     "@vscode/codicons": "0.0.46-24",
-    "@vscode/extension-telemetry": "1.4.0",
     "@vscode/python-environments": "1.4.0",
     "@vscode/test-electron": "3.1.0",
     "@vscode/vsce": "3.9.2",
@@ -1379,10 +1294,6 @@
     "ws": "8.21.3"
   },
   "overrides": {
-    "@microsoft/applicationinsights-core-js": "3.3.11",
-    "@microsoft/applicationinsights-channel-js": "3.3.11",
-    "@microsoft/applicationinsights-common": "3.3.11",
-    "@microsoft/applicationinsights-web-basic": "3.3.11",
     "lodash-es": ">=4.18.0",
     "serialize-javascript": ">=7.0.5",
     "fast-uri": ">=4.1.5",

@@ -115,9 +115,6 @@ export function notify<T extends string>(
   options: {
     logger?: string;
     params?: any;
-    telemetry?: string | boolean | Error;
-    properties?: { [key: string]: string };
-    measurements?: { [key: string]: number };
   } = {},
   ...items: T[]
 ): Thenable<T | undefined> {
@@ -129,19 +126,6 @@ export function notify<T extends string>(
     kdbOutputLog(log, kind, true);
   }
 
-  if (options.telemetry) {
-    if (typeof options.telemetry === "boolean") {
-      ext.telemetry.sendError(new Error(message));
-    } else if (options.telemetry instanceof Error) {
-      ext.telemetry.sendError(options.telemetry);
-    } else {
-      ext.telemetry.sendEvent(
-        options.telemetry,
-        options.properties,
-        options.measurements,
-      );
-    }
-  }
 
   let action: "Details" | "Dismiss" | undefined;
 

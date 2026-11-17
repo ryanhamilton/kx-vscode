@@ -12,7 +12,6 @@
  */
 
 import "./components/kdbSelect";
-import "./components/kdbWelcomeView";
 import "./components/kdbNewConnectionView";
 import "./components/kdbChartView";
 import "./components/kdbResultsView";

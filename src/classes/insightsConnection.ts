@@ -1013,7 +1013,7 @@ export class InsightsConnection {
           notify(
             `Scratchpad cancel request sent for ${this.connLabel}${isPython ? ", however, Python queries may ignore this." : "."}`,
             MessageKind.INFO,
-            { logger, telemetry: "Connection.Cancel.ie.sp" },
+            { logger },
           );
           return true;
         })
@@ -1062,7 +1062,7 @@ export class InsightsConnection {
           notify(
             `Scratchpad reset for ${this.connLabel} executed successfully.`,
             MessageKind.INFO,
-            { logger, telemetry: "Connection.Reset.ie.sp" },
+            { logger },
           );
           return true;
         })

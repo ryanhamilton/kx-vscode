@@ -213,7 +213,6 @@ export class ScratchpadLogger {
 
     notify("GG Plot displayed", MessageKind.DEBUG, {
       logger,
-      telemetry: "Results.Graphics.Displayed.ie.ws",
     });
 
     this.rendering = this.rendering

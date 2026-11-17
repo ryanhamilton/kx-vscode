@@ -110,7 +110,6 @@ export class KdbResultsViewProvider implements WebviewViewProvider {
     await utils.exportToCsv(workspaceUri);
     notify("CSV exported.", MessageKind.DEBUG, {
       logger,
-      telemetry: "Results.Export.csv",
     });
   }
 
@@ -172,7 +171,6 @@ export class KdbResultsViewProvider implements WebviewViewProvider {
         });
         notify("Table displayed.", MessageKind.DEBUG, {
           logger,
-          telemetry: "Results.Table.Displayed",
         });
       } else {
         this._view.webview.postMessage({

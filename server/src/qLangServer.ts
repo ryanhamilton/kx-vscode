@@ -214,7 +214,6 @@ export default class QLangServer {
     options: {
       logger?: string;
       params?: any;
-      telemetry?: string | boolean;
     } = {},
   ) {
     this.connection.sendNotification("notify", {
@@ -277,7 +276,6 @@ export default class QLangServer {
   }: ReferenceParams): Promise<Location[]> {
     this.notify("onReferences", MessageKind.DEBUG, {
       logger,
-      telemetry: "Language.References",
     });
 
     const source = await this.getSource(uri);
@@ -301,7 +299,6 @@ export default class QLangServer {
   }: DefinitionParams): Promise<Location[]> {
     this.notify("onDefinition", MessageKind.DEBUG, {
       logger,
-      telemetry: "Language.Definition",
     });
 
     const source = await this.getSource(uri);
@@ -326,7 +323,6 @@ export default class QLangServer {
   }: RenameParams): Promise<WorkspaceEdit | null> {
     this.notify("onRenameRequest", MessageKind.DEBUG, {
       logger,
-      telemetry: "Language.RenameRequest",
     });
 
     const source = await this.getSource(uri);
@@ -415,7 +411,6 @@ export default class QLangServer {
     if (res.length > 0) {
       this.notify("onCompletion", MessageKind.DEBUG, {
         logger,
-        telemetry: "Language.Completion",
       });
     }
 
@@ -448,7 +443,6 @@ export default class QLangServer {
   }: TextDocumentPositionParams) {
     this.notify("onParameterCache", MessageKind.DEBUG, {
       logger,
-      telemetry: "Language.ParameterCache",
     });
 
     const source = await this.getSource(uri);
@@ -566,7 +560,6 @@ export default class QLangServer {
   }: CallHierarchyPrepareParams): Promise<CallHierarchyItem[]> {
     this.notify("onCallHierarchy", MessageKind.DEBUG, {
       logger,
-      telemetry: "Language.CallHierarchy",
     });
 
     const source = await this.getSource(uri);

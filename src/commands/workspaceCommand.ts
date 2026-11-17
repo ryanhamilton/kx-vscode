@@ -889,10 +889,7 @@ export function reportReplError(error: unknown) {
   notify(errorMessage(error), MessageKind.ERROR, { logger, params: error });
 }
 
-async function launchRepl(
-  open: () => Promise<ReplConnection>,
-  telemetry: string,
-) {
+async function launchRepl(open: () => Promise<ReplConnection>) {
   let instance: ReplConnection;
   try {
     instance = await open();
@@ -901,11 +898,11 @@ async function launchRepl(
     return;
   }
   instance.start();
-  notify("REPL started.", MessageKind.DEBUG, { logger, telemetry });
+  notify("REPL started.", MessageKind.DEBUG, { logger });
 }
 
 export function startRepl() {
-  return launchRepl(() => ReplConnection.getOrCreateInstance(), "Repl.Start");
+  return launchRepl(() => ReplConnection.getOrCreateInstance());
 }
 
 export async function startReplInFolder(uri?: Uri) {
@@ -921,10 +918,7 @@ export async function startReplInFolder(uri?: Uri) {
   } catch {
     // Unable to stat the resource; fall back to using it as the base directory.
   }
-  return launchRepl(
-    () => ReplConnection.openInFolder(base),
-    "Repl.StartFolder",
-  );
+  return launchRepl(() => ReplConnection.openInFolder(base));
 }
 
 export async function runOnRepl(

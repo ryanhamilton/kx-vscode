@@ -313,7 +313,7 @@ export class QueryEditorProvider implements CustomTextEditorProvider {
                 notify(
                   `Scratchpad cancel request sent for ${msg.selectedServer}`,
                   MessageKind.INFO,
-                  { logger, telemetry: "Connection.Cancel.ie.sp" },
+                  { logger },
                 );
                 return;
               }

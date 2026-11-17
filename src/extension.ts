@@ -48,7 +48,6 @@ import {
   rerunQuery,
   resetScratchpad,
 } from "./commands/serverCommand";
-import { installKdbX, showWelcome } from "./commands/setupCommand";
 import {
   ConnectionLensProvider,
   connectWorkspaceCommands,
@@ -76,7 +75,6 @@ import { QueryResult } from "./models/queryResult";
 import { ChartEditorProvider } from "./services/chartEditorProvider";
 import { CompletionProvider } from "./services/completionProvider";
 import { DataSourceConverterProvider } from "./services/dataSourceConverterProvider";
-import { HelpFeedbackProvider } from "./services/helpFeedbackProvider";
 import {
   InsightsMetaNode,
   InsightsNode,
@@ -110,18 +108,14 @@ import {
   setLabelColor,
 } from "./utils/connLabel";
 import {
-  checkLocalInstall,
   checkOpenSslInstalled,
   getInsights,
   getServers,
   hasWorkspaceOrShowOption,
 } from "./utils/core";
-import { handleFeedbackSurvey } from "./utils/feedbackSurveyUtils";
 import { getIconPath } from "./utils/iconsUtils";
 import { MessageKind, notify, Runner } from "./utils/notifications";
-import { showRegistrationNotification } from "./utils/registration";
 import AuthSettings from "./utils/secretStorage";
-import { ExtensionTelemetry } from "./utils/telemetryClient";
 import { addWorkspaceFile, openWith, setUriContent } from "./utils/workspace";
 
 const logger = "extension";
@@ -149,17 +143,6 @@ export async function activate(context: vscode.ExtensionContext) {
   ext.outputChannel = vscode.window.createOutputChannel("kdb", { log: true });
   ext.openSslVersion = await checkOpenSslInstalled();
 
-  const extensionPackage = context.extension.packageJSON;
-  const extensionVersion = extensionPackage.version || "unknown";
-  const aiConnString = extensionPackage.aiConnString;
-
-  const isRCExtension = extensionVersion.includes("rc");
-  const enableTelemetry = isRCExtension
-    ? false
-    : vscode.workspace.getConfiguration("telemetry").get("telemetryLevel") !==
-      "off";
-
-  ext.telemetry = new ExtensionTelemetry(aiConnString, enableTelemetry);
 
   getWorkspaceLabelsConnMap();
   getWorkspaceLabels();
@@ -205,11 +188,6 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.window.registerTreeDataProvider(
     "kdb-query-explorer",
     ext.queryTreeProvider,
-  );
-
-  vscode.window.registerTreeDataProvider(
-    "kdb-help-feedback-view",
-    new HelpFeedbackProvider(),
   );
 
   // initialize the secret store
@@ -376,119 +354,20 @@ export async function activate(context: vscode.ExtensionContext) {
   connectClientCommands(context, client);
   await connectBuildTools();
 
-  const yamlExtension = vscode.extensions.getExtension("redhat.vscode-yaml");
-  if (yamlExtension) {
-    const actualSchema = await vscode.workspace
-      .getConfiguration()
-      .get("yaml.schemas");
-    const schemaJSON = {
-      "https://code.kx.com/insights/enterprise/packaging/schemas/pipeline.json":
-        "*pipelines/*.yaml",
-      "https://code.kx.com/insights/enterprise/packaging/schemas/table.json":
-        "tables/*.yaml",
-      "https://code.kx.com/insights/enterprise/packaging/schemas/deploymentconfig.json":
-        "deployment_config.yaml",
-      "https://code.kx.com/insights/enterprise/packaging/schemas/router.json":
-        "router.yaml",
-      "https://code.kx.com/insights/enterprise/packaging/schemas/shard.json":
-        "*shard.yaml",
-    };
-    Object.assign(actualSchema ? actualSchema : {}, schemaJSON);
-    await yamlExtension.activate().then(() => {
-      vscode.workspace
-        .getConfiguration()
-        .update(
-          "yaml.schemas",
-          actualSchema,
-          vscode.ConfigurationTarget.Global,
-        );
-    });
-  }
   const authExtension = vscode.extensions.getExtension("KX.kdb-auth");
   if (authExtension) {
     const api = await authExtension.activate();
     if ("auth" in api) {
       notify("Custom authentication activated.", MessageKind.DEBUG, {
         logger,
-        telemetry: "Extension.CustomAuth.Activated",
       });
       ext.customAuth = api;
     }
   }
 
-  setTimeout(() => {
-    checkLocalInstall();
-    showRegistrationNotification();
-    handleFeedbackSurvey();
-  }, 500);
-
   notify("kdb extension is now active.", MessageKind.DEBUG, {
     logger,
-    telemetry: "Extension.Activated",
   });
-}
-
-function registerSetupCommands(): CommandRegistration[] {
-  const setupCommands: CommandRegistration[] = [
-    { command: "kdb.show.welcome", callback: () => showWelcome() },
-    { command: "kdb.install.kdbx", callback: () => installKdbX() },
-  ];
-
-  return setupCommands;
-}
-
-function registerHelpCommands(): CommandRegistration[] {
-  const helpCommands: CommandRegistration[] = [
-    {
-      command: "kdb.help.openDocumentation",
-      callback: () => {
-        vscode.commands
-          .executeCommand(
-            "workbench.extensions.action.showExtensionDetails",
-            "KX.kdb",
-          )
-          .then(undefined, () => {
-            notify("Help&Feedback documentation selected.", MessageKind.DEBUG, {
-              logger,
-              telemetry: "Help.Open.Documentation",
-            });
-            vscode.commands.executeCommand("extension.open", "KX.kdb");
-          });
-      },
-    },
-    {
-      command: "kdb.help.suggestFeature",
-      callback: () => {
-        notify("Help&Feedback suggest a feature selected.", MessageKind.DEBUG, {
-          logger,
-          telemetry: "Help.Open.SuggestFeature",
-        });
-        vscode.env.openExternal(vscode.Uri.parse(ext.urlLinks.suggestFeature));
-      },
-    },
-    {
-      command: "kdb.help.provideFeedback",
-      callback: () => {
-        notify("Help&Feedback survey selected.", MessageKind.DEBUG, {
-          logger,
-          telemetry: "Help.Open.Survey",
-        });
-        vscode.env.openExternal(vscode.Uri.parse(ext.urlLinks.survey));
-      },
-    },
-    {
-      command: "kdb.help.reportBug",
-      callback: () => {
-        notify("Help&Feedback report a bug selected.", MessageKind.DEBUG, {
-          logger,
-          telemetry: "Help.Open.ReportBug",
-        });
-        vscode.env.openExternal(vscode.Uri.parse(ext.urlLinks.reportBug));
-      },
-    },
-  ];
-
-  return helpCommands;
 }
 
 function registerResultsPanelCommands(): CommandRegistration[] {
@@ -769,7 +648,6 @@ function registerConnectionsCommands(): CommandRegistration[] {
       callback: () => {
         notify("Export all conections.", MessageKind.DEBUG, {
           logger,
-          telemetry: "Connection.Export.All",
         });
         exportConnections();
       },
@@ -779,7 +657,6 @@ function registerConnectionsCommands(): CommandRegistration[] {
       callback: async (viewItem: KdbNode | InsightsNode) => {
         notify("Export single conection.", MessageKind.DEBUG, {
           logger,
-          telemetry: "Connection.Export.Single",
         });
         exportConnections(viewItem.label);
       },
@@ -789,7 +666,6 @@ function registerConnectionsCommands(): CommandRegistration[] {
       callback: async () => {
         notify("Import conections.", MessageKind.DEBUG, {
           logger,
-          telemetry: "Connection.Import",
         });
         await importConnections();
       },
@@ -1106,8 +982,6 @@ function registerReplCommands(): CommandRegistration[] {
 
 function registerAllExtensionCommands(): void {
   const allCommands: CommandRegistration[] = [
-    ...registerSetupCommands(),
-    ...registerHelpCommands(),
     ...registerResultsPanelCommands(),
     ...registerQueryCommands(),
     ...registerScratchpadCommands(),
@@ -1129,7 +1003,6 @@ function registerAllExtensionCommands(): void {
 }
 
 export async function deactivate(): Promise<void> {
-  await ext.telemetry.dispose();
 
   if (ext.client) {
     return ext.client.stop();
