@@ -6,10 +6,10 @@
 > stand-in. Expected kdb behaviour comes from published docs
 > (`/home/ubuman/dev/rayforce/qdocs/`) or third-party code, never from running it.
 > End users may run KX q with this extension and report bugs; we reproduce them
-> on peachq or from the docs. This means `npm run q-test` (qcumber in the
-> `qpbuild` image) and the KX-q path of `tools/manual-test` are off limits —
-> their replacements are qunit on peachq and the manual-test tool pointed at
-> peachq, headless.
+> on peachq or from the docs. The old qcumber path (`qcumber.sh`, the `qpbuild`
+> image) is gone; `npm run q-test` now runs qunit on peachq only and refuses any
+> q without `.pq.version`. The KX-q path of `tools/manual-test` is off limits —
+> its replacement is the manual-test tool pointed at peachq, headless.
 
 ## Overview
 
@@ -63,7 +63,7 @@ npm run test:file <path>          # Single test file (TEST_FILE env)
 npm run test:folder <path>        # A folder of tests (TEST_FOLDER env)
 npm run test:e2e                  # End to end suite (test/e2e/**), TEST_FILE env narrows it
 npm run coverage                  # Same suite under c8 coverage
-npm run q-test                    # q-language unit tests — runs in the qpbuild docker image (no local q needed)
+npm run q-test                    # q unit tests (qunit) on peachq: set PEACHQ_Q (else q on PATH)
 ```
 
 Every suite that launches VS Code (all but `q-test`) needs
@@ -87,15 +87,15 @@ flow opens replaced in `utils/insights.ts`. macOS and Linux only — on Windows
 the REPL spawns q through `cmd.exe`, which cannot run the stand-in. See
 [docs/developer/development.md](docs/developer/development.md).
 
-`q-test` wraps [qcumber.sh](qcumber.sh), which runs the tests in the `qpbuild`
-image (pykx set up by `test/q/preTest.sh`). The image lives in a private GitLab
-registry: the script pulls with whatever credentials docker already has (in CI,
-a `docker/login-action` step), and only on failure authenticates from
-`GITLAB_TOKEN` (a PAT with `read_registry`) or an interactive prompt and retries
-once. It also needs a kdb+ license as `KDB_K4LICENSE_B64` (a CI secret); if that
-is unset, `qcumber.sh` encodes a `k4.lic` found at `$QLIC/`, `$QHOME/`, then
-`~/.kx/` — so an existing `$QLIC`/`$QHOME` needs no setup. A `kc.lic` will not
-work.
+`q-test` runs [tools/q-test.sh](tools/q-test.sh): `node build-api.js`, then
+`"${PEACHQ_Q:-q}" test/q/run.q -classic`. The tests are qunit files
+`test/q/qunit/<name>Test.q` (qunit is built into peachq, `\l pq/qunit.q`), each
+run by [test/q/run.q](test/q/run.q) in its own q, which exits non-zero on any
+failure. A check peachq cannot pass (k mode, a divergence from documented kdb)
+is a `skip*` function with its reason in the namespace's `skipped` dict, never a
+bent expectation; `QTEST_SKIPPED=1` runs them. CI installs the build in
+[.peachq-version](.peachq-version) with `peachq-org/setup-peachq`.
+`test/q/tests/evaluatePy.quke` is kept but unrun (it needs PyKX).
 
 ## Architecture
 

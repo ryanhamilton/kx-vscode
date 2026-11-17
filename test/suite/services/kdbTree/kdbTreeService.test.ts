@@ -333,7 +333,7 @@ describe("kdbTreeService", () => {
   });
   /**
    * The listing a process answers with, filed the way the tree draws it. The
-   * fixture is the shape listMem.q reports (see test/q/tests/listMem.quke): an
+   * fixture is the shape listMem.q reports (see test/q/qunit/listMemTest.q): an
    * item's fname carries its namespace, and a namespace has a row of its own
    * marked isNs.
    */

@@ -1497,7 +1497,7 @@
     "test:e2e": "node ./out-test/test/runE2E.js",
     "test:e2e:kx": "cross-env E2E_FAKE_KX=1 TEST_FILE=kx npm run test:e2e",
     "coverage": "rimraf out && c8 -o coverage-reports -r lcov -r cobertura -r html npm run test",
-    "q-test": "bash qcumber.sh -src test/q/main.q -test test/q/tests"
+    "q-test": "bash tools/q-test.sh"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",

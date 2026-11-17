@@ -14,15 +14,12 @@ img/
 docs/
 CLAUDE.md
 build-api.js
-qcumber.q
+.peachq-version
 secure-processes.md
-qcumber.sh 
 esbuild.mjs
-sonar-project.properties
 eslint.config.cjs
 eslint.config.mjs
 ref_card.md
-release_process.md
 .github/
 out-test/
 .test-extensions/
