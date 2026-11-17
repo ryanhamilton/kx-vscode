@@ -103,6 +103,8 @@ async function main() {
       "--disable-gpu",
       "--disable-workspace-trust",
       "--skip-release-notes",
+      // No OS keyring on CI runners: VS Code would block on a modal about it.
+      "--password-store=basic",
       ...(headless ? ["--ozone-platform=headless"] : []),
     ],
   });
