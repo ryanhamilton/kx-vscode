@@ -163,6 +163,23 @@ export async function activate() {
 }
 
 /**
+ * Activation opens the welcome page 500 ms later, unprompted. Waits for it and
+ * closes it, so it cannot take the active editor from a suite's first notebook.
+ */
+export async function closeWelcomeOnActivation() {
+  const welcome = () =>
+    vscode.window.tabGroups.all
+      .flatMap((group) => group.tabs)
+      .filter(
+        (tab) =>
+          tab.input instanceof vscode.TabInputWebview &&
+          tab.input.viewType.includes("kdbWelcomeView"),
+      );
+  await until(() => welcome().length > 0, "the welcome page to open");
+  await vscode.window.tabGroups.close(welcome());
+}
+
+/**
  * Opens a file and gives it the requested selection, or selects the whole file
  * when none is given.
  *

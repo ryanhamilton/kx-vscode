@@ -16,6 +16,7 @@ import * as vscode from "vscode";
 
 import {
   activate,
+  closeWelcomeOnActivation,
   discardNotebook,
   executeNotebook,
   outputs,
@@ -67,6 +68,7 @@ describe("The REPL on peachq", function () {
       this.skip();
     }
     await activate();
+    await closeWelcomeOnActivation();
   });
 
   after(async () => {
