@@ -24,6 +24,7 @@ history: https://github.com/KxSystems/kx-vscode/blob/main/CHANGELOG.md
   without it. The connections panel lists **peachq (built-in)**, which starts
   that peachq on `127.0.0.1` with a one-off password on connect and stops it on
   disconnect. The REPL falls back to it only when no other q is found.
+- Bundles peachq 0.92.20261118.
 - Query results always reach the console, and tables, dictionaries and keyed
   tables also reach the Results view without taking focus
   (`peachq.results.grid`: `always` or `never`); the Terminal / Results View
