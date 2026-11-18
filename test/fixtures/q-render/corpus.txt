@@ -1,0 +1,421 @@
+/ One q expression per line, lines starting with / are comments. npm run gen:q-render writes expected.tsv.
+/ The first 288 come from qStudio's q-render-corpus.txt. qdocs.tsv replaces a text where peachq is not kdb.
+/ ---- atoms
+1b
+0b
+0x2a
+0x00
+1h
+1i
+1
+1j
+1e
+1.5e
+1f
+1.5
+3.141593
+3.1415926535897931
+100000000f
+1e10
+1e-5
+0.0001
+123456789.123
+-1.5
+"a"
+" "
+"\""
+"\\"
+`abc
+`
+`a.b
+`$"a b"
+2013.04m
+2013.04.30
+2013.04.30T14:40:25.858
+2013.04.30D14:33:36.827409123
+2013.04.30D14:33:36.827409
+2013.04.30D00:00:00.000000000
+0D14:09:00.859233000
+0D14:09:00.000059233
+1D14:09:00.000000001
+-0D00:00:01
+14:40
+14:40:18
+14:40:18.555
+14:40:18.010
+-14:40:18.010
+"G"$"0a369037-75d3-b24d-6721-5a1d44d4bed5"
+0Ng
+/ ---- nulls and infinities
+0Nh
+0Wh
+-0Wh
+0Ni
+0Wi
+-0Wi
+0N
+0W
+-0W
+0Ne
+0We
+-0We
+0n
+0w
+-0w
+0Np
+0Wp
+-0Wp
+0Nm
+0Wm
+0Nd
+0Wd
+0Nz
+0Wz
+0Nn
+0Wn
+0Nu
+0Wu
+0Nv
+0Wv
+0Nt
+0Wt
+/ ---- simple lists
+10011110b
+enlist 1b
+`boolean$()
+0x1234aaeff2
+enlist 0x2a
+`byte$()
+1 2h
+enlist 1h
+`short$()
+1 2i
+enlist 1i
+`int$()
+1 2
+enlist 1
+`long$()
+1.0 2.0
+1.0 2.11
+enlist 1.5
+`float$()
+1.99 2.0e
+enlist 2e
+`real$()
+"aa"
+""
+enlist "a"
+"a\tb\nc\rd\\e\"f"
+`a`b`c
+enlist `a
+`$()
+``
+``a
+2013.04 2013.05m
+2013.04.30 2013.05.01
+enlist 2013.04.30
+`date$()
+2013.04.30D14:33:36.827409123 2013.04.30D14:33:36
+`timestamp$()
+0D14:09:00.859233000 0D00:00:01
+14:40 14:41
+14:40:18 14:40:19
+14:40:18.555 14:40:18.010
+2013.04.30T14:40:25.858 2013.04.30T14:40:26.000
+0N 1 2
+0n 1.5
+0w -0w 1
+0N 0W -0W
+(0Nh;1h)
+(0Nd;2013.04.30)
+0N 0W -0W 1i
+0N 0N
+0n 0n
+0N 0Ni
+`real$0N 1
+(0We;-0We;1e)
+`real$0N 0N
+`date$0N 0N
+(0Nm;2013.04m)
+(0Np;2013.04.30D14:33:36.827409123)
+(0Nz;2013.04.30T14:40:25.858)
+(0Nn;0D00:00:01)
+(0Nu;14:40)
+(0Nv;14:40:18)
+(0Nt;14:40:18.555)
+(0Wd;0Nd;2013.04.30)
+0x00ff
+`a`b`c`d`e`f`g
+`$("a b";"c")
+"G"$("0a369037-75d3-b24d-6721-5a1d44d4bed5";"0a369037-75d3-b24d-6721-5a1d44d4bed6")
+enlist "G"$"0a369037-75d3-b24d-6721-5a1d44d4bed5"
+`guid$()
+"a",(`char$1 7 127 200),"b"
+`char$0
+1.23456789
+0.1+0.2
+1e-10
+-0.0
+1.5 2.25 3.125
+100000000 1.5
+1e10 1
+0.1 0.0001 1e-05
+123456.7
+1234567.1
+12345678.1
+1.234567e7 1.5
+2147483647i
+-2147483647i
+9223372036854775807
+32767h
+-32767h
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40
+"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+til 30
+/ ---- attributes
+`s#1 2 3
+`u#`a`b
+`p#1 1 2
+`g#1 2 1
+`s#`a`b!1 2
+/ ---- general lists
+()
+(1;`a)
+(1;2h)
+(1;"a")
+("ab";"cd")
+enlist "ab"
+(1 2;3 4)
+enlist 1 2
+((1;2);(3;4))
+(1;(2;(3;4)))
+(::;1)
+(`a;"b";1.5;2013.04.30)
+((),1;"")
+/ ---- dictionaries
+`a`b!1 2
+`a`b!(1;`x)
+`a`b!("ab";"cd")
+`a`b!(1 2;3 4)
+(enlist `a)!enlist 1
+(1 2)!(3 4)
+()!()
+`a`b!(`c`d!1 2;`e`f!3 4)
+"ab"!1 2
+/ ---- tables
+([] a:1 2; b:`x`y)
+([] a:enlist 1)
+([] a:1 2; b:("ab";"cd"))
+([] a:`int$(); b:`$())
+([k:1 2] v:`x`y)
+([k:1 2; j:`a`b] v:3 4)
+`s#([k:1 2] v:3 4)
+/ ---- functions
+{x+y}
+{x+y}[1]
+'[neg;abs]
++/
+/ ---- more nesting
+`s#enlist 1
+`u#enlist `a
+(enlist 1;enlist `a)
+(();())
+(1;())
+enlist ()
+((1;2);`a)
+(`a`b!1 2;3)
+(1;([] a:1 2))
+(`a;{x})
+`a`b!(();1)
+(1 2;`a`b)!(3 4;5 6)
+`a`b!(1;([] c:1 2))
+`a`b!(([] c:1 2);1)
+([] a:1 2; b:(1 2;3 4))
+([] a:1 2; b:(`x;1))
+([] a:1 2; b:(`c`d!1 2;`c`d!3 4))
+([] a:1 2; b:({x};+))
+([] a:1.5 2; b:0n 1)
+([] a:2013.04.30 0Nd; b:`x`)
+([] a:"ab")
+([] aaaaaaaa:1 2; b:100000 2)
+([k:`a`b] v:(1 2;3 4))
+([] a:til 30)
+([] a:1 2;b:2#enlist 100#"x")
+`a`b!(100#"x";1)
+`aaaaaaa`b!1 2
+(`a`b!1 2;`a`b!3 4)
+`a`b!(`a`b!1 2;3)
+(1;`a`b!1 2)
+/ ---- matrices and layout
+(`a`b;`c`d)
+2 4#`Arthur`Bob`Cy`Dee
+(1 2;10 20)
+(1.5 2;3 4.25)
+(10b;01b)
+(0x0102;0x0304)
+(2013.04 2013.05m;2013.06 2013.07m)
+(1;`a)
+((1;`a);(2;`b))
+((1 2;3);4 5)
+(2;10;"a")
+("a";"dog ")
+("ab";"cd";"ef")
+(1 2 3;"abc")
+(`a;"bc")
+enlist 1 2 3
+enlist `a`b
+enlist (1;`a)
+enlist (+;1)
+(0N 1;2 0N)
+(0n 1;2 0w)
+(til 50;til 50)
+til 100
+`$string til 30
+30#enlist 1 2
+(30#`a)!til 30
+`a`b!(1 2 3;4 5)
+`a`b!(+;{x+y})
+`a`b!(`c`d!1 2;3)
+`a`b!(([]c:1 2);([]c:3 4))
+`a`b!((1;`x);(2;`y))
+([k:`a`b] v:(`c`d!1 2;`c`d!3 4))
+([k:("ab";"cd")] v:1 2)
+([k:1 2] v:({x};+[1]))
+([] a:`s#1 2 3; b:`g#`x`y`x)
+([] a:30#1)
+([] a:1 2; b:("a";"bc"))
+([] a:2#enlist 1 2 3; b:2#enlist `x`y)
+([] a:(1;`x); b:(2;"y"))
+([] c1:1 2; c2:1 2; c3:1 2; c4:1 2; c5:1 2; c6:1 2; c7:1 2; c8:1 2; c9:1 2; c10:1 2; c11:1 2; c12:1 2; c13:1 2; c14:1 2; c15:1 2; c16:1 2; c17:1 2; c18:1 2; c19:1 2; c20:1 2; c21:1 2)
+([k:`a`b] v:2#enlist 100#"y")
+([] a:0#0)
+([k:0#0] v:0#`)
+(1 2;"ab";`c`d)
+({x};{y})
+(+;-)
+({x}[1];+/)
+(1;{x})
+(`a;+)
+"\303\251"
+`$"\303\251"
+/ ---- more types: shorts, empties, temporal edges, enums
+1 2 3h
+0Wh+1
+`guid$()
+`month$()
+`datetime$()
+`timespan$()
+`minute$()
+`second$()
+`time$()
+`char$()
+enlist ""
+enlist 0Wd
+`timestamp$-1
+1999.12.31
+0001.01.01
+9999.12.31
+1900.01.01D00:00:00
+2292.04.10D23:47:16.854775806
+1999.12m
+1999.01m
+-1D
+`minute$-1
+`second$-61
+`time$-1
+`time$86400000
+`minute$6000
+`datetime$-0.5
+`datetime$0w
+"\377"
+"\303\251xy"
+1b,0x00
+2#"G"$"0a369037-75d3-b24d-6721-5a1d44d4bed5"
+(0Ng;"G"$"0a369037-75d3-b24d-6721-5a1d44d4bed5")
+sym:`a`b; `sym$`a`b`a
+sym:`a`b; `sym$`b
+sym:`a`b; ([] s:`sym$`a`b; v:1 2)
+0.5 0.25e
+1e100
+-1e-100
+1.7976931348623157e308
+4.9e-324
+1.0000005
+2.0000005
+100.0e
+123456.75e
+/ ---- functions: primitives, iterators, projections, compositions
+::
+enlist (::)
+(::;::)
++
+-
+neg
+enlist
+count
+sum
+flip
+value
+string
+2:
+'
++/
++\
++'
++':
++/:
++\:
+{x}'
+{x+y}/
+'[neg;abs]
+'[{x};{y}]
+{x+y}[;1]
+{x+y+z}[1;;3]
+(+)[1]
+-[;1]
+@[;1]
+(1;)
+{[a;b] a*b}
+/ ---- containers of functions and nesting
+(+;-;*;%)
+`f`g!({x};{y})
+([] f:({x};{y}))
+((1;{x});(2;{y}))
+/ ---- dictionaries and tables, wider
+`a`b`c!1 2 3h
+`a`b!(1;`c)
+1 2 3!4 5 6
+(`a`b!1 2;`a`b!3 4)
+(1;2)!(`a;"b")
+`a`b!(0n;0w)
+`a`b!(0N;0Nd)
+`p`f`z!("q";"t";0b)
+`a`b!(1 2 3;"xyz")
+`a`b`c!(1 2 3;"xyz";2 3 5)
+(("fox";("jumps";"over"));("a";"dog"))
+([] a:0N 1; b:0n 2; c:``x; d:0Nd,2013.04.30)
+([] a:(2013.04m;0Nm); b:0D01 0Nn; c:12:00 0Nu; d:12:00:00 0Nv; e:12:00:00.000 0Nt)
+([] g:(0Ng;"G"$"0a369037-75d3-b24d-6721-5a1d44d4bed5"))
+([] a:10011b; b:0x0102030405)
+([] a:1 2; b:(1 2 3;4 5))
+([] a:1 2; b:(enlist 1;enlist 2))
+([] a:1 2; b:(enlist 1;1 2))
+([] a:1 2; b:(enlist `a;enlist `b))
+([] a:1 2; b:("x";"yz"))
+([] a:1 2e; b:1.5 2.25e)
+([k:1 2] v:(`a`b;`c`d))
+([k:`a`b; j:1 2] v:("x";"y"); w:1.5 0n)
+([] s:`a`b; p:2013.04.30D14:33:36.827409123 0Np)
+flip (`$"c",/:string til 70)!70#enlist 1 2
+1!flip (`$"c",/:string til 70)!70#enlist 1 2
+([] a:til 40; b:40#`x`y)
+([] a:enlist 100#"z")
+/ ---- console clipping
+til 1000
+1000#"q"
+50#enlist "ab"
+(30#`a)!30#enlist til 50
+/ ---- qdocs: kdb aligns a list of same-count general lists as a matrix
+((7 8;9 10 11);(13;15 16))
+(011b;(1b;10b;0b))
+((1;1 1);(9;9 9);(9;9 9);(5;6 7))
