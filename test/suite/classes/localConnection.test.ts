@@ -233,6 +233,30 @@ describe("LocalConnection", () => {
         assert.strictEqual(sendMode(mode, useAPI), sent);
       });
     }
+
+    it("auto sends a run in the file's namespace through vscode-wrap", () => {
+      assert.strictEqual(sendMode("auto", false, true), "json");
+      assert.strictEqual(sendMode("qstudio-wrap", false, true), "qstudio");
+    });
+  });
+
+  describe("asksAboutNamespace", () => {
+    it("asks for a namespaced auto run that would be wrapped", () => {
+      assert.strictEqual(localConn.asksAboutNamespace(".foo"), true);
+    });
+
+    for (const [why, set] of [
+      ["from the root namespace", () => undefined],
+      ["once answered", () => (localConn.namespacedRuns = "as-typed")],
+      ["with the .vscode API", () => (localConn.useAPI = true)],
+      ["in another query mode", () => (localConn.queryMode = "naked")],
+    ] as const) {
+      it(`does not ask ${why}`, () => {
+        set();
+        const context = why === "from the root namespace" ? "." : ".foo";
+        assert.strictEqual(localConn.asksAboutNamespace(context), false);
+      });
+    }
   });
 
   describe("runQuery", () => {
@@ -277,6 +301,15 @@ describe("LocalConnection", () => {
         false,
       )) as TypedReply;
       assert.ok(reply.hint?.includes(".foo"), reply.hint);
+    });
+
+    it("runs in the file's namespace through the evaluate path when told to", async () => {
+      const executeQuery = sinon.stub(localConn, "executeQuery").resolves("x");
+      localConn.namespacedRuns = "file-namespace";
+
+      await localConn.runQuery("x:1", ".foo", false);
+
+      sinon.assert.calledOnceWithExactly(executeQuery, "x:1", ".foo", false);
     });
 
     it("sends exactly the user's text in naked mode", async () => {

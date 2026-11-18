@@ -17,7 +17,7 @@ import { join } from "path";
 import { commands } from "vscode";
 
 import { ext } from "../extensionVariables";
-import { QueryMode } from "../models/connectionsModels";
+import { NamespacedRuns, QueryMode } from "../models/connectionsModels";
 import { RowLimit } from "../models/notebook";
 import {
   QueryResult,
@@ -66,6 +66,7 @@ export type SendMode = "json" | "qstudio" | "naked";
 export function sendMode(
   mode: QueryMode | undefined,
   useAPI: boolean,
+  inFileNamespace = false,
 ): SendMode {
   switch (mode) {
     case "naked":
@@ -75,9 +76,11 @@ export function sendMode(
     case "vscode-wrap":
       return "json";
     default:
-      return useAPI ? "json" : "qstudio";
+      return useAPI || inFileNamespace ? "json" : "qstudio";
   }
 }
+
+export const isNamespaced = (context?: string) => !!context && context !== ".";
 
 export class LocalConnection {
   public connected: boolean;
@@ -98,6 +101,7 @@ export class LocalConnection {
     creds?: string[],
     tls?: boolean,
     public queryMode?: QueryMode,
+    public namespacedRuns?: NamespacedRuns,
   ) {
     const params = connectionString.split(":");
     if (!params) {
@@ -290,19 +294,34 @@ export class LocalConnection {
     });
   }
 
+  // A default run from a namespaced region that has no answer yet for where
+  // such runs go.
+  public asksAboutNamespace(context?: string): boolean {
+    return (
+      isNamespaced(context) &&
+      (this.queryMode ?? "auto") === "auto" &&
+      !this.useAPI &&
+      (this.namespacedRuns ?? "ask") === "ask"
+    );
+  }
+
   public async runQuery(
     query: string,
     context: string | undefined,
     stringify: boolean,
   ): Promise<any> {
-    const send = sendMode(this.queryMode, this.useAPI);
+    const send = sendMode(
+      this.queryMode,
+      this.useAPI,
+      isNamespaced(context) && this.namespacedRuns === "file-namespace",
+    );
     if (send === "json") {
       return this.executeQuery(sanitizeQuery(query), context, stringify);
     }
     const reply = await (send === "qstudio"
       ? this.typedReply(qstudioWrap(query), fromQStudio)
       : this.typedReply(query, fromNaked));
-    if (isTypedReply(reply) && context && context !== ".") {
+    if (isTypedReply(reply) && isNamespaced(context)) {
       reply.hint = contextHint(context);
     }
     return reply;

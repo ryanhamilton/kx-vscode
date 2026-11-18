@@ -62,6 +62,16 @@ depends on the connection's **Query mode** (Advanced, in the connection form):
 A result over 10 MB is shown as text only and the grid says so. A multi-line run
 sent as one expression that fails prints one line pointing at `vscode-wrap`.
 
+qStudio's wrapper has no namespace, so the first `auto` run from code under
+`\d .foo` asks how runs from namespaced files should work on that connection:
+**Run in the file's namespace** sends them through the `.vscode` API or the
+evaluate lambda in `.foo`; **Run as typed (root namespace)** keeps qStudio's
+wrapper and prints a line saying the run was in the root namespace. The answer
+is kept with the connection as **Namespaced runs** (`ask`, `file-namespace`,
+`as-typed`; Advanced, in the connection form). Runs from the root namespace are
+unchanged and never ask. Running `\d` or `system "d …"` itself through a wrapped
+run changes the server's namespace for every later query.
+
 In a peachq notebook cell, **Execute Current Selection** runs the selection, or
 the current line when nothing is selected, and shows its result in the cell's
 output. `ctrl`+`enter` runs the whole cell, as in any VS Code notebook.

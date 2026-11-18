@@ -200,6 +200,7 @@ export class ConnectionManagementService {
           authCredentials ? authCredentials.split(":") : undefined,
           connection.details.tls,
           connection.details.queryMode,
+          connection.details.namespacedRuns,
         );
         const conn = await localConnection.connect();
         if (conn) {

@@ -213,6 +213,8 @@ export class NewConnectionPannel {
       auth: conn.details.auth,
       tls: conn instanceof KdbNode ? conn.details.tls : undefined,
       queryMode: conn instanceof KdbNode ? conn.details.queryMode : undefined,
+      namespacedRuns:
+        conn instanceof KdbNode ? conn.details.namespacedRuns : undefined,
       insecure:
         conn instanceof InsightsNode ? conn.details.insecure : undefined,
     };

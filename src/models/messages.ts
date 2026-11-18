@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import { ConnectionType, QueryMode } from "./connectionsModels";
+import { ConnectionType, NamespacedRuns, QueryMode } from "./connectionsModels";
 import { DataSourceFiles } from "./dataSource";
 import { MetaObjectPayload } from "./meta";
 import { LabelSet, QueryFile } from "./query";
@@ -84,4 +84,5 @@ export interface EditConnectionMessage {
   tls?: boolean;
   insecure?: boolean;
   queryMode?: QueryMode;
+  namespacedRuns?: NamespacedRuns;
 }

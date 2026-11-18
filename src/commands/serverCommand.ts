@@ -37,6 +37,7 @@ import {
   ExportedConnections,
   InsightDetails,
   Insights,
+  NamespacedRuns,
   Server,
   ServerDetails,
   ServerType,
@@ -52,7 +53,7 @@ import {
 } from "../models/queryResult";
 import { ScratchpadResult } from "../models/scratchpadResult";
 import { NewConnectionPannel } from "../panels/newConnection";
-import { isTypedReply, toGrid, TypedReply } from "../q/reply";
+import { isTypedReply, toGrid } from "../q/reply";
 import { ConnectionManagementService } from "../services/connectionManagerService";
 import {
   InsightsMetaNode,
@@ -473,7 +474,7 @@ export async function addKdbConnection(
           serverPort: kdbData.serverPort,
           serverAlias: kdbData.serverAlias,
           tls: kdbData.tls,
-          ...storedQueryMode(kdbData),
+          ...storedRunOptions(kdbData),
         },
       };
     } else {
@@ -483,7 +484,7 @@ export async function addKdbConnection(
         serverPort: kdbData.serverPort,
         serverAlias: kdbData.serverAlias,
         tls: kdbData.tls,
-        ...storedQueryMode(kdbData),
+        ...storedRunOptions(kdbData),
       };
     }
 
@@ -513,10 +514,45 @@ export async function addKdbConnection(
   }
 }
 
-function storedQueryMode(kdbData: ServerDetails) {
-  return kdbData.queryMode && kdbData.queryMode !== "auto"
-    ? { queryMode: kdbData.queryMode }
-    : {};
+function storedRunOptions(kdbData: ServerDetails) {
+  return {
+    ...(kdbData.queryMode && kdbData.queryMode !== "auto"
+      ? { queryMode: kdbData.queryMode }
+      : {}),
+    ...(kdbData.namespacedRuns && kdbData.namespacedRuns !== "ask"
+      ? { namespacedRuns: kdbData.namespacedRuns }
+      : {}),
+  };
+}
+
+const NAMESPACE_CHOICES: Record<string, NamespacedRuns> = {
+  "Run in the file's namespace": "file-namespace",
+  "Run as typed (root namespace)": "as-typed",
+};
+
+// Asked once per connection; the answer is kept with it. Dismissing it runs as
+// typed for the rest of the session.
+export async function askAboutNamespace(
+  conn: LocalConnection,
+  context: string,
+) {
+  const picked = await window.showInformationMessage(
+    `This code is in namespace \`${context}\` (from \`\\d ${context}\` above). How should runs from namespaced files work on ${conn.connLabel}?`,
+    ...Object.keys(NAMESPACE_CHOICES),
+  );
+  const choice = picked ? NAMESPACE_CHOICES[picked] : undefined;
+  conn.namespacedRuns = choice ?? "as-typed";
+  const servers = getServers();
+  const key = Object.keys(servers ?? {}).find(
+    (name) =>
+      `${servers[name].serverAlias} [${servers[name].serverName}:${servers[name].serverPort}]` ===
+      conn.connLabel,
+  );
+  if (choice && key) {
+    servers[key] = { ...servers[key], namespacedRuns: choice };
+    await updateServers(servers);
+    ext.serverProvider.refresh(servers);
+  }
 }
 
 export async function editKdbConnection(
@@ -595,7 +631,7 @@ export async function editKdbConnection(
             serverPort: kdbData.serverPort,
             serverAlias: kdbData.serverAlias,
             tls: kdbData.tls,
-            ...storedQueryMode(kdbData),
+            ...storedRunOptions(kdbData),
           };
 
           await updateServers(updatedServers);
@@ -611,7 +647,7 @@ export async function editKdbConnection(
             serverPort: kdbData.serverPort,
             serverAlias: kdbData.serverAlias,
             tls: kdbData.tls,
-            ...storedQueryMode(kdbData),
+            ...storedRunOptions(kdbData),
           };
 
           await updateServers(servers);
@@ -956,20 +992,24 @@ export async function executeQuery(
   }
   const isNotebook = executorName.endsWith(".kxnb");
   const isStringfy = isNotebook ? false : !gridEnabled();
+  const isEditorRun =
+    selectedConn instanceof LocalConnection && !isPython && !isNotebook;
+  if (isEditorRun && selectedConn.asksAboutNamespace(context)) {
+    await askAboutNamespace(selectedConn, context);
+  }
   const startTime = Date.now();
-  const results =
-    selectedConn instanceof LocalConnection && !isPython && !isNotebook
-      ? await selectedConn.runQuery(query, context, isStringfy)
-      : await connMngService.executeQuery(
-          query,
-          connLabel,
-          context,
-          isStringfy,
-          isPython,
-          timeout,
-          requestID,
-          rowLimit,
-        );
+  const results = isEditorRun
+    ? await selectedConn.runQuery(query, context, isStringfy)
+    : await connMngService.executeQuery(
+        query,
+        connLabel,
+        context,
+        isStringfy,
+        isPython,
+        timeout,
+        requestID,
+        rowLimit,
+      );
   const endTime = Date.now();
   const duration = (endTime - startTime).toString();
 
@@ -1056,7 +1096,9 @@ export async function writeLocalResults(
     return;
   }
   const text = typed
-    ? typedText(results, query)
+    ? results.error === undefined
+      ? results.console
+      : withErrorPrefix(results.error)
     : isStructuredResult(results)
       ? convertRows(updatedExtractRowData(results), results)
       : results;
@@ -1071,23 +1113,20 @@ export async function writeLocalResults(
     duration,
     isFromConnTree,
   );
+  // Written apart from the result, which the console cuts to its width.
+  if (typed) {
+    const hints = [
+      results.hint,
+      results.error === undefined ? undefined : scriptHint(query),
+    ];
+    for (const hint of hints.filter(Boolean)) {
+      ext.connectionConsoles.get(connLabel)?.appendLine(hint);
+    }
+  }
   const grid = gridEnabled() ? gridOf(results) : undefined;
   if (grid) {
     await showInGrid(grid, false, undefined, isPython);
   }
-}
-
-function typedText(reply: TypedReply, query: string) {
-  const failed = reply.error !== undefined;
-  const hints = [reply.hint, failed ? scriptHint(query) : undefined].filter(
-    Boolean,
-  );
-  if (hints.length === 0) {
-    return failed ? withErrorPrefix(reply.error!) : reply.console;
-  }
-  const body = (failed ? reply.error! : reply.console).replace(/\n+$/, "");
-  const shown = [body, ...hints].filter(Boolean).join("\n");
-  return failed ? withErrorPrefix(shown) : shown;
 }
 
 export function showInGrid(

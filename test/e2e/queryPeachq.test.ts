@@ -20,6 +20,7 @@ import * as vscode from "vscode";
 
 import {
   activate,
+  caretAt,
   focus,
   reachable,
   terminal,
@@ -27,6 +28,7 @@ import {
   until,
 } from "./utils";
 import { ensure, labelOf } from "./utils/connection";
+import { answer, clear, raised } from "./utils/prompt";
 import { qstudioWrap } from "../../src/q/reply";
 
 // Run by `npm run test:e2e:peachq` against real peachq servers PEACHQ_Q starts,
@@ -50,6 +52,9 @@ const server = (alias: string, port: number, queryMode?: string) => ({
 const PLAIN = server("PQPLAIN", 25110);
 const NAKED = server("PQNAKED", 25110, "naked");
 const API = server("PQAPI", 25111);
+const FILE_NS = server("PQFILENS", 25110);
+const AS_TYPED = server("PQASTYPED", 25110);
+const ASKED = "This code is in namespace";
 
 const processes: ChildProcess[] = [];
 
@@ -71,22 +76,24 @@ async function startPeachq(port: number, ...lines: string[]) {
 }
 
 // Asked over a connection of its own, so the extension is not part of it.
-function logged(port: number, log: string): Promise<string[]> {
+function valueOn<T = string[]>(port: number, expression: string): Promise<T> {
   return new Promise((resolve, reject) =>
     nodeq.connect({ host: "127.0.0.1", port }, (error, conn) => {
       if (error || !conn) {
         return reject(error);
       }
-      conn.k(log, (failure: Error, messages: string[]) => {
+      conn.k(expression, (failure: Error, value: T) => {
         conn.close();
-        return failure ? reject(failure) : resolve(messages);
+        return failure ? reject(failure) : resolve(value);
       });
     }),
   );
 }
 
 const sentTexts = async (port: number, text: string) =>
-  (await logged(port, ".e2e.text")).filter((message) => message.includes(text));
+  (await valueOn(port, ".e2e.text")).filter((message) =>
+    message.includes(text),
+  );
 
 async function connect(each: typeof PLAIN) {
   const alias = each.serverAlias;
@@ -137,10 +144,15 @@ async function exportedGrid() {
   return text.split("\n");
 }
 
-async function run(uri: vscode.Uri, alias: string) {
+async function run(uri: vscode.Uri, alias: string, line?: string) {
   const before = (await terminalText(`peachq ${alias}`)).length;
-  await focus(uri);
-  await vscode.commands.executeCommand("peachq.execute.fileQuery");
+  if (line) {
+    await caretAt(uri, line);
+    await vscode.commands.executeCommand("peachq.execute.selectedQuery");
+  } else {
+    await focus(uri);
+    await vscode.commands.executeCommand("peachq.execute.fileQuery");
+  }
   let shown = "";
   await until(async () => {
     shown = (await terminalText(`peachq ${alias}`)).slice(before);
@@ -162,7 +174,7 @@ describe("Running a query on peachq", function () {
     });
     await startPeachq(25110);
     await startPeachq(25111, `\\l ${path.join(REPO, "out", "vscode.q")}`);
-    for (const each of [PLAIN, NAKED, API]) {
+    for (const each of [PLAIN, NAKED, API, FILE_NS, AS_TYPED]) {
       await ensure(each);
       labels.push(await connect(each));
     }
@@ -221,7 +233,7 @@ describe("Running a query on peachq", function () {
     const uri = await queryFile("api.q", TABLE, API.serverAlias);
     const shown = await run(uri, API.serverAlias);
 
-    const calls = (await logged(25111, ".e2e.calls")).filter(
+    const calls = (await valueOn(25111, ".e2e.calls")).filter(
       (call) => call === ".vscode.runQQuery",
     );
     assert.strictEqual(calls.length, 1);
@@ -230,5 +242,69 @@ describe("Running a query on peachq", function () {
       "index,a,b",
       "0,1,`x",
     ]);
+  });
+
+  describe("from code under \\d .foo", () => {
+    const namespaced = (name: string, line: string, alias: string) =>
+      queryFile(name, `\\d .foo\n${line}\n`, alias);
+
+    const stored = (alias: string) =>
+      Object.values(
+        vscode.workspace
+          .getConfiguration()
+          .get<
+            Record<string, { serverAlias: string; namespacedRuns?: string }>
+          >("peachq.servers") ?? {},
+      ).find((each) => each.serverAlias === alias)?.namespacedRuns;
+
+    it("never asks about a run from the root namespace", async () => {
+      clear();
+      const uri = await queryFile("root.q", "r:7", AS_TYPED.serverAlias);
+      await run(uri, AS_TYPED.serverAlias);
+      assert.strictEqual(await valueOn<number>(25110, "r"), 7);
+      assert.deepStrictEqual(raised(ASKED), []);
+    });
+
+    it("asks once, and runs in the file's namespace when told to", async () => {
+      clear();
+      answer(ASKED, "Run in the file's namespace");
+      const uri = await namespaced("file.q", "x:42", FILE_NS.serverAlias);
+      await run(uri, FILE_NS.serverAlias, "x:42");
+
+      assert.strictEqual(raised(ASKED).length, 1);
+      assert.match(raised(ASKED)[0].message, /\.foo.*\\d \.foo.*PQFILENS/);
+      assert.strictEqual(await valueOn<number>(25110, ".foo.x"), 42);
+      const calls = await valueOn(25110, ".e2e.calls");
+      assert.ok(
+        calls.some((call) => call.startsWith("{[args]")),
+        "not the evaluate lambda",
+      );
+      await until(
+        () => stored(FILE_NS.serverAlias) === "file-namespace",
+        "the answer to be stored with the connection",
+      );
+
+      clear();
+      await run(uri, FILE_NS.serverAlias, "x:42");
+      assert.deepStrictEqual(raised(ASKED), [], "asked again");
+    });
+
+    it("runs as typed in the root namespace when told to, and says so", async () => {
+      clear();
+      answer(ASKED, "Run as typed (root namespace)");
+      const uri = await namespaced("typed.q", "t:44", AS_TYPED.serverAlias);
+      const shown = await run(uri, AS_TYPED.serverAlias, "t:44");
+
+      assert.strictEqual(raised(ASKED).length, 1);
+      assert.deepStrictEqual(await sentTexts(25110, "t:44"), [
+        qstudioWrap("t:44"),
+      ]);
+      assert.strictEqual(await valueOn<number>(25110, "t"), 44);
+      assert.ok(shown.includes("root namespace, not .foo"), shown);
+      await until(
+        () => stored(AS_TYPED.serverAlias) === "as-typed",
+        "the answer to be stored with the connection",
+      );
+    });
   });
 });

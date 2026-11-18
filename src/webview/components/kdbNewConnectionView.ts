@@ -20,6 +20,8 @@ import { kdbStyles, newConnectionStyles } from "./styles";
 import {
   ConnectionType,
   InsightDetails,
+  NAMESPACED_RUNS,
+  NamespacedRuns,
   QUERY_MODES,
   QueryMode,
   ServerDetails,
@@ -369,6 +371,23 @@ export class KdbNewConnectionView extends LitElement {
         How a run is sent: auto uses the .vscode API when the process has it,
         else the qStudio wrapper; naked sends exactly your text; qstudio-wrap
         always wraps; vscode-wrap uses the .vscode API or the evaluate lambda.
+      </div>
+      <div class="row">
+        <kdb-select
+          class="dropdown namespaced-runs"
+          label="Namespaced runs"
+          value="${this.kdbServer.namespacedRuns ?? "ask"}"
+          .options="${[...NAMESPACED_RUNS]}"
+          @change="${(event: Event) =>
+            this.setKdbServer(
+              "namespacedRuns",
+              (event.target as KdbSelect).value as NamespacedRuns,
+            )}"></kdb-select>
+      </div>
+      <div class="row option-description option-help">
+        For auto runs from code under \\d .ns: ask the first time,
+        file-namespace runs them in that namespace (through the .vscode API or
+        the evaluate lambda), as-typed runs them in the root namespace.
       </div>`;
   }
 
@@ -718,7 +737,8 @@ export class KdbNewConnectionView extends LitElement {
         this.openSections.add(AUTH_SECTION);
       }
       this.kdbServer.queryMode = this.connectionData.queryMode;
-      if (this.kdbServer.queryMode) {
+      this.kdbServer.namespacedRuns = this.connectionData.namespacedRuns;
+      if (this.kdbServer.queryMode || this.kdbServer.namespacedRuns) {
         this.openSections.add(ADVANCED_SECTION);
       }
     }

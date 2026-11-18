@@ -29,8 +29,11 @@ history: https://github.com/KxSystems/kx-vscode/blob/main/CHANGELOG.md
   toolbar switch is gone. A process without the `.vscode` namespace is sent
   qStudio's wrapper, so the console shows the process's own `.Q.s` text and the
   grid typed values; each connection has a Query mode (`auto`, `naked`,
-  `qstudio-wrap`, `vscode-wrap`). The status bar and the **Run on** lens name
-  the connection or REPL an unassigned file runs on.
+  `qstudio-wrap`, `vscode-wrap`). The first such run from code under `\d .ns`
+  asks whether runs from namespaced files go to the file's namespace or run as
+  typed, and keeps the answer with the connection (Namespaced runs). The status
+  bar and the **Run on** lens name the connection or REPL an unassigned file
+  runs on.
 - Every peachq the extension starts runs with `peachq.peachqArgs`, by default
   `-classic`.
 - The REPL starts q in quiet mode (`-q`), so piped input is not echoed back with
