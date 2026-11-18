@@ -24,16 +24,17 @@ timestamp: 2026-11-18
 
 ## Keybindings
 
-| Command                           | When                  | Windows / Linux          | macOS            |
-| :-------------------------------- | :-------------------- | :----------------------- | :--------------- |
-| peachq: Execute Entire File       | `q` `py` `sql`        | `ctrl`+`shift`+`d`       | `⌘`+`⇧`+`d`      |
-| peachq: Execute Current Selection | `q` `py` `sql` `kxnb` | `ctrl`+`d`               | `⌘`+`d`          |
-| peachq: Execute Current Block     | `q`                   | `ctrl`+`shift`+`e`       | `⌘`+`⇧`+`e`      |
-| peachq: Populate Scratchpad       | `q` `py` `sql`        | `ctrl`+`shift`+`alt`+`p` | `⌘`+`⇧`+`⌥`+`p`  |
-| peachq: Reset Scratchpad          | `q` `py` `sql` `kxnb` | `ctrl`+`shift`+`delete`  | `⌘`+`⇧`+`fn`+`⌫` |
-| peachq: Choose Connection         | `q` `py` `sql` `kxnb` |                          |                  |
-| peachq: Choose Execution Target   | `q` `py` `sql`        | `ctrl`+`alt`+`t`         | `⌘`+`⌥`+`t`      |
-| peachq: Toggle Parameter Cache    | `q`                   | `ctrl`+`shift`+`y`       | `⌘`+`⇧`+`y`      |
+| Command                                         | When                  | Windows / Linux          | macOS            |
+| :---------------------------------------------- | :-------------------- | :----------------------- | :--------------- |
+| peachq: Execute Whole File as if loaded with \l | `q` `sql`             | `ctrl`+`shift`+`d`       | `⌘`+`⇧`+`d`      |
+| peachq: Execute Entire File                     | `py`                  | `ctrl`+`shift`+`d`       | `⌘`+`⇧`+`d`      |
+| peachq: Execute Current Selection               | `q` `py` `sql` `kxnb` | `ctrl`+`d`               | `⌘`+`d`          |
+| peachq: Execute Current Block                   | `q`                   | `ctrl`+`shift`+`e`       | `⌘`+`⇧`+`e`      |
+| peachq: Populate Scratchpad                     | `q` `py` `sql`        | `ctrl`+`shift`+`alt`+`p` | `⌘`+`⇧`+`⌥`+`p`  |
+| peachq: Reset Scratchpad                        | `q` `py` `sql` `kxnb` | `ctrl`+`shift`+`delete`  | `⌘`+`⇧`+`fn`+`⌫` |
+| peachq: Choose Connection                       | `q` `py` `sql` `kxnb` |                          |                  |
+| peachq: Choose Execution Target                 | `q` `py` `sql`        | `ctrl`+`alt`+`t`         | `⌘`+`⌥`+`t`      |
+| peachq: Toggle Parameter Cache                  | `q`                   | `ctrl`+`shift`+`y`       | `⌘`+`⇧`+`y`      |
 
 **Choose Connection** offers `(active)`, which runs on the connection or REPL
 last used (the status bar and the file's **Run on** lens name which, such as
@@ -46,11 +47,12 @@ connected.
 
 ### Query results
 
-A run (line, selection, block or whole file) prints its result in the
-connection's console, always, and also puts a table, dictionary or keyed table
-in the peachq Results view without bringing it to the front or taking focus;
-`peachq.results.grid` set to `never` keeps the grid out of it. What is sent
-depends on the connection's **Query mode** (Advanced, in the connection form):
+A run (line, selection or block; to run the whole file this way, select it all)
+prints its result in the connection's console, always, and also puts a table,
+dictionary or keyed table in the peachq Results view without bringing it to the
+front or taking focus; `peachq.results.grid` set to `never` keeps the grid out
+of it. What is sent depends on the connection's **Query mode** (Advanced, in the
+connection form):
 
 | Query mode     | Sends                                                                                          | Console                  | Grid                       |
 | :------------- | :--------------------------------------------------------------------------------------------- | :----------------------- | :------------------------- |
@@ -60,7 +62,32 @@ depends on the connection's **Query mode** (Advanced, in the connection form):
 | `vscode-wrap`  | the `.vscode` API when the process has it, else the evaluate lambda                            | laid out from the result | structured text built in q |
 
 A result over 10 MB is shown as text only and the grid says so. A multi-line run
-sent as one expression that fails prints one line pointing at `vscode-wrap`.
+sent as one expression that fails prints one line pointing at the whole-file
+command and `vscode-wrap`.
+
+**Execute Whole File as if loaded with \l** on a q file sends the file through
+the evaluate lambda unmodified from upstream (or the `.vscode` API when the
+process has it), in the namespace of a `\d` at the top of the file, whatever the
+Query mode, except `naked`, which sends the file's text as it is. It never asks
+about namespaces. The console shows the last value, the grid the table,
+dictionary or keyed table. On a `sql` file it runs the SQL as before, and on a
+REPL or an Insights connection it sends what it always has.
+
+Measured against `\l` on peachq (`npm run test:l-diff`, 48 scripts:
+`test/fixtures/l-diff/expected.tsv`), it leaves the same names, values and
+namespace behind, and fails with the same error at the same line, except:
+
+| Loaded with `\l`                                               | Whole-file command                                        |
+| :------------------------------------------------------------- | :-------------------------------------------------------- |
+| prints the value of every expression that does not end in `;`  | shows only the last one, as the run's result              |
+| stops at a lone `\` after a closed `/` … `\` block comment     | runs on past it                                           |
+| on an error, stays in the `\d` the script had reached (peachq) | always puts the namespace back to where it was            |
+| keeps comments inside a multi-line function in its source text | drops them from the source text; the function is the same |
+| names the error's file and line                                | names the statement that failed                           |
+
+It also defines `.axq.i_PRIMCODE` and `.axq.i_NONPRIMCODE` on the server, and a
+script that ends with an assignment shows `::` on peachq, which answers `::` for
+the assignment the lambda wraps in `;[::;…]`.
 
 qStudio's wrapper has no namespace, so the first `auto` run from code under
 `\d .foo` asks how runs from namespaced files should work on that connection:

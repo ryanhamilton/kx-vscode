@@ -12,7 +12,7 @@ timestamp: 2026-07-10
 
 #### Actions
 
-- Execute Entire File
+- Execute Whole File as if loaded with \l
 - Execute Current Selection
 - Execute Current Block
 - Populate Scratchpad
@@ -32,7 +32,7 @@ Runs on [workspaceCommand.runActiveEditor()](top-level-error-handling.md#workspa
 
 #### Actions
 
-- Execute Entire File
+- Execute Whole File as if loaded with \l (runs the SQL as before)
 - Populate Scratchpad
 
 Runs on [workspaceCommand.runActiveEditor()](top-level-error-handling.md#workspacecommandrunactiveeditor)

@@ -94,6 +94,10 @@ jobs:
         run: npm run test:e2e:peachq
         env:
           HEADLESS: 1
+      - name: Scripts loaded with \l against the whole-file command on peachq
+        run: npm run test:l-diff
+        env:
+          HEADLESS: 1
 
   package:
     name: Package the per-platform and universal vsix

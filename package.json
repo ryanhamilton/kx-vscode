@@ -517,7 +517,7 @@
       },
       {
         "command": "peachq.execute.fileQuery",
-        "title": "peachq: Execute Entire File",
+        "title": "peachq: Execute Whole File as if loaded with \\l",
         "icon": "$(run)"
       },
       {
@@ -1479,6 +1479,7 @@
     "test:e2e": "node ./out-test/test/runE2E.js",
     "test:e2e:kx": "cross-env E2E_FAKE_KX=1 TEST_FILE=kx npm run test:e2e",
     "test:e2e:peachq": "cross-env E2E_PEACHQ=1 TEST_FILE='*Peachq' npm run test:e2e",
+    "test:l-diff": "cross-env E2E_PEACHQ=1 TEST_FILE=lDiff npm run test:e2e",
     "test:e2e:bare": "node tools/fetch-peachq.mjs && cross-env E2E_BARE=1 TEST_FILE=builtin npm run test:e2e",
     "coverage": "rimraf out && c8 -o coverage-reports -r lcov -r cobertura -r html npm run test",
     "q-test": "bash tools/q-test.sh",

@@ -949,6 +949,7 @@ export async function executeQuery(
   timeout?: number,
   requestID?: string,
   rowLimit?: RowLimit,
+  asScript = false,
 ): Promise<any> {
   const connMngService = new ConnectionManagementService();
   const queryConsole = ExecutionConsole.start();
@@ -994,12 +995,14 @@ export async function executeQuery(
   const isStringfy = isNotebook ? false : !gridEnabled();
   const isEditorRun =
     selectedConn instanceof LocalConnection && !isPython && !isNotebook;
-  if (isEditorRun && selectedConn.asksAboutNamespace(context)) {
+  if (isEditorRun && !asScript && selectedConn.asksAboutNamespace(context)) {
     await askAboutNamespace(selectedConn, context);
   }
   const startTime = Date.now();
   const results = isEditorRun
-    ? await selectedConn.runQuery(query, context, isStringfy)
+    ? await (asScript
+        ? selectedConn.runScript(query, context)
+        : selectedConn.runQuery(query, context, isStringfy))
     : await connMngService.executeQuery(
         query,
         connLabel,
@@ -1047,6 +1050,11 @@ export async function executeQuery(
       duration,
       isFromConnTree,
     );
+    // The console wrote this run's history entry; a rerun repeats it as a script.
+    const entry = ext.kdbQueryHistoryList[0];
+    if (asScript && entry?.query === query) {
+      entry.asScript = true;
+    }
   }
 }
 
@@ -1192,6 +1200,7 @@ export async function runQuery(
   isInsights?: boolean,
   timeout?: number,
   cancel?: () => void,
+  asScript?: boolean,
 ) {
   const editor = ext.activeTextEditor;
   if (!editor) {
@@ -1274,6 +1283,9 @@ export async function runQuery(
           false,
           token,
           timeout,
+          undefined,
+          undefined,
+          asScript && !isSql,
         );
   });
 
@@ -1298,6 +1310,11 @@ export function rerunQuery(rerunQueryElement: QueryHistory) {
       rerunQueryElement.language !== "q",
       !!rerunQueryElement.isWorkbook,
       !!rerunQueryElement.isFromConnTree,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      !!rerunQueryElement.asScript,
     );
   } else {
     const dsFile = rerunQueryElement.query as DataSourceFiles;

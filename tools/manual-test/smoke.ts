@@ -152,7 +152,7 @@ async function main() {
     cli("palette", resultsView, "--settle", "1500");
     cli("file.open", "smoke.q", "--settle", "1000");
     cli("click", ".tab[aria-label='smoke.q']", "--no-snap");
-    cli("palette", "peachq: Execute Entire File", "--settle", "3000");
+    cli("palette", "peachq: Execute Current Selection", "--settle", "3000");
     cli("click", "[aria-label^='Maximize Panel']", "--no-snap");
     cli("wait", "term", "3 z", "--timeout", "20000");
     const shown = cli("term.read", "12");

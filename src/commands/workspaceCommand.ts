@@ -1052,7 +1052,10 @@ export function runsOnRepl(uri: Uri): boolean {
   );
 }
 
-export async function runActiveEditor(type?: ExecutionTypes) {
+export async function runActiveEditor(
+  type?: ExecutionTypes,
+  asScript?: boolean,
+) {
   /* c8 ignore start */
   if (ext.activeTextEditor) {
     const uri = ext.activeTextEditor.document.uri;
@@ -1116,6 +1119,7 @@ export async function runActiveEditor(type?: ExecutionTypes) {
             }
           }
         },
+        asScript,
       );
       notifyExecution(
         (type === ExecutionTypes.PopulateScratchpad ? 0 : RunFlag.Run) |

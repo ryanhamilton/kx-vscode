@@ -1108,6 +1108,39 @@ describe("serverCommand", () => {
       assert.equal(res, undefined);
     });
 
+    it("runs a whole-file run as a script, without asking, and reruns it as one", async () => {
+      ext.connectedConnectionList.push(localConn);
+      ext.connectedContextStrings.push(localConn.connLabel);
+      const asks = sinon.stub(localConn, "asksAboutNamespace").returns(true);
+      const runScript = sinon.stub(localConn, "runScript").resolves("1");
+      const runQuery = sinon.stub(localConn, "runQuery");
+      ext.kdbQueryHistoryList.length = 0;
+      const script = "\\d .foo\na:1\na";
+
+      await serverCommand.executeQuery(
+        script,
+        localConn.connLabel,
+        "script.q",
+        ".foo",
+        false,
+        false,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        true,
+      );
+      sinon.assert.calledOnceWithExactly(runScript, script, ".foo");
+      sinon.assert.notCalled(asks);
+      assert.strictEqual(ext.kdbQueryHistoryList[0]?.asScript, true);
+
+      serverCommand.rerunQuery(ext.kdbQueryHistoryList[0]);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      sinon.assert.calledTwice(runScript);
+      sinon.assert.notCalled(runQuery);
+    });
+
     it("should throw for a notebook cell so the run stops, instead of returning the error text as a normal result", async () => {
       ext.connectedConnectionList.push(localConn);
       ext.connectedContextStrings.push(localConn.connLabel);

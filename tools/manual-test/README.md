@@ -98,7 +98,7 @@ screen. Omitting the index means the visible one.
 - `palette` runs a command only on an exact title match, including its prefix
   (`peachq: New Connection`, not `New Connection`). Otherwise it runs nothing and
   lists the closest matches: re-run with one of those titles. Commands that
-  need an editor or connection (e.g. `peachq: Execute Entire File`) are missing from
+  need an editor or connection (e.g. `peachq: Execute Current Selection`) are missing from
   the palette until a q file has focus.
 - Palette results include other extensions' commands; the isolated profile has
   only this extension, so the `peachq:` prefix is a reliable filter.

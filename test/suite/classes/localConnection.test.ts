@@ -337,6 +337,39 @@ describe("LocalConnection", () => {
     });
   });
 
+  describe("runScript", () => {
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    for (const mode of [undefined, "qstudio-wrap", "vscode-wrap"] as const) {
+      it(`sends the evaluate lambda as structured text in ${mode ?? "auto"} mode`, async () => {
+        const executeQuery = sinon
+          .stub(localConn, "executeQuery")
+          .resolves("x");
+        localConn.queryMode = mode;
+
+        await localConn.runScript("a:1;", ".foo");
+
+        sinon.assert.calledOnceWithExactly(executeQuery, "a:1", ".foo", false);
+      });
+    }
+
+    it("sends exactly the user's text in naked mode", async () => {
+      const executeQuery = sinon.stub(localConn, "executeQuery");
+      const typedReply = sinon
+        .stub(localConn, "typedReply" as any)
+        .resolves("x");
+      localConn.queryMode = "naked";
+
+      await localConn.runScript("a:1;", ".foo");
+
+      sinon.assert.notCalled(executeQuery);
+      sinon.assert.calledOnce(typedReply);
+      assert.strictEqual(typedReply.firstCall.args[0], "a:1;");
+    });
+  });
+
   describe("loadServerObjects", () => {
     /**
      * What a process answers the memory listing with, in the shape listMem.q

@@ -70,6 +70,7 @@ npm run test:e2e                  # End to end suite (test/e2e/**), TEST_FILE en
 npm run coverage                  # Same suite under c8 coverage
 npm run q-test                    # q unit tests (qunit) on peachq: set PEACHQ_Q (else q on PATH)
 npm run gen:q-render              # regenerate test/fixtures/q-render (q value text) with peachq
+npm run test:l-diff               # \l vs the whole-file command on peachq (PEACHQ_Q), test/fixtures/l-diff
 ```
 
 Every suite that launches VS Code (all but `q-test`) needs
