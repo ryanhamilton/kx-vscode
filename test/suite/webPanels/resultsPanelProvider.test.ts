@@ -682,16 +682,26 @@ describe("ResultsPanelProvider", () => {
   });
 
   describe("updateResults", () => {
-    it("should show the view and update the web view with insights", () => {
-      const queryResults = { data: "test" };
-      const isInsights = true;
-      const connVersion = "1.11";
+    let executeCommand: sinon.SinonStub;
+    const FOCUS = ["peachq-results.focus", { preserveFocus: true }];
 
+    beforeEach(() => {
+      executeCommand = sinon.stub(vscode.commands, "executeCommand").resolves();
+    });
+
+    afterEach(() => {
+      executeCommand.restore();
+    });
+
+    it("should reveal the view without focus and update it with insights", () => {
+      const queryResults = { data: "test" };
+      const connVersion = "1.11";
       const updateWebViewStub = sinon.stub(resultsPanel, "updateWebView");
 
-      resultsPanel.updateResults(queryResults, isInsights, connVersion);
+      resultsPanel.updateResults(queryResults, true, connVersion);
 
-      assert.equal(viewStub.show.calledOnceWith(true), true);
+      assert.deepStrictEqual(executeCommand.args, [FOCUS]);
+      assert.equal(viewStub.show.called, false);
       assert.equal(resultsPanel.isInsights, true);
       assert.equal(
         updateWebViewStub.calledOnceWith(queryResults, connVersion),
@@ -699,35 +709,27 @@ describe("ResultsPanelProvider", () => {
       );
     });
 
-    it("should show the view and update the web view without insights", () => {
-      const queryResults = { data: "test" };
-      const isInsights = false;
-      const connVersion = "1.11";
-
+    it("should update the view without revealing it when quiet", () => {
       const updateWebViewStub = sinon.stub(resultsPanel, "updateWebView");
 
-      resultsPanel.updateResults(queryResults, isInsights, connVersion);
+      resultsPanel.updateResults({ data: "test" }, false, "1.11", false, true);
 
-      assert.equal(viewStub.show.calledOnceWith(true), true);
+      assert.deepStrictEqual(executeCommand.args, []);
       assert.equal(resultsPanel.isInsights, false);
-      assert.equal(
-        updateWebViewStub.calledOnceWith(queryResults, connVersion),
-        true,
-      );
+      assert.equal(updateWebViewStub.calledOnce, true);
     });
 
-    it("should not update the web view if _view is not defined", () => {
+    it("should reveal a view never opened, which renders on resolving", () => {
       resultsPanel["_view"] = undefined;
-      const queryResults = { data: "test" };
-      const isInsights = true;
-      const connVersion = "1.11";
-
       const updateWebViewStub = sinon.stub(resultsPanel, "updateWebView");
 
-      resultsPanel.updateResults(queryResults, isInsights, connVersion);
+      resultsPanel.updateResults({ data: "test" }, true, "1.11");
 
-      assert.equal(viewStub.show.called, false);
+      assert.deepStrictEqual(executeCommand.args, [FOCUS]);
       assert.equal(updateWebViewStub.called, false);
+      assert.deepStrictEqual(resultsPanel["savedParamStates"].queryResults, {
+        data: "test",
+      });
     });
 
     describe("results panel CSV", () => {

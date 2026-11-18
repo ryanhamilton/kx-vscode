@@ -12,6 +12,7 @@
  */
 
 import * as assert from "assert";
+import * as sinon from "sinon";
 import * as vscode from "vscode";
 
 import { ext } from "../../../../src/extensionVariables";
@@ -21,6 +22,7 @@ import {
   QueryHistoryProvider,
   QueryHistoryTreeItem,
 } from "../../../../src/services/queryHistoryProvider";
+import { addQueryHistory } from "../../../../src/utils/queryUtils";
 import { createMockDatasource } from "../../../fixtures/config/datasource";
 
 describe("queryHistoryProvider", () => {
@@ -206,4 +208,43 @@ describe("queryHistoryProvider", () => {
       );
     });
   });
+
+  describe("two runs in the same second", () => {
+    let clock: sinon.SinonFakeTimers;
+
+    beforeEach(() => {
+      ext.kdbQueryHistoryList.length = 0;
+      ext.queryHistoryProvider ??= new QueryHistoryProvider();
+      clock = sinon.useFakeTimers(new Date(2026, 10, 18, 14, 55, 56));
+    });
+
+    afterEach(() => {
+      clock.restore();
+    });
+
+    const ids = async () =>
+      ((await new QueryHistoryProvider().getChildren()) ?? []).map(
+        (item) => item.id,
+      );
+
+    it("get one entry each, with ids that differ and stay put", async () => {
+      for (const query of ["([]a:1 2)", "42"]) {
+        addQueryHistory(
+          query,
+          "t.q",
+          "q6000 [localhost:6000]",
+          ServerType.KDB,
+          true,
+        );
+      }
+      const [first, second] = ext.kdbQueryHistoryList;
+      assert.strictEqual(ext.kdbQueryHistoryList.length, 2);
+      assert.strictEqual(first.time, second.time);
+
+      const shown = await ids();
+      assert.strictEqual(new Set(shown).size, 2, String(shown));
+      assert.deepStrictEqual(await ids(), shown);
+    });
+  });
 });
+// Modified by peachq contributors; see NOTICE.

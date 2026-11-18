@@ -23,6 +23,7 @@ import {
   caretAt,
   focus,
   reachable,
+  settle,
   terminal,
   terminalText,
   until,
@@ -244,6 +245,102 @@ describe("Running a query on peachq", function () {
       "index,a,b",
       "0,1,`x",
     ]);
+  });
+
+  describe("what a run brings to the front", () => {
+    const revealed: string[] = [];
+    const copyLists: string[][] = [];
+    const execute = vscode.commands.executeCommand;
+    let console: vscode.Terminal;
+    let show: vscode.Terminal["show"];
+
+    before(async () => {
+      Object.defineProperty(vscode.commands, "executeCommand", {
+        configurable: true,
+        writable: true,
+        value: (command: string, ...args: any[]) => {
+          if (command === "peachq-results.focus") {
+            revealed.push(`results ${JSON.stringify(args[0] ?? {})}`);
+          } else if (
+            command === "setContext" &&
+            args[0] === "peachq.kdbQHCopyList"
+          ) {
+            copyLists.push([...args[1]]);
+          }
+          return execute.call(vscode.commands, command, ...args);
+        },
+      });
+      console = terminal(`peachq ${PLAIN.serverAlias}`)!;
+      show = console.show;
+      console.show = (preserveFocus?: boolean) => {
+        revealed.push(`console ${preserveFocus}`);
+        return show.call(console, preserveFocus);
+      };
+      // The history tree only lists its entries while it is on screen.
+      await vscode.commands.executeCommand("peachq-query-history.focus");
+    });
+
+    after(() => {
+      console.show = show;
+      Object.defineProperty(vscode.commands, "executeCommand", {
+        configurable: true,
+        writable: true,
+        value: execute,
+      });
+    });
+
+    // The probe is typed into the editor only if it still has focus.
+    async function shownFor(text: string) {
+      const uri = await queryFile("front.q", text, PLAIN.serverAlias);
+      await focus(uri, new vscode.Selection(0, 0, 0, text.length));
+      revealed.length = 0;
+      await vscode.commands.executeCommand("peachq.execute.selectedQuery");
+      await settle();
+      const editor = vscode.window.activeTextEditor;
+      assert.strictEqual(editor?.document.uri.toString(), uri.toString());
+      await vscode.commands.executeCommand("type", { text: "~" });
+      const typed = editor!.document.getText();
+      await vscode.commands.executeCommand("undo");
+      assert.ok(typed.includes("~"), "the editor lost focus");
+      return [...revealed];
+    }
+
+    it("shows the grid for a table, keeping focus in the editor", async () => {
+      assert.deepStrictEqual(await shownFor(TABLE), [
+        'results {"preserveFocus":true}',
+      ]);
+    });
+
+    it("shows the console for a scalar, keeping focus in the editor", async () => {
+      assert.deepStrictEqual(await shownFor("42"), ["console true"]);
+    });
+
+    it("shows the console for an error, keeping focus in the editor", async () => {
+      assert.deepStrictEqual(await shownFor("1+`a"), ["console true"]);
+    });
+
+    it("lists two quick runs as two history entries, raising nothing", async () => {
+      clear();
+      const label = `${labelOf(PLAIN)} - `;
+      const entries = () =>
+        (copyLists.at(-1) ?? []).filter((each) => each.startsWith(label))
+          .length;
+      const uri = await queryFile(
+        "twice.q",
+        `${TABLE}\n42\n`,
+        PLAIN.serverAlias,
+      );
+      await settle();
+      const before = entries();
+
+      await caretAt(uri, TABLE);
+      await vscode.commands.executeCommand("peachq.execute.selectedQuery");
+      await caretAt(uri, "42");
+      await vscode.commands.executeCommand("peachq.execute.selectedQuery");
+
+      await until(() => entries() === before + 2, "two new history entries");
+      assert.deepStrictEqual(raised("already registered"), []);
+    });
   });
 
   describe("the whole-file command", () => {

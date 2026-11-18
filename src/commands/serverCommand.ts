@@ -66,6 +66,7 @@ import { inputVariable } from "../services/notebookProviders";
 import { handleLabelsConnMap, removeConnFromLabels } from "../utils/connLabel";
 import {
   checkOpenSslInstalled,
+  getAutoFocusOutputOnEntrySetting,
   getInsights,
   gridEnabled,
   getKeyForServerName,
@@ -1071,7 +1072,7 @@ function gridOf(results: unknown) {
 }
 
 // Every result but an image reaches the console; tables and dictionaries also
-// reach the grid, which is updated without being revealed.
+// reach the grid. Only the one showing the result is revealed, never focused.
 export async function writeLocalResults(
   results: any,
   query: string,
@@ -1110,6 +1111,8 @@ export async function writeLocalResults(
     : isStructuredResult(results)
       ? convertRows(updatedExtractRowData(results), results)
       : results;
+  const grid = gridEnabled() ? gridOf(results) : undefined;
+  const inGrid = !!grid && grid !== TOO_LARGE_FOR_GRID;
   await writeQueryResultsToConsole(
     text,
     query,
@@ -1120,6 +1123,7 @@ export async function writeLocalResults(
     isPython,
     duration,
     isFromConnTree,
+    inGrid,
   );
   // Written apart from the result, which the console cuts to its width.
   if (typed) {
@@ -1131,9 +1135,8 @@ export async function writeLocalResults(
       ext.connectionConsoles.get(connLabel)?.appendLine(hint);
     }
   }
-  const grid = gridEnabled() ? gridOf(results) : undefined;
   if (grid) {
-    await showInGrid(grid, false, undefined, isPython);
+    await showInGrid(grid, false, undefined, isPython, inGrid);
   }
 }
 
@@ -1142,6 +1145,7 @@ export function showInGrid(
   isInsights: boolean,
   connVersion?: string,
   isPython?: boolean,
+  reveal = true,
 ) {
   return commands.executeCommand(
     "peachq.resultsPanel.update",
@@ -1149,7 +1153,7 @@ export function showInGrid(
     isInsights,
     connVersion,
     isPython,
-    true,
+    !(reveal && getAutoFocusOutputOnEntrySetting()),
   );
 }
 
@@ -1426,6 +1430,7 @@ export async function writeQueryResultsToConsole(
   isPython?: boolean,
   duration?: string,
   isFromConnTree?: boolean,
+  quiet?: boolean,
 ): Promise<void> {
   const queryConsole = ExecutionConsole.start();
   const isNonEmptyArray = Array.isArray(result) && result.length > 0;
@@ -1448,6 +1453,7 @@ export async function writeQueryResultsToConsole(
       duration,
       isFromConnTree,
       res.startsWith(queryConstants.error),
+      quiet,
     );
   } else {
     queryConsole.appendQueryError(
@@ -1585,6 +1591,7 @@ export async function writeScratchpadResult(
   }
 
   if (!errorMsg && isStructuredResult(result)) {
+    const toGrid = gridEnabled() && !isListResult(result);
     await writeQueryResultsToConsole(
       convertRows(updatedExtractRowData(result), result),
       query,
@@ -1594,8 +1601,10 @@ export async function writeScratchpadResult(
       isWorkbook ? "WORKBOOK" : "SCRATCHPAD",
       isPython,
       duration,
+      undefined,
+      toGrid,
     );
-    if (gridEnabled() && !isListResult(result)) {
+    if (toGrid) {
       await showInGrid(result, true, connVersion, isPython);
     }
   } else if (!errorMsg && gridEnabled()) {

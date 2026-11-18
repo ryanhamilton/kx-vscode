@@ -172,12 +172,13 @@ export class ExecutionConsole {
     duration?: string,
     isFromConnTree?: boolean,
     isError?: boolean,
+    quiet?: boolean,
   ): void {
     const hideDetails = getHideDetailedConsoleQueryOutputSetting();
     const sink = this.resolveSink(connLabel);
     output = this.checkOutput(output, query);
     let dataSourceRes: string[] = [];
-    if (getAutoFocusOutputOnEntrySetting()) {
+    if (!quiet && getAutoFocusOutputOnEntrySetting()) {
       sink.reveal();
     }
 

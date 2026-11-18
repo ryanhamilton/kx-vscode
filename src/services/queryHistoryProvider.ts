@@ -30,6 +30,19 @@ import { getConnectionType } from "../utils/queryUtils";
 
 type QueryHistoryType = QueryHistoryTreeItem | undefined | void;
 
+// Labels repeat within a second, and VS Code rejects a tree with two equal ids.
+const ids = new WeakMap<QueryHistory, string>();
+let lastId = 0;
+
+function idOf(entry: QueryHistory): string {
+  let id = ids.get(entry);
+  if (id === undefined) {
+    id = `queryHistory/${++lastId}`;
+    ids.set(entry, id);
+  }
+  return id;
+}
+
 export class QueryHistoryProvider implements TreeDataProvider<TreeItem> {
   private _onDidChangeTreeData: EventEmitter<QueryHistoryType> =
     new EventEmitter<QueryHistoryType>();
@@ -102,7 +115,7 @@ export class QueryHistoryTreeItem extends TreeItem {
     public readonly collapsibleState: TreeItemCollapsibleState,
   ) {
     super(label, collapsibleState);
-    this.id = label;
+    this.id = idOf(details);
     this.contextValue = label;
     if (ext.kdbQueryHistoryNodes.indexOf(label) === -1) {
       ext.kdbQueryHistoryNodes.push(label);

@@ -13,11 +13,9 @@
 
 import { ChildProcess } from "child_process";
 import { createHash } from "crypto";
-import { writeFile } from "fs/promises";
 import { pathExists } from "fs-extra";
 import { homedir } from "node:os";
 import path, { isAbsolute } from "node:path";
-import { tmpdir } from "os";
 import { join } from "path";
 import * as semver from "semver";
 import {
@@ -676,15 +674,6 @@ export async function checkLocalInstall() {
 
   if (hide) return;
   showWelcome();
-}
-
-export async function convertBase64License(
-  encodedLicense: string,
-  tempDir: string = tmpdir(),
-): Promise<Uri> {
-  const decodedLicense = Buffer.from(encodedLicense, "base64");
-  await writeFile(join(tempDir, "kc.lic"), decodedLicense);
-  return Uri.parse(join(tmpdir(), "kc.lic"));
 }
 
 export function isTable(result: QueryResult): boolean {

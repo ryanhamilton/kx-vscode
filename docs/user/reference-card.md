@@ -13,8 +13,8 @@ timestamp: 2026-11-18
 | Command                                                       | Command                                                | Command                                 |
 | :------------------------------------------------------------ | :----------------------------------------------------- | :-------------------------------------- |
 | peachq: Welcome                                               | peachq: New Connection                                 | peachq: Focus on Connections view       |
-| peachq: Install KDB-X                                         | peachq: New Notebook                                   | peachq: Focus on Queries view           |
-| peachq: Start REPL                                            | peachq: New Workbook (q)                               | peachq: Focus on Workbooks view         |
+| peachq: Start REPL                                            | peachq: New Notebook                                   | peachq: Focus on Queries view           |
+|                                                               | peachq: New Workbook (q)                               | peachq: Focus on Workbooks view         |
 | peachq: Import Connections                                    | peachq: New Workbook (Python)                          | peachq: Focus on Query History view     |
 | peachq: Export Connections                                    | peachq: New Workbook (SQL)                             | peachq: Focus on Help and Feedback view |
 |                                                               | peachq: New Query                                      | peachq: Focus on peachq Results view    |
@@ -49,9 +49,12 @@ connected.
 
 A run (line, selection or block; to run the whole file this way, select it all)
 prints its result in the connection's console, always, and also puts a table,
-dictionary or keyed table in the peachq Results view without bringing it to the
-front or taking focus; `peachq.results.grid` set to `never` keeps the grid out
-of it. What is sent depends on the connection's **Query mode** (Advanced, in the
+dictionary or keyed table in the peachq Results view; `peachq.results.grid` set
+to `never` keeps the grid out of it. A run never takes focus from the editor.
+With `peachq.autoFocusOutputOnEntry` on (the default) it brings forward where
+its result is shown: the peachq Results view for a result in the grid, the
+console for anything else and for every error. Off, it brings nothing forward.
+What is sent depends on the connection's **Query mode** (Advanced, in the
 connection form):
 
 | Query mode     | Sends                                                                                          | Console                  | Grid                       |
@@ -230,9 +233,6 @@ is set.
 | Extension.CustomAuth.Activated    |              | src/extension.ts                         |
 | ¦                                 |              |                                          |
 | Welcome.Displayed                 |              | src/commands/setupCommand.ts             |
-| Install.kdbx                      |              | src/commands/setupCommand.ts             |
-| Install.kdbx.workspace            |              | src/commands/setupCommand.ts             |
-| Install.kdbx.win32.fail           |              | src/commands/setupCommand.ts             |
 | Repl.Start                        |              | src/commands/workspaceCommand.ts         |
 | Repl.StartFolder                  |              | src/commands/workspaceCommand.ts         |
 | ¦                                 |              |                                          |

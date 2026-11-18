@@ -17,6 +17,7 @@ import {
   Webview,
   WebviewView,
   WebviewViewProvider,
+  commands,
   window,
   workspace,
 } from "vscode";
@@ -49,6 +50,7 @@ export class KdbResultsViewProvider implements WebviewViewProvider {
         this.savedParamStates.isInsights,
         this.savedParamStates.connVersion,
         this.savedParamStates.isPython,
+        true,
       );
     });
   }
@@ -86,10 +88,13 @@ export class KdbResultsViewProvider implements WebviewViewProvider {
     quiet?: boolean,
   ) {
     this.savedParamStates = { queryResults, isInsights, connVersion, isPython };
+    if (!quiet) {
+      // Also resolves a view never opened, which then renders savedParamStates.
+      commands.executeCommand(`${KdbResultsViewProvider.viewType}.focus`, {
+        preserveFocus: true,
+      });
+    }
     if (this._view) {
-      if (!quiet) {
-        this._view.show?.(true);
-      }
       this.isInsights = !!isInsights;
       this.isPython = !!isPython;
       this.updateWebView(queryResults, connVersion);

@@ -11,20 +11,12 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import axios from "axios";
 import * as vscode from "vscode";
 
 import { ext } from "../extensionVariables";
 import { getEnvironment } from "../utils/core";
 import { getNonce } from "../utils/getNonce";
-import {
-  Cancellable,
-  MessageKind,
-  notify,
-  Runner,
-} from "../utils/notifications";
-import { errorMessage } from "../utils/shared";
-import { writeLocalFile } from "../utils/storage";
+import { MessageKind, notify } from "../utils/notifications";
 import { getUri } from "../utils/uriUtils";
 import { webviewReset } from "../utils/webviewPage";
 
@@ -43,34 +35,22 @@ let qBinary = "";
 export async function showSetupError(workspace?: vscode.WorkspaceFolder) {
   /* c8 ignore start */
   const scope = workspace ? " for workspace " + workspace.name : "";
-
-  // KDB-X has no native Windows build, so point at an existing kdb+ install
-  // instead of offering an installation that cannot run.
-  if (process.platform === "win32") {
-    const res = await notify(
-      `q installation not found${scope}. Set the q home directory to a kdb+ installation.`,
-      MessageKind.WARNING,
-      { logger, params: workspace?.name },
-      "Set q Home Directory",
-      "Dismiss",
-    );
-    if (res === "Set q Home Directory") {
-      await vscode.commands.executeCommand(
-        "workbench.action.openSettings",
-        "peachq.qHomeDirectory",
-      );
-    }
-    return;
-  }
-
   const res = await notify(
     `q installation not found${scope}.`,
     MessageKind.WARNING,
     { logger, params: workspace?.name },
-    "Install KDB-X",
+    "Set q Home Directory",
+    "Get peachq",
     "Dismiss",
   );
-  if (res === "Install KDB-X") showWelcome(workspace);
+  if (res === "Set q Home Directory") {
+    await vscode.commands.executeCommand(
+      "workbench.action.openSettings",
+      "peachq.qHomeDirectory",
+    );
+  } else if (res === "Get peachq") {
+    showWelcome(workspace);
+  }
   /* c8 ignore stop */
 }
 
@@ -102,8 +82,7 @@ export function showWelcome(folder?: vscode.WorkspaceFolder) {
       "peachq-logo.png",
     );
     panel.webview.onDidReceiveMessage((msg) => {
-      if (msg === "install") installKdbX();
-      else if (msg === "repl") {
+      if (msg === "repl") {
         vscode.commands.executeCommand("peachq.repl.start");
       } else if (msg === "qhome") {
         vscode.commands.executeCommand(
@@ -122,7 +101,6 @@ export function showWelcome(folder?: vscode.WorkspaceFolder) {
     });
     updateView();
     const listeners = [
-      vscode.window.onDidChangeActiveColorTheme(() => updateView(false)),
       vscode.workspace.onDidChangeConfiguration((event) => {
         if (VIEW_SETTINGS.some((name) => event.affectsConfiguration(name))) {
           updateView();
@@ -144,11 +122,6 @@ function getWebviewContent(webview: vscode.Webview) {
   const getResource = (resource: string) =>
     getUri(webview, ext.context.extensionUri, resource.split("/"));
 
-  const isDark = () =>
-    vscode.window.activeColorTheme.kind !== vscode.ColorThemeKind.Light &&
-    vscode.window.activeColorTheme.kind !==
-      vscode.ColorThemeKind.HighContrastLight;
-
   return /* html */ `
     <!DOCTYPE html>
     <html lang="en">
@@ -160,172 +133,10 @@ function getWebviewContent(webview: vscode.Webview) {
       <title>Welcome to peachq</title>
     </head>
     <body>
-      <kdb-welcome-view image="${getResource("resources/images/peachq-logo.png")}" checked="${getShowWelcome()}" dark="${isDark() ? "dark" : ""}" windows="${process.platform === "win32" ? "true" : ""}" q="${getQBinary()}"></kdb-welcome-view>
+      <kdb-welcome-view image="${getResource("resources/images/peachq-logo.png")}" checked="${getShowWelcome()}" q="${getQBinary()}"></kdb-welcome-view>
     </body>
     </html>
   `;
-  /* c8 ignore stop */
-}
-
-export async function installKdbX() {
-  /* c8 ignore start */
-  if (process.platform === "win32") {
-    notify(
-      "KDB-X on Windows requires Windows Subsystem for Linux (WSL). Connect to a WSL instance and try again.",
-      MessageKind.WARNING,
-      { logger, telemetry: "Install.kdbx.win32.fail" },
-    );
-    return;
-  }
-  const license = await vscode.window.showInputBox({
-    prompt: "Paste the base64 encoded license string",
-    placeHolder: "encoded license",
-    ignoreFocusOut: true,
-  });
-
-  if (!license) return;
-
-  const runner = Runner.create(async (progress, token) => {
-    progress.report({ message: "Downloading KDB-X installation script." });
-
-    const controller = new AbortController();
-    token.onCancellationRequested(() => controller.abort());
-    if (token.isCancellationRequested) controller.abort();
-
-    try {
-      const res = await axios.get(
-        "https://portal.dl.kx.com/assets/raw/kdb-x/install_kdb/~latest~/install_kdb.sh",
-        { signal: controller.signal },
-      );
-
-      if (res.status !== 200) throw new Error(res.statusText);
-
-      const path = await writeLocalFile("install_kdb.sh", res.data);
-
-      progress.report({
-        message: "Preparing to run KDB-X installation script.",
-      });
-
-      await executeInTerminal(
-        "Install KDB-X",
-        controller.signal,
-        "source",
-        path,
-        "--b64lic",
-        license,
-      );
-    } catch (error) {
-      notify("Failed to instal KDB-X.", MessageKind.ERROR, {
-        logger,
-        params: errorMessage(error),
-      });
-    }
-  });
-
-  runner.cancellable = Cancellable.EXECUTOR;
-  runner.location = vscode.ProgressLocation.Notification;
-  await runner.execute();
-  /* c8 ignore stop */
-}
-
-function executeInTerminal(
-  name: string,
-  signal: AbortSignal,
-  cmd: string,
-  ...params: string[]
-) {
-  /* c8 ignore start */
-  return new Promise<void>((resolve, reject) => {
-    let pending = true;
-
-    const term = vscode.window.createTerminal({
-      name,
-      hideFromUser: true,
-      shellPath: "bash",
-      env: { ...process.env },
-      strictEnv: true,
-      isTransient: true,
-    });
-
-    const changed = vscode.window.onDidChangeTerminalShellIntegration(
-      ({ terminal, shellIntegration }) => {
-        if (terminal === term && pending) {
-          pending = false;
-          changed.dispose();
-          if (shellIntegration) {
-            const init = vscode.window.onDidStartTerminalShellExecution(
-              (event) => {
-                if (event.execution === execution) {
-                  if (signal.aborted) {
-                    event.terminal.dispose();
-                  } else term.show();
-                  init.dispose();
-                  resolve();
-                }
-              },
-            );
-            const done = vscode.window.onDidEndTerminalShellExecution(
-              (event) => {
-                if (event.execution === execution) {
-                  event.terminal.dispose();
-                  done.dispose();
-                }
-              },
-            );
-            const execution = shellIntegration.executeCommand(cmd, params);
-            parseOutput(execution);
-          } else reject(new Error("Shell integration failed."));
-        }
-      },
-    );
-  });
-  /* c8 ignore stop */
-}
-
-async function parseOutput(execution: vscode.TerminalShellExecution) {
-  /* c8 ignore start */
-  let home;
-  const stream = execution.read();
-  for await (const data of stream) {
-    const matches =
-      /KDB-X has been installed to (.+?) with the following structure:/gs.exec(
-        data,
-      );
-    if (matches) {
-      home = matches[1];
-      break;
-    }
-  }
-  if (home) {
-    for (const folder of vscode.workspace.workspaceFolders || []) {
-      if (home.startsWith(folder.uri.fsPath)) {
-        await setHome(vscode.workspace.asRelativePath(home), folder);
-        notify("KDB-X installed to workspace.", MessageKind.DEBUG, {
-          logger,
-          telemetry: "Install.kdbx.workspace",
-        });
-        return;
-      }
-    }
-    await setHome(home);
-    notify("KDB-X installed globally.", MessageKind.DEBUG, {
-      logger,
-      telemetry: "Install.kdbx",
-    });
-  }
-  /* c8 ignore stop */
-}
-
-async function setHome(home: string, folder?: vscode.WorkspaceFolder) {
-  /* c8 ignore start */
-  const config = vscode.workspace.getConfiguration("peachq", folder);
-  await config.update(
-    folder ? "qHomeDirectoryWorkspace" : "qHomeDirectory",
-    home,
-    folder
-      ? vscode.ConfigurationTarget.WorkspaceFolder
-      : vscode.ConfigurationTarget.Global,
-  );
   /* c8 ignore stop */
 }
 
@@ -357,9 +168,9 @@ function getShowWelcome() {
   /* c8 ignore stop */
 }
 
-function updateView(refresh = true) {
+function updateView() {
   /* c8 ignore start */
-  if (refresh) qBinary = findQBinary();
+  qBinary = findQBinary();
   if (panel) panel.webview.html = getWebviewContent(panel.webview);
   /* c8 ignore stop */
 }

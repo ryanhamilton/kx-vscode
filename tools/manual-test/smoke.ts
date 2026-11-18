@@ -154,10 +154,6 @@ async function main() {
     cli("click", ".tab[aria-label='smoke.q']", "--no-snap");
     cli("palette", "peachq: Execute Current Selection", "--settle", "3000");
     cli("click", "[aria-label^='Maximize Panel']", "--no-snap");
-    cli("wait", "term", "3 z", "--timeout", "20000");
-    const shown = cli("term.read", "12");
-    check(/a b\n---\n1 x\n2 y\n3 z/.test(shown), "console shows q's table");
-    cli("palette", resultsView, "--settle", "1500");
     cli("wait", "webview", "z", "--timeout", "20000");
     const grid = cli("wv.text").trim().split(" | ");
     for (const t of ["a", "b", "1", "2", "3", "x", "y", "z"])
@@ -169,6 +165,11 @@ async function main() {
     check(s.width === 1600 && s.height === 1000, `screenshot is 1600x1000`);
     // A blank frame inflates to a handful of byte values.
     check(s.distinct > 64, `screenshot is not blank (${s.distinct} values)`);
+
+    cli("palette", "Terminal: Focus Terminal", "--settle", "1500");
+    cli("wait", "term", "3 z", "--timeout", "20000");
+    const shown = cli("term.read", "12");
+    check(/a b\n---\n1 x\n2 y\n3 z/.test(shown), "console shows q's table");
     console.log("SMOKE PASSED " + shot);
   } finally {
     try {

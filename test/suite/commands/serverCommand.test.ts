@@ -1998,6 +1998,8 @@ describe("serverCommand", () => {
     let lines: string[];
     let executeCommand: sinon.SinonStub;
     let grid: string;
+    let autoFocus: boolean;
+    let showConsole: sinon.SinonStub;
 
     const table = decode(Buffer.from(PEACHQ_REPLIES.table, "hex"));
     const typed = fromQStudio(table)!;
@@ -2022,6 +2024,8 @@ describe("serverCommand", () => {
     beforeEach(() => {
       lines = [];
       grid = "always";
+      autoFocus = true;
+      showConsole = sinon.stub();
       ext.queryHistoryProvider ??= <any>{ refresh: sinon.stub() };
       ext.connectionConsoles.set("server1", <any>{
         appendLine: (value: string) => lines.push(value),
@@ -2029,11 +2033,15 @@ describe("serverCommand", () => {
         appendParts: (parts: { text: string }[]) =>
           lines.push(parts.map((part) => part.text).join("")),
         appendResult: (result: string[]) => lines.push(...result),
-        terminal: { show: sinon.stub() },
+        terminal: { show: showConsole },
       });
       sinon.stub(vscode.workspace, "getConfiguration").returns(<any>{
         get: (key: string, fallback: unknown) =>
-          key === "results.grid" ? grid : fallback,
+          key === "results.grid"
+            ? grid
+            : key === "autoFocusOutputOnEntry"
+              ? autoFocus
+              : fallback,
         update: sinon.stub(),
       });
       executeCommand = sinon.stub(vscode.commands, "executeCommand").resolves();
@@ -2044,14 +2052,59 @@ describe("serverCommand", () => {
       sinon.restore();
     });
 
-    it("prints the server's text and fills the grid with typed cells, quietly", async () => {
+    it("prints the server's text and fills the grid with typed cells", async () => {
       await write(typed);
 
       assert.ok(lines.join("\n").includes("a b\n---\n1 x"), lines.join("\n"));
-      const [[shown, isInsights, , , quiet]] = updates();
+      const [[shown, isInsights]] = updates();
       assert.deepStrictEqual(shown, toGrid(typed.value));
       assert.strictEqual(isInsights, false);
-      assert.strictEqual(quiet, true);
+    });
+
+    const scalar = {
+      console: "42\n",
+      value: { kind: "atom", type: 7, value: 42n },
+    };
+    const quietUpdates = () => updates().map((args) => args[4]);
+
+    it("reveals the grid, not the console, for a table", async () => {
+      await write(typed);
+      assert.deepStrictEqual(quietUpdates(), [false]);
+      sinon.assert.notCalled(showConsole);
+    });
+
+    it("reveals the console without focus for a result not in the grid", async () => {
+      await write(scalar);
+      assert.deepStrictEqual(quietUpdates(), []);
+      sinon.assert.calledOnceWithExactly(showConsole, true);
+    });
+
+    it("reveals the console without focus for an error", async () => {
+      await write({ console: "", error: "type" }, "1+`a");
+      assert.deepStrictEqual(quietUpdates(), []);
+      sinon.assert.calledOnceWithExactly(showConsole, true);
+    });
+
+    it("reveals the console, not the grid, for a result too large for it", async () => {
+      await write({ console: "0 1 2 ..\n", tooLarge: true });
+      assert.deepStrictEqual(quietUpdates(), [true]);
+      sinon.assert.calledOnceWithExactly(showConsole, true);
+    });
+
+    it("reveals nothing with autoFocusOutputOnEntry off", async () => {
+      autoFocus = false;
+      await write(typed);
+      await write(scalar);
+      assert.deepStrictEqual(quietUpdates(), [true]);
+      sinon.assert.notCalled(showConsole);
+    });
+
+    it("adds one history entry per run", async () => {
+      for (const results of [typed, scalar, { console: "", error: "type" }]) {
+        const before = ext.kdbQueryHistoryList.length;
+        await write(results);
+        assert.strictEqual(ext.kdbQueryHistoryList.length, before + 1);
+      }
     });
 
     it("keeps an atom out of the grid", async () => {
