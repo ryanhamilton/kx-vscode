@@ -229,7 +229,9 @@ https://code.kx.com/pykx/getting-started/installing.html#1-install-kdb-x-python
 `npm run package:targets` fetches all four and writes to `dist/` one vsix per
 target (`linux-x64`, `linux-arm64`, `darwin-arm64`, `win32-x64`), each with only
 its own `q` and peachq's `LICENSE` and `NOTICE`, plus a universal vsix without
-any. It builds files only and publishes nothing; CI uploads them as an artifact.
+any, and fails unless each vsix's manifest names its target, the version and the
+publisher. It builds files only and publishes nothing; CI uploads them as an
+artifact.
 
 `npm run test:e2e:bare` runs `test/e2e/builtin.test.ts` in a window with an
 empty `HOME`, `PATH` and workspace, where the bundled peachq is the only q: the
@@ -270,4 +272,6 @@ npm exec ncu
 
 ## Releasing a new version
 
-Releases are not automated yet; see `PLAN.md`.
+See [Releasing](release.md): `publish.yml`, run by hand and approved in the
+`release` environment, publishes to the Marketplace and Open VSX with no stored
+tokens.
