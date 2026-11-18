@@ -88,18 +88,33 @@ function kxTrailers() {
   const changed = git("diff", "--no-renames", "--name-only", FORK).filter(
     (path) => path && atFork.has(path) && existsSync(join(ROOT, path)),
   );
-  return changed.flatMap((path) => {
+  const files = changed.filter((path) => trailer(path));
+  const before = atForkTexts(files);
+  return files.map((path, index) => {
     const line = trailer(path);
-    if (!line) return [];
     const text = readFileSync(join(ROOT, path), "utf8");
     const marked = text.endsWith(`\n${line}\n`);
     const bare = marked ? text.slice(0, -line.length - 1) : text;
-    const before = execFileSync("git", ["show", `${FORK}:${path}`], {
-      cwd: ROOT,
-      encoding: "utf8",
-    });
-    return [{ path, line, marked, bare, modified: bare !== before }];
+    return { path, line, marked, bare, modified: bare !== before[index] };
   });
+}
+
+// One git process for every file's text at the fork: spawning one per file
+// takes seconds on Windows.
+function atForkTexts(paths) {
+  const out = execFileSync("git", ["cat-file", "--batch"], {
+    cwd: ROOT,
+    input: paths.map((path) => `${FORK}:${path}\n`).join(""),
+    maxBuffer: 1 << 28,
+  });
+  const texts = [];
+  for (let at = 0; texts.length < paths.length; ) {
+    const eol = out.indexOf(10, at);
+    const size = Number(out.toString("utf8", at, eol).split(" ")[2]);
+    texts.push(out.toString("utf8", eol + 1, eol + 1 + size));
+    at = eol + 2 + size;
+  }
+  return texts;
 }
 
 const check = process.argv.includes("--check");
