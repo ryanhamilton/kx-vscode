@@ -274,3 +274,4 @@ export async function webview(
 
   return view;
 }
+// Modified by peachq contributors; see NOTICE.

@@ -163,3 +163,4 @@ describe("A file outside the workspace", () => {
     );
   });
 });
+// Modified by peachq contributors; see NOTICE.

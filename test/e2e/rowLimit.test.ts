@@ -319,3 +319,4 @@ describe("Limiting the rows a notebook shows", () => {
     });
   }
 });
+// Modified by peachq contributors; see NOTICE.

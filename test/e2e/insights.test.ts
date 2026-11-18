@@ -1020,3 +1020,4 @@ describe("Executing on an Insights connection", () => {
     });
   });
 });
+// Modified by peachq contributors; see NOTICE.

@@ -1073,3 +1073,4 @@ describe("workspaceCommand", () => {
     });
   });
 });
+// Modified by peachq contributors; see NOTICE.

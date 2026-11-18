@@ -609,3 +609,4 @@ describe("Connections panel", () => {
     });
   });
 });
+// Modified by peachq contributors; see NOTICE.

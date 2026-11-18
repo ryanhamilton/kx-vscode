@@ -271,3 +271,4 @@ export class FakeQ {
     return { error: false, data: JSON.stringify(shaped) };
   }
 }
+// Modified by peachq contributors; see NOTICE.

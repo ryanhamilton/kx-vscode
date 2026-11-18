@@ -478,3 +478,4 @@ describe("LocalConnection", () => {
     }
   });
 });
+// Modified by peachq contributors; see NOTICE.

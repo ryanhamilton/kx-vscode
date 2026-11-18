@@ -768,3 +768,4 @@ describe("Executing on a kdb+ connection", () => {
     });
   });
 });
+// Modified by peachq contributors; see NOTICE.

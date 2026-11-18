@@ -58,6 +58,12 @@ Because both sides now spell every id the same way, conflicts appear only where
 real code changed. After the merge run `node tools/rebrand.mjs --check` and the
 test suites; `test/suite/rebrand.test.ts` runs the same check.
 
+Then run `node tools/headers.mjs --fix`: every file KX wrote that differs from
+the fork point ends with a `Modified by peachq contributors; see NOTICE.`
+comment, and a file that no longer differs loses it. `--check` (in CI and in
+`test/suite/release.test.ts`) fails until that is done. Files we add carry the
+peachq contributors header instead.
+
 ## Ids are never edited by hand
 
 A `kdb.*` id written as `peachq.*` by hand is invisible to the next upstream

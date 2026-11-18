@@ -39,7 +39,8 @@ function bundledProcess() {
   const lines = execFileSync("/bin/ps", ["-A", "-o", "pid=,args="], {
     encoding: "utf8",
   }).split("\n");
-  const own = vscode.extensions.getExtension("timestored.peachq")!.extensionPath;
+  const own =
+    vscode.extensions.getExtension("timestored.peachq")!.extensionPath;
   const line = lines.find((found) =>
     found.includes(path.join(own, "bin", "peachq") + path.sep),
   );

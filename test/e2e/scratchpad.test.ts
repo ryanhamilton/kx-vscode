@@ -177,3 +177,4 @@ describe("The Insights scratchpad", () => {
     });
   });
 });
+// Modified by peachq contributors; see NOTICE.

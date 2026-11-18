@@ -412,3 +412,4 @@ describe("queryCommand", () => {
     });
   });
 });
+// Modified by peachq contributors; see NOTICE.

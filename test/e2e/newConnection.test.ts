@@ -355,3 +355,4 @@ describe("New connection view", () => {
     });
   });
 });
+// Modified by peachq contributors; see NOTICE.

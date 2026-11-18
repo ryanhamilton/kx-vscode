@@ -52,3 +52,4 @@ export function kdbOutputLog(
     /* c8 ignore stop */
   }
 }
+// Modified by peachq contributors; see NOTICE.

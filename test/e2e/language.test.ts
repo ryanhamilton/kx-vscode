@@ -276,3 +276,4 @@ describe("q language features", () => {
     });
   });
 });
+// Modified by peachq contributors; see NOTICE.

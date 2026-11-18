@@ -104,3 +104,4 @@ describe("HelpFeedbackProvider", () => {
     }, 10);
   });
 });
+// Modified by peachq contributors; see NOTICE.

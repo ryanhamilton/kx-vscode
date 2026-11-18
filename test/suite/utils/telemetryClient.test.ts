@@ -83,3 +83,4 @@ describe("ExtensionTelemetry", () => {
     sinon.assert.notCalled(outputChannelMock.appendLine);
   });
 });
+// Modified by peachq contributors; see NOTICE.

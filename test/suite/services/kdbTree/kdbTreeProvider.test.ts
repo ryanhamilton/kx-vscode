@@ -1192,3 +1192,4 @@ describe("kdbTreeProvider", () => {
     });
   });
 });
+// Modified by peachq contributors; see NOTICE.

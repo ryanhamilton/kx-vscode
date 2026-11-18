@@ -1219,3 +1219,4 @@ export async function deactivate(): Promise<void> {
     return ext.client.stop();
   }
 }
+// Modified by peachq contributors; see NOTICE.

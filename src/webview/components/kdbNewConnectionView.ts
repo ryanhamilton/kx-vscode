@@ -941,3 +941,4 @@ declare global {
     "kdb-new-connection-view": KdbNewConnectionView;
   }
 }
+// Modified by peachq contributors; see NOTICE.

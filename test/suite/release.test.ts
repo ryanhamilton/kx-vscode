@@ -61,7 +61,7 @@ describe("Release", () => {
     assert.match(prose("README.md"), /not affiliated with or endorsed by KX/);
   });
 
-  it("gives every file added since the fork the peachq header", () => {
+  it("heads new files peachq's and ends modified KX files with the trailer", () => {
     const result = spawnSync(
       process.execPath,
       [resolve(root, "tools", "headers.mjs"), "--check"],

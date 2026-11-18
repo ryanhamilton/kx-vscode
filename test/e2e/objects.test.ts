@@ -153,3 +153,4 @@ describe("What the connected process has in memory", () => {
     assert.deepStrictEqual(injected, []);
   });
 });
+// Modified by peachq contributors; see NOTICE.

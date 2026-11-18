@@ -217,3 +217,4 @@ async function start(argv: string[]) {
   }
   console.log(r.result);
 })().catch((e) => (console.error("ERR " + e.message), process.exit(1)));
+// Modified by peachq contributors; see NOTICE.

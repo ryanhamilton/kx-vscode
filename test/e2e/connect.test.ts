@@ -124,3 +124,4 @@ describe("Running a file whose connection is not connected", () => {
     assert.deepStrictEqual(raised(OFFER), []);
   });
 });
+// Modified by peachq contributors; see NOTICE.

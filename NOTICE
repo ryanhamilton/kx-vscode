@@ -7,9 +7,11 @@ Apache License 2.0. Changes by peachq contributors since the fork are recorded
 in the git history and CHANGELOG.md.
 
 Copyright (c) 1998-2026 KX Systems Inc. Files written by KX keep KX's copyright
-header, including those peachq contributors have changed since the fork; git
-history (git log 654ea443..HEAD -- <file>) shows every such change. Files added
-since the fork carry the peachq contributors header.
+header. Each of those source files that peachq contributors have changed since
+the fork ends with the line "Modified by peachq contributors; see NOTICE.";
+git history (git log 654ea443..HEAD -- <file>) shows every change, including
+to documentation and data files, which carry no such line. Files added since
+the fork carry the peachq contributors header.
 
 Major changes since the fork (KX dev at 654ea443):
 

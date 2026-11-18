@@ -334,3 +334,4 @@ export function trackNotebookRowLimit(): vscode.Disposable {
     }),
   );
 }
+// Modified by peachq contributors; see NOTICE.

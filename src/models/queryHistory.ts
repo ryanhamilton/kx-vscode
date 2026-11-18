@@ -29,3 +29,4 @@ export interface QueryHistory {
   isFromConnTree?: boolean;
   asScript?: boolean;
 }
+// Modified by peachq contributors; see NOTICE.

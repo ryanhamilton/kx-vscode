@@ -44,3 +44,4 @@ describe("Notebook row limit toolbar", () => {
     }
   });
 });
+// Modified by peachq contributors; see NOTICE.

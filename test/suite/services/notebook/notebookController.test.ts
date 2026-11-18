@@ -1162,3 +1162,4 @@ describe("Controller", () => {
     });
   });
 });
+// Modified by peachq contributors; see NOTICE.

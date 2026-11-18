@@ -390,3 +390,4 @@ export class QueryEditorProvider implements CustomTextEditorProvider {
     `;
   }
 }
+// Modified by peachq contributors; see NOTICE.

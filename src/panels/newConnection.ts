@@ -220,3 +220,4 @@ export class NewConnectionPannel {
     };
   }
 }
+// Modified by peachq contributors; see NOTICE.

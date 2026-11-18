@@ -1245,3 +1245,4 @@ export class ReplConnection {
     return this.create(vscode.workspace.getWorkspaceFolder(base), base);
   }
 }
+// Modified by peachq contributors; see NOTICE.

@@ -1128,3 +1128,4 @@ describe("ConnectionManagementService", () => {
     });
   });
 });
+// Modified by peachq contributors; see NOTICE.

@@ -310,3 +310,4 @@ export async function discardNotebook(notebook: vscode.NotebookDocument) {
     "workbench.action.revertAndCloseActiveEditor",
   );
 }
+// Modified by peachq contributors; see NOTICE.

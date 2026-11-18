@@ -45,3 +45,4 @@ export class Output {
     return `${label ? `[${label}] ` : ""}${message}`;
   }
 }
+// Modified by peachq contributors; see NOTICE.

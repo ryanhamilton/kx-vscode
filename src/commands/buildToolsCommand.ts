@@ -265,3 +265,4 @@ export async function connectBuildTools() {
     }
   }
 }
+// Modified by peachq contributors; see NOTICE.

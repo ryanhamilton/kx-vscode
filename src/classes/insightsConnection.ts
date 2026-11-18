@@ -1088,3 +1088,4 @@ export class InsightsConnection {
     );
   }
 }
+// Modified by peachq contributors; see NOTICE.

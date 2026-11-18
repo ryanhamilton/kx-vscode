@@ -594,3 +594,4 @@ function render(
 
   return { text: "No results.", mime: "text/plain" };
 }
+// Modified by peachq contributors; see NOTICE.

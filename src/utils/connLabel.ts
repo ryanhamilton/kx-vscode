@@ -313,3 +313,4 @@ export function getConnectionLabelStatistics(
 export function checkIfLabelExists(name: string): boolean {
   return ext.connLabelList.some((label) => label.name === name);
 }
+// Modified by peachq contributors; see NOTICE.

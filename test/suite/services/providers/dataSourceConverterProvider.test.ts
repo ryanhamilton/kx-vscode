@@ -91,3 +91,4 @@ describe("dataSourceConverterProvider", () => {
     assert.strictEqual(panel.disposed, 0);
   });
 });
+// Modified by peachq contributors; see NOTICE.

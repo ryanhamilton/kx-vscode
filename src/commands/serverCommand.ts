@@ -1747,3 +1747,4 @@ export async function ensureQuickConnection(
 
   return connection.serverAlias;
 }
+// Modified by peachq contributors; see NOTICE.

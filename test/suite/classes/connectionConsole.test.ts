@@ -433,3 +433,4 @@ describe("ConnectionConsole", () => {
     );
   });
 });
+// Modified by peachq contributors; see NOTICE.

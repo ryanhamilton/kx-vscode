@@ -86,3 +86,4 @@ export interface EditConnectionMessage {
   queryMode?: QueryMode;
   namespacedRuns?: NamespacedRuns;
 }
+// Modified by peachq contributors; see NOTICE.

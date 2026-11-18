@@ -808,3 +808,4 @@ describe("KdbNewConnectionView", () => {
 
   describe("createLabel", () => {});
 });
+// Modified by peachq contributors; see NOTICE.

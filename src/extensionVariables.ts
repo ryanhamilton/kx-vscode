@@ -382,3 +382,4 @@ export namespace ext {
   // eslint-disable-next-line prefer-const
   export let customAuth: CustomAuth | null = null;
 }
+// Modified by peachq contributors; see NOTICE.

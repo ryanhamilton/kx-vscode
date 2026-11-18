@@ -38,3 +38,4 @@ connection.onInitialized(() => {
 });
 
 connection.listen();
+// Modified by peachq contributors; see NOTICE.

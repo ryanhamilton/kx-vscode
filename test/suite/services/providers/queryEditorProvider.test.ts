@@ -601,3 +601,4 @@ describe("queryEditorProvider", () => {
     });
   });
 });
+// Modified by peachq contributors; see NOTICE.
