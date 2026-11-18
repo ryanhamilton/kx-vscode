@@ -164,3 +164,4 @@ describe("Exporting the results as CSV", () => {
     assert.strictEqual(raised("No results to export").length, 1);
   });
 });
+// Modified by peachq contributors; see NOTICE.

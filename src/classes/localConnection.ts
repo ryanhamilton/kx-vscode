@@ -526,3 +526,4 @@ function unreadableResponse() {
     QueryResultType.Error,
   );
 }
+// Modified by peachq contributors; see NOTICE.

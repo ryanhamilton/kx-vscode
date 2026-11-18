@@ -473,3 +473,4 @@ function renderIcon5() {
     </svg>
   `;
 }
+// Modified by peachq contributors; see NOTICE.

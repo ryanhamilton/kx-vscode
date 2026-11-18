@@ -327,3 +327,4 @@ export class ConnectionConsole {
     this.pty.dispose();
   }
 }
+// Modified by peachq contributors; see NOTICE.

@@ -1,3 +1,5 @@
+/ Copyright (c) 2026 peachq contributors
+/ SPDX-License-Identifier: Apache-2.0
 / Ported from vscode.quke: the API out/vscode.q defines (built by node build-api.js).
 system "l out/vscode.q";
 system "d .vscodeTest";

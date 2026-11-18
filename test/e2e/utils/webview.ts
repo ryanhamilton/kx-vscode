@@ -184,7 +184,7 @@ export async function webview(
   attributes: Record<string, string> = {},
   bundle = "webview.js",
 ): Promise<Webview> {
-  const extension = vscode.extensions.getExtension("peachq.peachq");
+  const extension = vscode.extensions.getExtension("timestored.peachq");
   assert.ok(extension, "the kdb extension is not installed in this window");
 
   const panel = vscode.window.createWebviewPanel(
@@ -274,3 +274,4 @@ export async function webview(
 
   return view;
 }
+// Modified by peachq contributors; see NOTICE.

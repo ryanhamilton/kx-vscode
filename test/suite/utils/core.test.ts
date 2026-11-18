@@ -1394,3 +1394,4 @@ describe("core", () => {
     });
   });
 });
+// Modified by peachq contributors; see NOTICE.

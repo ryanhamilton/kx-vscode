@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 peachq contributors
+# SPDX-License-Identifier: Apache-2.0
 # npm run q-test [dir|file]: the qunit tests on peachq. test/q/run.q refuses any q without .pq.version.
 set -euo pipefail
 cd "$(dirname "$0")/.."

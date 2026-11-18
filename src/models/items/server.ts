@@ -73,3 +73,4 @@ export const scratchpadVariableInput = {
   prompt: "Enter output variable name for scratchpad",
   placeholder: "Output Variable *",
 };
+// Modified by peachq contributors; see NOTICE.

@@ -215,3 +215,4 @@ export class KdbResultsViewProvider implements WebviewViewProvider {
     `;
   }
 }
+// Modified by peachq contributors; see NOTICE.

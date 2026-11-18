@@ -1,5 +1,19 @@
 #!/usr/bin/env node
-// Renames the extension's public edges from KX.kdb to peachq.peachq.
+
+/*
+ * Copyright (c) 2026 peachq contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+// Renames the extension's public edges from KX.kdb to timestored.peachq.
 // Run from anywhere: `node tools/rebrand.mjs` rewrites in place,
 // `--check` only reports and exits 1 if anything would change.
 // See docs/developer/upstream.md for the upstream merge workflow.
@@ -127,7 +141,7 @@ const alt = (list) => list.join("|");
 // `(?<![\w.$/-])` keeps file names such as `.kdb.q` and
 // `sample-kx-notebooks.md` and members such as `qserver.kdb` intact.
 export const RULES = [
-  [/(?<!itemName=)\bKX\.kdb(?![\w-])/g, "peachq.peachq"],
+  [/(?<!itemName=)\bKX\.kdb(?![\w-])/g, "timestored.peachq"],
   [
     new RegExp(
       `(?<![\\w.$/-])kdb(\\\\?)\\.(?=(?:${alt(NAMESPACES)})\\\\?\\.|(?:${alt(IDS)})(?!\\w))`,
@@ -164,16 +178,16 @@ const DEFER_WHEN = "!peachq.deferringToKx";
 export const METADATA = {
   name: "peachq",
   displayName: "peachq",
-  publisher: "peachq",
+  publisher: "timestored",
   description:
     "q language support: run, chart and lint q against any kdb+ process, or with built-in peachq — no licence needed",
   icon: "resources/images/peachq-logo.png",
   repository: {
     type: "git",
-    url: "https://github.com/ryanhamilton/kx-vscode.git",
+    url: "https://github.com/timestored/vscode-peachq.git",
   },
-  homepage: "https://github.com/ryanhamilton/kx-vscode",
-  bugs: { url: "https://github.com/ryanhamilton/kx-vscode/issues" },
+  homepage: "https://github.com/timestored/vscode-peachq",
+  bugs: { url: "https://github.com/timestored/vscode-peachq/issues" },
 };
 const ACTIVITY_ICON = "resources/images/peachq-icon.svg";
 

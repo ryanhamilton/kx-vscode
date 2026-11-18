@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998-2026 KX Systems Inc.
+ * Copyright (c) 2026 peachq contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the
  * License. You may obtain a copy of the License at
@@ -26,6 +26,7 @@ const FORBIDDEN = [
   "newsletter",
   "forum.kx.com/c/ideas",
   "KxSystems/kx-vscode/issues",
+  "ryanhamilton/kx-vscode",
 ];
 
 for (const file of ["out/extension.js", "package.json"]) {

@@ -96,3 +96,4 @@ export class DataSourceConverterProvider implements CustomTextEditorProvider {
     `;
   }
 }
+// Modified by peachq contributors; see NOTICE.

@@ -103,3 +103,4 @@ process.on("SIGINT", () => {
     process.stdout.write(token());
   }
 });
+// Modified by peachq contributors; see NOTICE.

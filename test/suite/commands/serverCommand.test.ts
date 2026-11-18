@@ -2294,3 +2294,4 @@ describe("serverCommand", () => {
     }
   });
 });
+// Modified by peachq contributors; see NOTICE.

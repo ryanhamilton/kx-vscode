@@ -182,3 +182,4 @@ export class QueryHistoryTreeItem extends TreeItem {
     return tooltipMd;
   }
 }
+// Modified by peachq contributors; see NOTICE.

@@ -113,3 +113,4 @@ describe("Commands", () => {
     });
   });
 });
+// Modified by peachq contributors; see NOTICE.

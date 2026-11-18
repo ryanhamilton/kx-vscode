@@ -288,7 +288,7 @@ describe("Executing on a kdb+ connection", () => {
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
         id: "peachq-notebook-1",
-        extension: "peachq.peachq",
+        extension: "timestored.peachq",
       });
 
       kdb.clear();
@@ -327,7 +327,7 @@ describe("Executing on a kdb+ connection", () => {
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
         id: "peachq-notebook-1",
-        extension: "peachq.peachq",
+        extension: "timestored.peachq",
       });
       await vscode.commands.executeCommand("notebook.clearAllCellsOutputs");
 
@@ -472,7 +472,7 @@ describe("Executing on a kdb+ connection", () => {
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
         id: "peachq-notebook-1",
-        extension: "peachq.peachq",
+        extension: "timestored.peachq",
       });
 
       kdb.clear();
@@ -768,3 +768,4 @@ describe("Executing on a kdb+ connection", () => {
     });
   });
 });
+// Modified by peachq contributors; see NOTICE.

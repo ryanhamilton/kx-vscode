@@ -1,3 +1,5 @@
+/ Copyright (c) 2026 peachq contributors
+/ SPDX-License-Identifier: Apache-2.0
 / Ported from listMem.quke. Every root namespace present at setUp is the environment, so it is blacklisted.
 system "d .listMemTest";
 

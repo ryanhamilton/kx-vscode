@@ -54,3 +54,4 @@ class HelpItem extends vscode.TreeItem {
     this.iconPath = getIconPath(iconFileName);
   }
 }
+// Modified by peachq contributors; see NOTICE.

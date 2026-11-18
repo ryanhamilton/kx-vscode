@@ -884,3 +884,4 @@ function createSymbol(token: Token, source: Source): DocumentSymbol {
       .map((value) => createSymbol(value, source)),
   );
 }
+// Modified by peachq contributors; see NOTICE.

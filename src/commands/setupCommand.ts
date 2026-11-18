@@ -363,3 +363,4 @@ function updateView(refresh = true) {
   if (panel) panel.webview.html = getWebviewContent(panel.webview);
   /* c8 ignore stop */
 }
+// Modified by peachq contributors; see NOTICE.

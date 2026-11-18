@@ -63,3 +63,4 @@ export class ExtensionTelemetry {
     }
   }
 }
+// Modified by peachq contributors; see NOTICE.

@@ -114,3 +114,4 @@ describe("Query history", () => {
     });
   });
 });
+// Modified by peachq contributors; see NOTICE.

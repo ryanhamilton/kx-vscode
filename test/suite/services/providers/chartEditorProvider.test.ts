@@ -59,3 +59,4 @@ describe("ChartEditorProvider", () => {
     });
   });
 });
+// Modified by peachq contributors; see NOTICE.

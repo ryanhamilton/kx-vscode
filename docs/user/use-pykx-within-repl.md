@@ -11,7 +11,7 @@ timestamp: 2026-09-30
 ## Installation Steps
 
 1. Install
-   [peachq](https://marketplace.visualstudio.com/items?itemName=peachq.peachq)
+   [peachq](https://marketplace.visualstudio.com/items?itemName=timestored.peachq)
    and
    [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
    extensions in VS Code. The Python extension installs

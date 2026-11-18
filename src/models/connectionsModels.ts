@@ -77,3 +77,4 @@ export interface ExportedConnections {
     KDB: ServerDetails[];
   };
 }
+// Modified by peachq contributors; see NOTICE.

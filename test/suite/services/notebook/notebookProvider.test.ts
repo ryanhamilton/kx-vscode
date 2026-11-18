@@ -390,3 +390,4 @@ describe("Providers", () => {
     });
   });
 });
+// Modified by peachq contributors; see NOTICE.

@@ -932,3 +932,4 @@ export function formatSeconds(seconds: number): string {
     return `${seconds}s`;
   }
 }
+// Modified by peachq contributors; see NOTICE.

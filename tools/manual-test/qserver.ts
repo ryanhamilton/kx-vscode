@@ -186,3 +186,4 @@ else
   )
     .then((r) => console.log(JSON.stringify(r)))
     .catch((e) => (console.error("ERR " + e.message), process.exit(1)));
+// Modified by peachq contributors; see NOTICE.

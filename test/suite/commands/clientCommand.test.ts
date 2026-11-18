@@ -116,3 +116,4 @@ describe("clientCommands", () => {
     });
   });
 });
+// Modified by peachq contributors; see NOTICE.

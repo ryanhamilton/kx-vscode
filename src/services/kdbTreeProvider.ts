@@ -856,3 +856,4 @@ function getNamedIconPath(name: string, label: string) {
 function getOtherIconPath(name: string) {
   return getIconPath(name + ".svg");
 }
+// Modified by peachq contributors; see NOTICE.

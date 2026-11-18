@@ -131,3 +131,4 @@ describe("The meta objects of an Insights connection", () => {
     assert.strictEqual(vscode.window.activeTextEditor, undefined);
   });
 });
+// Modified by peachq contributors; see NOTICE.

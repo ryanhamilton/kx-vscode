@@ -157,9 +157,26 @@ export async function until(
 }
 
 export async function activate() {
-  const extension = vscode.extensions.getExtension("peachq.peachq");
+  const extension = vscode.extensions.getExtension("timestored.peachq");
   assert.ok(extension, "the kdb extension is not installed in this window");
   await extension.activate();
+}
+
+/**
+ * Activation opens the welcome page 500 ms later, unprompted. Waits for it and
+ * closes it, so it cannot take the active editor from a suite's first notebook.
+ */
+export async function closeWelcomeOnActivation() {
+  const welcome = () =>
+    vscode.window.tabGroups.all
+      .flatMap((group) => group.tabs)
+      .filter(
+        (tab) =>
+          tab.input instanceof vscode.TabInputWebview &&
+          tab.input.viewType.includes("kdbWelcomeView"),
+      );
+  await until(() => welcome().length > 0, "the welcome page to open");
+  await vscode.window.tabGroups.close(welcome());
 }
 
 /**
@@ -256,7 +273,7 @@ export async function startNotebook(notebook: vscode.NotebookDocument) {
   await vscode.window.showNotebookDocument(notebook);
   await vscode.commands.executeCommand("notebook.selectKernel", {
     id: "peachq-notebook-1",
-    extension: "peachq.peachq",
+    extension: "timestored.peachq",
   });
   await vscode.commands.executeCommand("notebook.clearAllCellsOutputs");
   await until(
@@ -293,3 +310,4 @@ export async function discardNotebook(notebook: vscode.NotebookDocument) {
     "workbench.action.revertAndCloseActiveEditor",
   );
 }
+// Modified by peachq contributors; see NOTICE.

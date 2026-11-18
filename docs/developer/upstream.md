@@ -10,10 +10,10 @@ timestamp: 2026-11-17
 
 # Merging Upstream
 
-This extension (`peachq.peachq`) is a fork of the KX extension (`KX.kdb`). Every
-public id differs: commands, settings, views, the notebook type, custom editors,
-language ids and product-name strings. One script owns those differences:
-[`tools/rebrand.mjs`](../../tools/rebrand.mjs).
+This extension (`timestored.peachq`) is a fork of the KX extension (`KX.kdb`).
+Every public id differs: commands, settings, views, the notebook type, custom
+editors, language ids and product-name strings. One script owns those
+differences: [`tools/rebrand.mjs`](../../tools/rebrand.mjs).
 
 ## The script
 
@@ -57,6 +57,12 @@ text, and marketplace or code.kx.com links.
 Because both sides now spell every id the same way, conflicts appear only where
 real code changed. After the merge run `node tools/rebrand.mjs --check` and the
 test suites; `test/suite/rebrand.test.ts` runs the same check.
+
+Then run `node tools/headers.mjs --fix`: every file KX wrote that differs from
+the fork point ends with a `Modified by peachq contributors; see NOTICE.`
+comment, and a file that no longer differs loses it. `--check` (in CI and in
+`test/suite/release.test.ts`) fails until that is done. Files we add carry the
+peachq contributors header instead.
 
 ## Ids are never edited by hand
 

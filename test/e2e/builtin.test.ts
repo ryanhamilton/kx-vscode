@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998-2026 KX Systems Inc.
+ * Copyright (c) 2026 peachq contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the
  * License. You may obtain a copy of the License at
@@ -39,7 +39,8 @@ function bundledProcess() {
   const lines = execFileSync("/bin/ps", ["-A", "-o", "pid=,args="], {
     encoding: "utf8",
   }).split("\n");
-  const own = vscode.extensions.getExtension("peachq.peachq")!.extensionPath;
+  const own =
+    vscode.extensions.getExtension("timestored.peachq")!.extensionPath;
   const line = lines.find((found) =>
     found.includes(path.join(own, "bin", "peachq") + path.sep),
   );

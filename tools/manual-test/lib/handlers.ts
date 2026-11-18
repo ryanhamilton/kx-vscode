@@ -657,3 +657,4 @@ function makeHandlers(ctx: Ctx): Record<string, Handler> {
 }
 
 export { makeHandlers };
+// Modified by peachq contributors; see NOTICE.

@@ -2,16 +2,17 @@
 
 All notable changes to **peachq** are documented in this file.
 
-## Unreleased
+## 1.30.0 — Unreleased
 
 Forked from KX's kdb VS Code extension (1.21.0 + dev at 654ea443); upstream
 history: https://github.com/KxSystems/kx-vscode/blob/main/CHANGELOG.md
 
 - No telemetry: the Application Insights reporter, the survey and the newsletter
   prompts are gone, and bug and feature links point at this fork.
-- Published as `peachq.peachq` with `peachq.*` settings and commands. While the
-  KX extension is enabled in a window, peachq pauses its q features there, and
-  it offers a one-time import of the KX extension's connections and settings.
+- Published as `timestored.peachq` with `peachq.*` settings and commands. While
+  the KX extension is enabled in a window, peachq pauses its q features there,
+  and it offers a one-time import of the KX extension's connections and
+  settings.
 - CI on GitHub Actions: build, unit, e2e and the injected q code tested with
   qunit on peachq, plus CodeQL and dependabot.
 - `tools/manual-test` runs on peachq only, headless when `HEADLESS` is set.
@@ -46,3 +47,9 @@ history: https://github.com/KxSystems/kx-vscode/blob/main/CHANGELOG.md
 - The REPL starts q in quiet mode (`-q`), so piped input is not echoed back with
   a `q)` prompt, and an error in a query is printed with its backtrace and no
   longer leaves the REPL waiting: the next query runs.
+- Licensed Apache-2.0 in `package.json` (it said MIT, an upstream slip; the code
+  always was Apache-2.0), with a `NOTICE` in every package naming the KX work
+  this is modified from, the bundled third-party code and the trademarks. Files
+  added since the fork carry a peachq contributors header; KX's files keep KX's.
+- Version 1.30.0, a new README for the marketplace page, and product wording in
+  settings and docs that names q, not kdb.

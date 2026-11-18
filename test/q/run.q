@@ -1,3 +1,5 @@
+/ Copyright (c) 2026 peachq contributors
+/ SPDX-License-Identifier: Apache-2.0
 / q test/q/run.q [dir|file] -classic, from the repo root. Each *Test.q file runs in its own q, as quke ran each feature
 / file, since listMem enumerates the whole process. Exits 1 on any failure, error, file that will not load, or no tests.
 / A test namespace may hold skip* functions, each named with its reason in a skipped dict; QTEST_SKIPPED=1 runs them.

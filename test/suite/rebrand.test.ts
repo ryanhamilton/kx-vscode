@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998-2026 KX Systems Inc.
+ * Copyright (c) 2026 peachq contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the
  * License. You may obtain a copy of the License at
@@ -36,8 +36,8 @@ describe("Rebrand", () => {
     const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
     const c = pkg.contributes;
 
-    it("is peachq.peachq", () => {
-      assert.strictEqual(pkg.publisher, "peachq");
+    it("is timestored.peachq", () => {
+      assert.strictEqual(pkg.publisher, "timestored");
       assert.strictEqual(pkg.name, "peachq");
       assert.strictEqual(pkg.displayName, "peachq");
     });

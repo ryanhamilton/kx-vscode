@@ -483,14 +483,17 @@ function registerHelpCommands(): CommandRegistration[] {
         vscode.commands
           .executeCommand(
             "workbench.extensions.action.showExtensionDetails",
-            "peachq.peachq",
+            "timestored.peachq",
           )
           .then(undefined, () => {
             notify("Help&Feedback documentation selected.", MessageKind.DEBUG, {
               logger,
               telemetry: "Help.Open.Documentation",
             });
-            vscode.commands.executeCommand("extension.open", "peachq.peachq");
+            vscode.commands.executeCommand(
+              "extension.open",
+              "timestored.peachq",
+            );
           });
       },
     },
@@ -1216,3 +1219,4 @@ export async function deactivate(): Promise<void> {
     return ext.client.stop();
   }
 }
+// Modified by peachq contributors; see NOTICE.
