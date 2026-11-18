@@ -52,6 +52,9 @@ describe("The shipped wording and links", () => {
     "Welcome to KDB-X",
     "kdb connection",
     "KDB connection",
+    "next generation of kdb+",
+    "kx_welcome.png",
+    "kx_logo.png",
   ]) {
     it(`carry no ${word}`, () => {
       assert.ok(!extension.includes(word), `extension.js has ${word}`);
@@ -63,6 +66,10 @@ describe("The shipped wording and links", () => {
     assert.ok(extension.includes("peachq.org/docs"));
     assert.ok(webview.includes("peachq.org/docs"));
     assert.ok(webview.includes("peachq.org/download"));
+  });
+
+  it("show the peachq logo on the welcome page and its tab", () => {
+    assert.ok(extension.includes("peachq-logo.png"));
   });
 
   it("keep the Insights schema URLs", () => {

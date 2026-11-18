@@ -224,10 +224,6 @@ export class KdbWelcomeView extends LitElement {
             <div>
               ${this.renderPeachq()}
               <h2>KDB-X</h2>
-              <p>
-                KDB-X is the next generation of kdb+, optimized for modern
-                analytics and AI workflows. Let’s get you ready to code.
-              </p>
               ${this.windows ? this.renderWsl() : ""}
               ${this.q
                 ? this.renderFound()
