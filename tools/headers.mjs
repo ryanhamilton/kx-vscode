@@ -22,7 +22,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-export const FORK = "654ea443";
+const FORK = "654ea443";
 const SOURCE = /\.(ts|mts|mjs|js|q|sh)$/;
 const DATA = ["test/fixtures/l-diff/", "test/fixtures/q-render/"];
 const PEACHQ = "Copyright (c) 2026 peachq contributors";
@@ -39,7 +39,7 @@ const git = (...args) =>
 const head = (path) =>
   readFileSync(join(ROOT, path), "utf8").split("\n").slice(0, 16).join("\n");
 
-export function kindOf(path) {
+function kindOf(path) {
   const text = head(path);
   if (text.includes(PEACHQ) && APACHE.test(text) && !KX.test(text)) {
     return "peachq";
@@ -47,7 +47,7 @@ export function kindOf(path) {
   return KX.test(text) ? "kx" : "none";
 }
 
-export function postFork() {
+function postFork() {
   const atFork = new Set(git("ls-tree", "-r", "--name-only", FORK));
   const now = sources([
     ...git("ls-files"),
@@ -58,26 +58,24 @@ export function postFork() {
   );
 }
 
-export function kxAtFork() {
+function kxAtFork() {
   const hits = git("grep", "-n", "-F", "KX Systems Inc.", FORK)
     .map((hit) => hit.slice(FORK.length + 1).split(":"))
     .filter(([, line]) => Number(line) <= 3);
   return sources(hits.map(([path]) => path));
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const check = process.argv.includes("--check");
-  let bad = 0;
-  for (const path of postFork().sort()) {
-    const kind = kindOf(path);
-    if (kind !== "peachq") bad++;
-    if (!check || kind !== "peachq") console.log(`${kind}\t${path}`);
-  }
-  for (const path of kxAtFork()) {
-    if (existsSync(join(ROOT, path)) && kindOf(path) !== "kx") {
-      bad++;
-      console.log(`lost KX header\t${path}`);
-    }
-  }
-  process.exit(check && bad ? 1 : 0);
+const check = process.argv.includes("--check");
+let bad = 0;
+for (const path of postFork().sort()) {
+  const kind = kindOf(path);
+  if (kind !== "peachq") bad++;
+  if (!check || kind !== "peachq") console.log(`${kind}\t${path}`);
 }
+for (const path of kxAtFork()) {
+  if (existsSync(join(ROOT, path)) && kindOf(path) !== "kx") {
+    bad++;
+    console.log(`lost KX header\t${path}`);
+  }
+}
+process.exit(check && bad ? 1 : 0);

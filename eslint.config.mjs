@@ -25,7 +25,8 @@ const PEACHQ_HEADER = header("Copyright (c) 2026 peachq contributors");
 const KX_HEADER = header(`Copyright (c) 1998-${currentYear} KX Systems Inc.`);
 
 // New files take the peachq header; files KX wrote keep KX's. A file passes
-// if one header fits, else it gets the first header's reports and fix.
+// if one header fits, else it is fixed to the header whose owner it already
+// names (a stale KX year stays KX's), or to the first.
 const licenseHeader = licenseHeaderPlugin.rules.header;
 const peachqPlugin = {
   rules: {
@@ -40,13 +41,16 @@ const peachqPlugin = {
               report: { value: (report) => reports.push(report) },
             }),
           );
-          return { listeners, reports };
+          const owner = lines[1].replace(/^ \* Copyright \(c\) [\d-]+ /, "");
+          return { listeners, reports, owner };
         });
         return {
           "Program:exit"(node) {
             for (const run of runs) run.listeners.Program(node);
             if (runs.some((run) => run.reports.length === 0)) return;
-            for (const report of runs[0].reports) context.report(report);
+            const head = context.sourceCode.text.slice(0, 200);
+            const run = runs.find((r) => head.includes(r.owner)) ?? runs[0];
+            for (const report of run.reports) context.report(report);
           },
         };
       },
