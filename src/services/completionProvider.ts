@@ -21,6 +21,7 @@ import {
 
 import { ext } from "../extensionVariables";
 import { KdbNode } from "./kdbTreeProvider";
+import { qlintProvides } from "../utils/qlint";
 
 export class CompletionProvider implements CompletionItemProvider {
   provideCompletionItems(): ProviderResult<
@@ -39,6 +40,9 @@ export class CompletionProvider implements CompletionItemProvider {
         ),
       );
       return items;
+    }
+    if (qlintProvides("completionProvider")) {
+      return [];
     }
     return qLangParserItems.map((item) => {
       item.kind = CompletionItemKind.Variable;
@@ -1826,3 +1830,4 @@ const qLangParserItems: CompletionItem[] = [
     documentation: ".com_kx_edi.uda[args;name]",
   },
 ];
+// Modified by peachq contributors; see NOTICE.

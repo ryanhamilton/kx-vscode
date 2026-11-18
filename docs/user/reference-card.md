@@ -166,6 +166,8 @@ to them. Whether a right click pastes is VS Code's
 | peachq.timeoutMap                                     | resource            | `object`  | `{}`           |
 | peachq.defaultTimeout                                 | resource            | `number`  | `30`           |
 | peachq.linting                                        | resource            | `boolean` | `false`        |
+| peachq.lint.enabled                                   | window              | `boolean` | `true`         |
+| peachq.lint.qPath                                     | window              | `string`  | `""`           |
 | peachq.refactoring                                    | resource            | `string`  | `"Workspace"`  |
 | peachq.deferToKx                                      | window              | `string`  | `"auto"`       |
 

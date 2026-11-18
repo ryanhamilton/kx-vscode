@@ -135,6 +135,12 @@ import {
   showDeferStatus,
 } from "./utils/kxCompat";
 import { MessageKind, notify, Runner } from "./utils/notifications";
+import {
+  qlintActive,
+  qlintProvides,
+  startQlint,
+  stopQlint,
+} from "./utils/qlint";
 import AuthSettings from "./utils/secretStorage";
 import { ExtensionTelemetry } from "./utils/telemetryClient";
 import { addWorkspaceFile, openWith, setUriContent } from "./utils/workspace";
@@ -376,6 +382,26 @@ export async function activate(context: vscode.ExtensionContext) {
         true,
       ),
     },
+    // Where qlint answers, the built-in server stays quiet so nothing shows
+    // twice; rename, call hierarchy, folding and semantic tokens stay here.
+    middleware: {
+      handleDiagnostics: (uri, diagnostics, next) =>
+        next(uri, qlintActive() ? [] : diagnostics),
+      provideDocumentSymbols: (document, token, next) =>
+        qlintProvides("documentSymbolProvider") ? [] : next(document, token),
+      provideDefinition: (document, position, token, next) =>
+        qlintProvides("definitionProvider")
+          ? []
+          : next(document, position, token),
+      provideReferences: (document, position, options, token, next) =>
+        qlintProvides("referencesProvider")
+          ? []
+          : next(document, position, options, token),
+      provideCompletionItem: (document, position, context, token, next) =>
+        qlintProvides("completionProvider")
+          ? []
+          : next(document, position, context, token),
+    },
   };
 
   client = new LanguageClient(
@@ -393,6 +419,15 @@ export async function activate(context: vscode.ExtensionContext) {
 
   if (!deferring) {
     await client.start();
+    await startQlint();
+    context.subscriptions.push(
+      vscode.workspace.onDidChangeConfiguration(async (event) => {
+        if (event.affectsConfiguration("peachq.lint")) {
+          await stopQlint();
+          await startQlint();
+        }
+      }),
+    );
   }
   connectClientCommands(context, client);
   await connectBuildTools();
@@ -1213,6 +1248,7 @@ function registerAllExtensionCommands(): void {
 
 export async function deactivate(): Promise<void> {
   ext.builtinServer?.stop();
+  await stopQlint();
   await ext.telemetry.dispose();
 
   if (ext.client) {
