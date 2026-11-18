@@ -167,9 +167,12 @@ export function bundledQ(
     return undefined;
   }
   const name = platform === "win32" ? "q.exe" : "q";
-  const target = `${platform}-${arch}`;
-  const binary = path.join(extensionPath, "bin", "peachq", target, name);
-  return exists(binary) ? binary : undefined;
+  // Node reports linux on musl too; a vsix carries one target's directory.
+  const targets = [`${platform}-${arch}`];
+  if (platform === "linux") targets.push(`alpine-${arch}`);
+  return targets
+    .map((target) => path.join(extensionPath, "bin", "peachq", target, name))
+    .find(exists);
 }
 
 export function classifyQBinary(

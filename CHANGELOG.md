@@ -19,11 +19,12 @@ history: https://github.com/KxSystems/kx-vscode/blob/main/CHANGELOG.md
 - Wording names q rather than kdb where it means any q process, TLS help links
   to the peachq IPC page, and the welcome page has a "Run q with peachq"
   section.
-- Packages for Linux (x64, arm64), macOS (Apple silicon) and Windows (x64)
-  bundle peachq, pinned and checksummed at build time, plus a universal package
-  without it. The connections panel lists **peachq (built-in)**, which starts
-  that peachq on `127.0.0.1` with a one-off password on connect and stops it on
-  disconnect. The REPL falls back to it only when no other q is found.
+- Packages for Linux (x64, arm64), Alpine Linux (x64, arm64), macOS (Apple
+  silicon) and Windows (x64) bundle peachq, pinned and checksummed at build
+  time, plus a universal package without it. The connections panel lists
+  **peachq (built-in)**, which starts that peachq on `127.0.0.1` with a one-off
+  password on connect and stops it on disconnect. The REPL falls back to it only
+  when no other q is found.
 - Bundles peachq 0.92.20261118.
 - Query results always reach the console, and tables, dictionaries and keyed
   tables also reach the Results view without taking focus

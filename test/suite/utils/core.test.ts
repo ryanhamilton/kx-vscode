@@ -1272,6 +1272,33 @@ describe("core", () => {
       );
     });
 
+    it("finds the alpine vsix's peachq on linux, preferring linux-<arch>", () => {
+      const extension = path.join(root, "extension");
+      const dir = (target: string) =>
+        path.join(extension, "bin", "peachq", target, "q");
+      const only = (target: string) => (file: string) => file === dir(target);
+      assert.strictEqual(
+        coreUtils.bundledQ(extension, "linux", "x64", only("alpine-x64")),
+        dir("alpine-x64"),
+      );
+      assert.strictEqual(
+        coreUtils.bundledQ(extension, "linux", "arm64", only("alpine-arm64")),
+        dir("alpine-arm64"),
+      );
+      assert.strictEqual(
+        coreUtils.bundledQ(extension, "linux", "x64", only("alpine-arm64")),
+        undefined,
+      );
+      assert.strictEqual(
+        coreUtils.bundledQ(extension, "darwin", "arm64", only("alpine-arm64")),
+        undefined,
+      );
+      assert.strictEqual(
+        coreUtils.bundledQ(extension, "linux", "x64", () => true),
+        dir("linux-x64"),
+      );
+    });
+
     it("is the q found when there is no other", () => {
       const bundled = touch("extension", "bin", "peachq", host, binary);
       const found = coreUtils.getEnvironment();

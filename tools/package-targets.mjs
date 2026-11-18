@@ -23,7 +23,12 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { inflateRawSync } from "node:zlib";
 
-import { ASSETS, binaryName, fetchTarget } from "./fetch-peachq.mjs";
+import {
+  ASSETS,
+  binaryName,
+  fetchTarget,
+  version as peachq,
+} from "./fetch-peachq.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
@@ -122,6 +127,13 @@ function check(file, target) {
     throw new Error(
       `${file}: missing [${missing.join(", ")}], unexpected [${stray.join(", ")}]`,
     );
+  }
+  const stamp = entries
+    .get(dir + "VERSION")
+    .read()
+    .toString();
+  if (!stamp.startsWith(`v${peachq()} ${ASSETS[target]} sha256:`)) {
+    throw new Error(`${file}: ${dir}VERSION is ${stamp.split("\n")[0]}`);
   }
   const { mode } = entries.get(dir + binaryName(target));
   if (!target.startsWith("win32-") && !(mode & 0o111)) {
