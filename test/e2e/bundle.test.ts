@@ -63,6 +63,27 @@ describe("The shipped wording and links", () => {
     });
   }
 
+  for (const word of ["developer.kx.com", "Install KDB-X", "<h2>KDB-X</h2>"]) {
+    it(`keep ${word} off the welcome page`, () => {
+      assert.ok(!webview.includes(word), `webview.js has ${word}`);
+    });
+  }
+
+  for (const word of [
+    "install_kdb",
+    "portal.dl.kx.com",
+    "nexus.dl.kx.com",
+    "downloads.kx.com",
+    "kdb-insights-personal-edition-license-download",
+    "peachq.install.kdbx",
+    "Install KDB-X",
+  ]) {
+    it(`carry no KDB-X installer: ${word}`, () => {
+      assert.ok(!extension.includes(word), `extension.js has ${word}`);
+      assert.ok(!webview.includes(word), `webview.js has ${word}`);
+    });
+  }
+
   it("point TLS help and the welcome page at peachq.org", () => {
     assert.ok(extension.includes("peachq.org/docs"));
     assert.ok(webview.includes("peachq.org/docs"));

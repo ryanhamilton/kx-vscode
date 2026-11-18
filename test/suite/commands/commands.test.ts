@@ -40,10 +40,12 @@ describe("Commands", () => {
         assert.ok(commands.get(cmd.command));
       }
     });
+    it("should not offer the KDB-X installer", () => {
+      assert.strictEqual(commands.has("peachq.install.kdbx"), false);
+    });
     it("should have certain always visible commands", () => {
       const visible = [
         "peachq.show.welcome",
-        "peachq.install.kdbx",
         "peachq.connections.export.all",
         "peachq.connections.import",
         "peachq.scratchpad.create",

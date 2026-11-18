@@ -39,61 +39,37 @@ describe("kdbWelcomeView", () => {
     assert.strictEqual(post.calledOnceWith(<any>false), true);
   });
 
-  it("should offer to install KDB-X off Windows", () => {
+  it("should offer to set QHOME when no q is found", () => {
     const post = sinon.stub(view.vscode, "postMessage");
     const template = view["render"]();
-    assert.ok(text(template).includes("Install &amp; Continue"));
-    handlers(template)[0]();
-    assert.strictEqual(post.calledOnceWith(<any>"install"), true);
-  });
-
-  it("should point Windows at WSL or a kdb+ install instead", () => {
-    const post = sinon.stub(view.vscode, "postMessage");
-    view.windows = "true";
-    const template = view["render"]();
-    assert.ok(!text(template).includes("Install &amp; Continue"));
-    assert.ok(text(template).includes("Windows Subsystem for Linux (WSL)"));
     assert.ok(text(template).includes("Set QHOME"));
     handlers(template)[0]();
     assert.strictEqual(post.calledOnceWith(<any>"qhome"), true);
   });
 
-  it("should link to the REPL and the KDB-X install when q is found", () => {
+  it("should link only to the REPL when q is found", () => {
     const post = sinon.stub(view.vscode, "postMessage");
     view.q = "/home/me/.kx/bin/q";
     const template = view["render"]();
-    assert.ok(!text(template).includes("Install &amp; Continue"));
     assert.ok(text(template).includes("/home/me/.kx/bin/q"));
     assert.ok(text(template).includes("Start REPL"));
-    assert.ok(text(template).includes("Install KDB-X"));
-    const preventDefault = sinon.stub();
-    handlers(template)[0]({ preventDefault });
-    handlers(template)[1]({ preventDefault });
-    sinon.assert.calledTwice(preventDefault);
-    assert.deepStrictEqual(post.args, [["repl"], ["install"]]);
-  });
-
-  it("should link only to the REPL on Windows when q is found", () => {
-    const post = sinon.stub(view.vscode, "postMessage");
-    view.windows = "true";
-    view.q = "C:\\q\\w64\\q.exe";
-    const template = view["render"]();
-    assert.ok(text(template).includes("Windows Subsystem for Linux (WSL)"));
-    assert.ok(text(template).includes("C:\\q\\w64\\q.exe"));
     assert.ok(!text(template).includes("Set QHOME"));
-    assert.ok(!text(template).includes("Install KDB-X"));
     assert.strictEqual(handlers(template).length, 2);
     handlers(template)[0]({ preventDefault() {} });
     assert.strictEqual(post.calledOnceWith(<any>"repl"), true);
   });
 
+  it("should carry no KDB-X section or KX link", () => {
+    for (const q of ["", "/home/me/.kx/bin/q"]) {
+      view.q = q;
+      const shown = text(view["render"]());
+      assert.ok(!shown.includes("KDB-X"), shown);
+      assert.ok(!/https?:\/\/[^"]*kx\.com/.test(shown), shown);
+    }
+  });
+
   it("should keep the button and link labels on one line", () => {
-    for (const [windows, q] of [
-      ["", ""],
-      ["true", ""],
-      ["", "/home/me/.kx/bin/q"],
-    ]) {
-      view.windows = windows;
+    for (const q of ["", "/home/me/.kx/bin/q"]) {
       view.q = q;
       const controls =
         text(view["render"]()).match(/<(?:button|a\s+href="#")[^>]*>/g) ?? [];
@@ -136,3 +112,4 @@ function handlers(template: any, found: any[] = []): any[] {
   }
   return found;
 }
+// Modified by peachq contributors; see NOTICE.

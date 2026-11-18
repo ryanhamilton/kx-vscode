@@ -203,6 +203,7 @@ export async function runDataSource(
         return res;
       }
 
+      const toGrid = success && typeof res !== "string" && gridEnabled();
       await writeQueryResultsToConsole(
         res.columns ? convertRows(updatedExtractRowData(res), res) : res,
         query,
@@ -210,8 +211,12 @@ export async function runDataSource(
         executorName,
         true,
         selectedType,
+        undefined,
+        undefined,
+        undefined,
+        toGrid,
       );
-      if (success && typeof res !== "string" && gridEnabled()) {
+      if (toGrid) {
         await showInGrid(res, true);
       }
       addDStoQueryHistory(dataSourceForm, success, connLabel, executorName);

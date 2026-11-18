@@ -17,8 +17,9 @@ timestamp: 2026-09-30
    extensions in VS Code. The Python extension installs
    [Python Environments](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-python-envs)
    with it, which is where the REPL finds your environment.
-2. Install [KDB-X](https://code.kx.com/kdb-x/get_started/kdb-x-install.html)
-   from welcome page.
+2. Install [KDB-X](https://code.kx.com/kdb-x/get_started/kdb-x-install.html),
+   and point the REPL at it with **Set QHOME** on the welcome page if it is not
+   found at `$HOME/.kx`.
 3. Open a
    [workspace](https://code.visualstudio.com/docs/editing/workspaces/workspaces)
    folder in VS Code.
@@ -78,9 +79,8 @@ inside WSL, and the steps above apply unchanged.
 
 Without WSL, KDB-X is not available and the REPL uses kdb+ instead:
 
-- In step 2, use **Set QHOME** on the welcome page to select your kdb+ folder
-  instead of installing KDB-X. If `QHOME` is already set to your kdb+ folder,
-  skip this.
+- In step 2, use **Set QHOME** on the welcome page to select your kdb+ folder.
+  If `QHOME` is already set to your kdb+ folder, skip this.
 - In step 5, install the q integration into your kdb+ folder, replacing `C:/q`
   with its path:
 

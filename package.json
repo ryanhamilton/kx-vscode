@@ -52,12 +52,6 @@
           "description": "kdb Insights Enterprise connections listed in the Connections view",
           "scope": "machine"
         },
-        "peachq.hideInstallationNotification": {
-          "type": "boolean",
-          "description": "Hide notification for installation path, after first install",
-          "scope": "machine",
-          "deprecationMessage": "This setting is deprecated, use peachq.neverShowQInstallAgain instead"
-        },
         "peachq.hideDetailedConsoleQueryOutput": {
           "type": "boolean",
           "description": "Hide detailed console query output",
@@ -98,7 +92,7 @@
         },
         "peachq.autoFocusOutputOnEntry": {
           "type": "boolean",
-          "description": "Reveal the output console when it prints a query result or a log entry",
+          "description": "After a run, bring its result forward without taking focus: the peachq Results view for a result in the grid, otherwise the console",
           "default": true,
           "scope": "machine"
         },
@@ -116,7 +110,7 @@
         },
         "peachq.neverShowQInstallAgain": {
           "type": "boolean",
-          "description": "Never show q install walkthrough again",
+          "description": "Never show the welcome page on startup",
           "default": false,
           "scope": "machine"
         },
@@ -215,11 +209,6 @@
         "category": "peachq",
         "command": "peachq.show.welcome",
         "title": "Welcome"
-      },
-      {
-        "category": "peachq",
-        "command": "peachq.install.kdbx",
-        "title": "Install KDB-X"
       },
       {
         "category": "peachq",
@@ -815,10 +804,6 @@
         },
         {
           "command": "peachq.show.welcome",
-          "when": "true"
-        },
-        {
-          "command": "peachq.install.kdbx",
           "when": "true"
         },
         {

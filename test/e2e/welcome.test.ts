@@ -96,17 +96,14 @@ describe("Welcome", () => {
     const VIEW = "kdb-welcome-view >>> ";
 
     // What showWelcome passes the element: the bundled image, whether the
-    // startup checkbox is ticked, and the theme the icons are drawn for.
+    // startup checkbox is ticked, and the q it found, if any.
     const IMAGE = "https://example.com/peachq-logo.png";
-
-    const DARK = "#CCCCCC";
-    const LIGHT = "#404651";
+    const Q = "/opt/q/bin/q";
 
     const show = (attributes: Record<string, string> = {}) =>
       webview("kdb-welcome-view", {
         image: IMAGE,
         checked: "true",
-        dark: "dark",
         ...attributes,
       }).then((mounted) => (view = mounted));
 
@@ -114,30 +111,19 @@ describe("Welcome", () => {
       view.dispose();
     });
 
-    it("lists the steps and shows the image it is given", async () => {
+    it("shows the heading and the image it is given", async () => {
       await show();
 
-      const shown = await view.eval((root: string) => {
-        const container = __find(`${root}.container`);
-        return {
+      const shown = await view.eval(
+        (root: string) => ({
           heading: __find(`${root}h1`).textContent.trim(),
-          // The step titles are the direct children of each step; the one
-          // inside a step's text, naming the REPL command, is not.
-          steps: [...container.querySelectorAll(".col > strong")].map(
-            (step: any) => step.textContent.trim(),
-          ),
           image: __find(`${root}img`).getAttribute("src"),
-        };
-      }, VIEW);
+        }),
+        VIEW,
+      );
 
       assert.deepStrictEqual(shown, {
         heading: "Welcome to peachq",
-        steps: [
-          "Log in or create an account",
-          "Retrieve your license key",
-          "Activate in VS Code",
-          "Start coding",
-        ],
         image: IMAGE,
       });
     });
@@ -159,45 +145,29 @@ describe("Welcome", () => {
       ]);
     });
 
-    // The panel rebuilds the page whenever the color theme changes, and the
-    // theme reaches the icons as this attribute alone.
-    const fills = () =>
-      view.eval(
-        (root: string) => [
-          ...new Set(
-            [
-              ...__find(`${root}.container`).querySelectorAll(
-                ".icon path[fill]",
-              ),
-            ].map((path: any) => path.getAttribute("fill")),
-          ),
-        ],
-        VIEW,
-      );
+    for (const q of ["", Q]) {
+      it(`has no KDB-X section or KX link ${q ? "with" : "without"} a q`, async () => {
+        await show({ q });
 
-    it("draws the step icons for a dark theme", async () => {
-      await show({ dark: "dark" });
+        const page = await view.eval((root: string) => {
+          const container = __find(`${root}.container`);
+          return {
+            text: container.textContent,
+            links: [...container.querySelectorAll("a[href]")].map((a: any) =>
+              a.getAttribute("href"),
+            ),
+          };
+        }, VIEW);
 
-      const drawn = await fills();
+        assert.ok(!page.text.includes("KDB-X"), page.text);
+        assert.deepStrictEqual(
+          page.links.filter((href: string) => /kx\.com/.test(href)),
+          [],
+        );
+      });
+    }
 
-      assert.deepStrictEqual(
-        { dark: drawn.includes(DARK), light: drawn.includes(LIGHT) },
-        { dark: true, light: false },
-      );
-    });
-
-    it("draws the step icons for a light theme", async () => {
-      await show({ dark: "" });
-
-      const drawn = await fills();
-
-      assert.deepStrictEqual(
-        { dark: drawn.includes(DARK), light: drawn.includes(LIGHT) },
-        { dark: false, light: true },
-      );
-    });
-
-    it("asks for the install when the install button is clicked", async () => {
+    it("asks for the q home directory when no q is found", async () => {
       await show();
 
       const posted = await view.eval((root: string) => {
@@ -205,7 +175,18 @@ describe("Welcome", () => {
         return __posted;
       }, VIEW);
 
-      assert.deepStrictEqual(posted, ["install"]);
+      assert.deepStrictEqual(posted, ["qhome"]);
+    });
+
+    it("starts the REPL on the q it found", async () => {
+      await show({ q: Q });
+
+      const posted = await view.eval((root: string) => {
+        __find(`${root}.container a[href="#"]`).click();
+        return __posted;
+      }, VIEW);
+
+      assert.deepStrictEqual(posted, ["repl"]);
     });
 
     const startup = () =>

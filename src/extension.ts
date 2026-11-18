@@ -49,7 +49,7 @@ import {
   rerunQuery,
   resetScratchpad,
 } from "./commands/serverCommand";
-import { installKdbX, showWelcome } from "./commands/setupCommand";
+import { showWelcome } from "./commands/setupCommand";
 import {
   ConnectionLensProvider,
   connectWorkspaceCommands,
@@ -469,7 +469,6 @@ function refreshImportedConnections() {
 function registerSetupCommands(): CommandRegistration[] {
   const setupCommands: CommandRegistration[] = [
     { command: "peachq.show.welcome", callback: () => showWelcome() },
-    { command: "peachq.install.kdbx", callback: () => installKdbX() },
   ];
 
   return setupCommands;

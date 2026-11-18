@@ -21,6 +21,7 @@ Open q extension (`timestored.peachq`), carved from the KX fork. Staged PRs into
 - REPL results in the grid (item 8): the REPL talks to q over stdin/stdout text only, so it has no typed value to give the grid without a second, IPC channel to the same q; deferred until that is worth adding.
 - Insights results before 1.12 (item 8): their table view is not structured text, so they still go to the grid alone, revealed, with a pointer in the console.
 - `test/q/tests/evaluatePy.quke` is unrun: its 115 checks (and 8 upstream-skipped) need PyKX.
+- When peachq publishes its qlint release: re-check every open kx-vscode item in NOTES-FOR-PEACHQ.md against the release build before the lint PR (owner 2026-11-18: UNDEFINED_REFERENCE will be off by default).
 
 ## Final review
 
