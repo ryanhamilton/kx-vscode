@@ -3,7 +3,7 @@
   "displayName": "peachq",
   "description": "q language support: run, chart and lint q against any kdb+ process, or with built-in peachq — no licence needed",
   "publisher": "peachq",
-  "version": "1.21.0-rc",
+  "version": "1.30.0",
   "icon": "resources/images/peachq-logo.png",
   "repository": {
     "type": "git",
@@ -38,18 +38,18 @@
       "properties": {
         "peachq.servers": {
           "type": "object",
-          "description": "kdb servers for explorer",
+          "description": "q server connections listed in the Connections view",
           "scope": "machine"
         },
         "peachq.insights": {
           "deprecationMessage": "This setting is deprecated, use peachq.insightsEnterpriseConnections instead",
           "type": "object",
-          "description": "kdb insights for explorer",
+          "description": "Insights connections listed in the Connections view",
           "scope": "machine"
         },
         "peachq.insightsEnterpriseConnections": {
           "type": "object",
-          "description": "kdb insights enterprise connections for explorer",
+          "description": "kdb Insights Enterprise connections listed in the Connections view",
           "scope": "machine"
         },
         "peachq.hideInstallationNotification": {
@@ -1439,7 +1439,7 @@
       }
     ]
   },
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/ryanhamilton/kx-vscode/issues"
   },

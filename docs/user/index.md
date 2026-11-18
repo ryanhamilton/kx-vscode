@@ -20,5 +20,5 @@ extension. See also the [developer notes](../developer/index.md).
   executable.
 - [Use PyKX Within REPL](use-pykx-within-repl.md) — installing and enabling PyKX
   for the REPL.
-- [Sample peachq Notebooks](sample-kx-notebooks.md) — downloadable example
-  `.kxnb` notebooks.
+- [Sample Notebooks](sample-kx-notebooks.md) — downloadable example `.kxnb`
+  notebooks.

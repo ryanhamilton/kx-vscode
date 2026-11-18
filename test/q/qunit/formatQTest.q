@@ -1,3 +1,5 @@
+/ Copyright (c) 2026 peachq contributors
+/ SPDX-License-Identifier: Apache-2.0
 / Ported from formatQ.quke: evaluateQ.q then formatQ.q, as the extension runs them on a connection.
 system "d .formatQTest";
 

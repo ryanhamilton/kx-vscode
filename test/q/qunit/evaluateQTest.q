@@ -1,3 +1,5 @@
+/ Copyright (c) 2026 peachq contributors
+/ SPDX-License-Identifier: Apache-2.0
 / Ported from evaluateQ.quke: evaluateQ.q as the extension sends it over a connection.
 system "d .evaluateQTest";
 

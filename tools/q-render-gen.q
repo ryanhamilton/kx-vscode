@@ -1,3 +1,5 @@
+/ Copyright (c) 2026 peachq contributors
+/ SPDX-License-Identifier: Apache-2.0
 / npm run gen:q-render: test/fixtures/q-render/corpus.txt -> expected.tsv, run by peachq -classic from the repo root.
 / Texts are of -9!-8!v, the value a client receives (enums arrive as symbols), so the oracle sees what the decoder sees.
 if[not 10h=type @[value;`.pq.version;0]; -2 "q-render-gen: this q is not peachq (no .pq.version), refusing to run"; exit 1];

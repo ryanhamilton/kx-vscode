@@ -17,7 +17,7 @@ covering developer and user notes.
 These pages follow the
 [Open Knowledge Format](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing/):
 plain markdown files with YAML frontmatter, `index.md` files for navigation, and
-relative cross-links. They were ported from the project's
+relative cross-links. They were ported from the upstream KX extension's
 [GitHub wiki](https://github.com/KxSystems/kx-vscode/wiki).
 
 > The q language is documented at <https://peachq.org/docs/>. The upstream KX
