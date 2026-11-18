@@ -24,9 +24,11 @@ import * as vscode from "vscode";
 import { showSetupError } from "../commands/setupCommand";
 import { ext } from "../extensionVariables";
 import {
+  bundledQ,
   getAutoFocusOutputOnEntrySetting,
   getEnvironment,
   getHideDetailedConsoleQueryOutputSetting,
+  peachqArgs,
 } from "../utils/core";
 import { MessageKind, notify } from "../utils/notifications";
 import { normalizeQuery } from "../utils/queryUtils";
@@ -348,7 +350,11 @@ export class ReplConnection {
     this.prefix = activate ? `(${name}) ` : ANSI.EMPTY;
     // Quiet mode drops the banner and session prompts (qdocs basics/cmdline.md
     // -q); the REPL draws its own prompt.
-    const q = `${quote(this.env.qBinPath, shell, this.env)} -q`;
+    const args =
+      this.env.qBinPath === bundledQ()
+        ? peachqArgs().map((arg) => ` ${quote(arg, shell, this.env)}`)
+        : [];
+    const q = `${quote(this.env.qBinPath, shell, this.env)} -q${args.join("")}`;
 
     let command = q;
     if (activate) {

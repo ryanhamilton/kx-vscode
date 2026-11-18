@@ -25,7 +25,7 @@ import { createConnection, createServer } from "node:net";
 import { join } from "node:path";
 
 import { ServerDetails } from "../models/connectionsModels";
-import { BUILTIN_ALIAS } from "../utils/core";
+import { BUILTIN_ALIAS, peachqArgs } from "../utils/core";
 import { MessageKind, notify } from "../utils/notifications";
 
 const logger = "builtinServer";
@@ -98,7 +98,7 @@ export class BuiltinServer {
     let ended = "";
     const child = spawn(
       this.binary,
-      ["-p", `${BUILTIN_HOST}:${port}`, "-U", usersFile, "-q"],
+      ["-p", `${BUILTIN_HOST}:${port}`, "-U", usersFile, "-q", ...peachqArgs()],
       { cwd: this.storage, stdio: ["ignore", "pipe", "pipe"] },
     );
     this.process = child;

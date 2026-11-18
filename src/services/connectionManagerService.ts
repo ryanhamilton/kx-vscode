@@ -199,6 +199,7 @@ export class ConnectionManagementService {
           retrieveConnLabelsNames(connection),
           authCredentials ? authCredentials.split(":") : undefined,
           connection.details.tls,
+          connection.details.queryMode,
         );
         const conn = await localConnection.connect();
         if (conn) {

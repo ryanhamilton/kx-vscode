@@ -24,6 +24,7 @@ import {
   UDARequestBody,
 } from "../../../src/models/uda";
 import { sourceForParam } from "../../../src/models/uda";
+import * as coreUtils from "../../../src/utils/core";
 import * as UDAUtils from "../../../src/utils/uda";
 
 /**
@@ -1251,7 +1252,7 @@ describe("UDA", () => {
           ["Long", -7],
         ]),
       );
-      sinon.stub(ext, "isResultsTabVisible").value(false);
+      sinon.stub(coreUtils, "gridEnabled").returns(false);
     });
 
     const uda = (params: UDAParam[] = []): UDA => ({
@@ -1460,8 +1461,8 @@ describe("UDA", () => {
       assert.deepStrictEqual(result.params, { multiplier: "3", fill: "" });
     });
 
-    it("asks for structured text while the results tab is up", async () => {
-      sinon.stub(ext, "isResultsTabVisible").value(true);
+    it("asks for structured text while the grid is on", async () => {
+      (coreUtils.gridEnabled as sinon.SinonStub).returns(true);
 
       const result = await UDAUtils.retrieveUDAtoCreateReqBody(
         uda(),

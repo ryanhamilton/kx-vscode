@@ -45,6 +45,7 @@ import {
 } from "../services/kdbInsights/codeFlowLogin";
 import { InsightsNode } from "../services/kdbTreeProvider";
 import {
+  gridEnabled,
   isBaseVersionGreaterOrEqual,
   invalidUsernameJWT,
   tokenUndefinedError,
@@ -52,10 +53,7 @@ import {
 import { MessageKind, notify } from "../utils/notifications";
 import { getHeaders, isEncodedPng } from "../utils/queryUtils";
 import { normalizeAssemblyTarget } from "../utils/shared";
-import {
-  retrieveUDAtoCreateReqBody,
-  toScratchpadParams,
-} from "../utils/uda";
+import { retrieveUDAtoCreateReqBody, toScratchpadParams } from "../utils/uda";
 
 const logger = "insightsConnection";
 
@@ -898,7 +896,7 @@ export class InsightsConnection {
   ): Promise<any | undefined> {
     if (this.connected && this.connEndpoints) {
       if (isTableView === undefined) {
-        isTableView = ext.isResultsTabVisible;
+        isTableView = gridEnabled();
       }
       const scratchpadURL = new url.URL(
         this.connEndpoints.scratchpad.scratchpad,

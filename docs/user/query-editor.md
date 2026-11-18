@@ -189,9 +189,10 @@ request says otherwise, so a query written as `09:30` asks for 09:30 UTC. Add
 ## Running
 
 **Run** executes the query on the selected connection and writes the result to
-the current results destination; **Populate Scratchpad** loads the result into a
-scratchpad variable instead. Both honour the timeout shown in the status bar,
-and both offer to connect when the selected connection is not connected.
+the connection's console, and to the results grid unless `peachq.results.grid`
+is `never`; **Populate Scratchpad** loads the result into a scratchpad variable
+instead. Both honour the timeout shown in the status bar, and both offer to
+connect when the selected connection is not connected.
 
 Editing a field writes the file as you type; **Save** commits it to disk.
 

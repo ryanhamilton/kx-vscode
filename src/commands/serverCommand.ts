@@ -32,6 +32,7 @@ import {
   runDataSource,
 } from "./dataSourceCommand";
 import { InsightsConnection } from "../classes/insightsConnection";
+import { LocalConnection } from "../classes/localConnection";
 import {
   ExportedConnections,
   InsightDetails,
@@ -44,9 +45,14 @@ import { DataSourceFiles, DataSourceTypes } from "../models/dataSource";
 import { ExecutionTypes } from "../models/execution";
 import { RowLimit } from "../models/notebook";
 import { QueryHistory } from "../models/queryHistory";
-import { queryConstants, throwIfErrorResult } from "../models/queryResult";
+import {
+  queryConstants,
+  throwIfErrorResult,
+  withErrorPrefix,
+} from "../models/queryResult";
 import { ScratchpadResult } from "../models/scratchpadResult";
 import { NewConnectionPannel } from "../panels/newConnection";
+import { isTypedReply, toGrid } from "../q/reply";
 import { ConnectionManagementService } from "../services/connectionManagerService";
 import {
   InsightsMetaNode,
@@ -60,6 +66,7 @@ import { handleLabelsConnMap, removeConnFromLabels } from "../utils/connLabel";
 import {
   checkOpenSslInstalled,
   getInsights,
+  gridEnabled,
   getKeyForServerName,
   getServers,
   isQuickAlias,
@@ -74,12 +81,17 @@ import { writePlotToFile } from "../utils/plotUtils";
 import {
   checkIfIsDatasource,
   addQueryHistory,
+  convertRows,
+  isListResult,
+  isStructuredResult,
+  scriptHint,
   BLOCK_COMMENT_PATTERN,
   formatScratchpadError,
   resultToBase64,
   needsScratchpad,
   getSQLWrapper,
 } from "../utils/queryUtils";
+import { updatedExtractRowData } from "../utils/resultsRenderer";
 import { openUrl } from "../utils/uriUtils";
 import {
   validateInsightsServerUrl,
@@ -461,6 +473,7 @@ export async function addKdbConnection(
           serverPort: kdbData.serverPort,
           serverAlias: kdbData.serverAlias,
           tls: kdbData.tls,
+          ...storedQueryMode(kdbData),
         },
       };
     } else {
@@ -470,6 +483,7 @@ export async function addKdbConnection(
         serverPort: kdbData.serverPort,
         serverAlias: kdbData.serverAlias,
         tls: kdbData.tls,
+        ...storedQueryMode(kdbData),
       };
     }
 
@@ -497,6 +511,12 @@ export async function addKdbConnection(
 
     NewConnectionPannel.close();
   }
+}
+
+function storedQueryMode(kdbData: ServerDetails) {
+  return kdbData.queryMode && kdbData.queryMode !== "auto"
+    ? { queryMode: kdbData.queryMode }
+    : {};
 }
 
 export async function editKdbConnection(
@@ -575,6 +595,7 @@ export async function editKdbConnection(
             serverPort: kdbData.serverPort,
             serverAlias: kdbData.serverAlias,
             tls: kdbData.tls,
+            ...storedQueryMode(kdbData),
           };
 
           await updateServers(updatedServers);
@@ -590,6 +611,7 @@ export async function editKdbConnection(
             serverPort: kdbData.serverPort,
             serverAlias: kdbData.serverAlias,
             tls: kdbData.tls,
+            ...storedQueryMode(kdbData),
           };
 
           await updateServers(servers);
@@ -933,18 +955,21 @@ export async function executeQuery(
     return undefined;
   }
   const isNotebook = executorName.endsWith(".kxnb");
-  const isStringfy = isNotebook ? false : !ext.isResultsTabVisible;
+  const isStringfy = isNotebook ? false : !gridEnabled();
   const startTime = Date.now();
-  const results = await connMngService.executeQuery(
-    query,
-    connLabel,
-    context,
-    isStringfy,
-    isPython,
-    timeout,
-    requestID,
-    rowLimit,
-  );
+  const results =
+    selectedConn instanceof LocalConnection && !isPython && !isNotebook
+      ? await selectedConn.runQuery(query, context, isStringfy)
+      : await connMngService.executeQuery(
+          query,
+          connLabel,
+          context,
+          isStringfy,
+          isPython,
+          timeout,
+          requestID,
+          rowLimit,
+        );
   const endTime = Date.now();
   const duration = (endTime - startTime).toString();
 
@@ -972,50 +997,104 @@ export async function executeQuery(
     throwIfErrorResult(results);
     return results;
   } else {
-    /* c8 ignore start */
-    if (ext.isResultsTabVisible) {
-      const data = resultToBase64(results);
-      if (data) {
-        await writeQueryResultsToPlot(
-          data,
-          query,
-          connLabel,
-          executorName,
-          isInsights,
-          isWorkbook ? "WORKBOOK" : "SCRATCHPAD",
-          isPython,
-          duration,
-          isFromConnTree,
-        );
-      } else {
-        await writeQueryResultsToView(
-          results,
-          query,
-          connLabel,
-          executorName,
-          isInsights,
-          isWorkbook ? "WORKBOOK" : "SCRATCHPAD",
-          isPython,
-          duration,
-          isFromConnTree,
-          connVersion,
-        );
-      }
-    } else {
-      await writeQueryResultsToConsole(
-        results,
-        query,
-        connLabel,
-        executorName,
-        isInsights,
-        isWorkbook ? "WORKBOOK" : "SCRATCHPAD",
-        isPython,
-        duration,
-        isFromConnTree,
-      );
-    }
-    /* c8 ignore stop */
+    await writeLocalResults(
+      results,
+      query,
+      connLabel,
+      executorName,
+      isWorkbook ? "WORKBOOK" : "SCRATCHPAD",
+      isPython,
+      duration,
+      isFromConnTree,
+    );
   }
+}
+
+export const TOO_LARGE_FOR_GRID =
+  "result too large for the grid, shown as text";
+
+function gridOf(results: unknown) {
+  if (isTypedReply(results)) {
+    return results.tooLarge ? TOO_LARGE_FOR_GRID : toGrid(results.value);
+  }
+  return isStructuredResult(results) && !isListResult(results)
+    ? results
+    : undefined;
+}
+
+// Every result reaches the console; tables and dictionaries also reach the
+// grid, which is updated without being revealed.
+export async function writeLocalResults(
+  results: any,
+  query: string,
+  connLabel: string,
+  executorName: string,
+  type: string,
+  isPython: boolean,
+  duration: string,
+  isFromConnTree?: boolean,
+): Promise<void> {
+  const typed = isTypedReply(results);
+  const value = typed ? results.value : undefined;
+  const plot = resultToBase64(
+    typed
+      ? value?.kind === "vector" && value.type === 4 && value.items
+      : results,
+  );
+  if (plot) {
+    await writeQueryResultsToPlot(
+      plot,
+      query,
+      connLabel,
+      executorName,
+      false,
+      type,
+      isPython,
+      duration,
+      isFromConnTree,
+    );
+    return;
+  }
+  const text = typed
+    ? results.error === undefined
+      ? results.console
+      : withErrorPrefix(
+          [results.error, scriptHint(query)].filter(Boolean).join("\n"),
+        )
+    : isStructuredResult(results)
+      ? convertRows(updatedExtractRowData(results), results)
+      : results;
+  await writeQueryResultsToConsole(
+    text,
+    query,
+    connLabel,
+    executorName,
+    false,
+    type,
+    isPython,
+    duration,
+    isFromConnTree,
+  );
+  const grid = gridEnabled() ? gridOf(results) : undefined;
+  if (grid) {
+    await showInGrid(grid, false, undefined, isPython);
+  }
+}
+
+export function showInGrid(
+  results: unknown,
+  isInsights: boolean,
+  connVersion?: string,
+  isPython?: boolean,
+) {
+  return commands.executeCommand(
+    "peachq.resultsPanel.update",
+    results,
+    isInsights,
+    connVersion,
+    isPython,
+    true,
+  );
 }
 
 // matches '\d .foo' or 'system "d .foo"'
@@ -1440,9 +1519,23 @@ export async function writeScratchpadResult(
     return;
   }
 
-  if (ext.isResultsTabVisible) {
+  if (!errorMsg && isStructuredResult(result)) {
+    await writeQueryResultsToConsole(
+      convertRows(updatedExtractRowData(result), result),
+      query,
+      connLabel,
+      executorName,
+      true,
+      isWorkbook ? "WORKBOOK" : "SCRATCHPAD",
+      isPython,
+      duration,
+    );
+    if (gridEnabled() && !isListResult(result)) {
+      await showInGrid(result, true, connVersion, isPython);
+    }
+  } else if (!errorMsg && gridEnabled()) {
     await writeQueryResultsToView(
-      errorMsg ?? result,
+      result,
       query,
       connLabel,
       executorName,

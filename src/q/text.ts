@@ -68,7 +68,7 @@ function count(v: QValue): number {
 
 const pad = (s: string, w: number) => s.padEnd(w);
 const rtrim = (s: string) => s.replace(/ +$/, "");
-const utf8 = (s: string) =>
+export const utf8 = (s: string) =>
   new TextDecoder().decode(Uint8Array.from(s, (c) => c.charCodeAt(0)));
 
 class QText {

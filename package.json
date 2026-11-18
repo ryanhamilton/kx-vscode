@@ -71,6 +71,31 @@
           "default": true,
           "scope": "machine"
         },
+        "peachq.results.grid": {
+          "type": "string",
+          "enum": [
+            "always",
+            "never"
+          ],
+          "enumDescriptions": [
+            "Tables, dictionaries and keyed tables also go to the peachq Results view, without taking focus",
+            "Results go to the console only"
+          ],
+          "description": "Whether query results also go to the results grid. The console always gets the text.",
+          "default": "always",
+          "scope": "machine"
+        },
+        "peachq.peachqArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Arguments added to every peachq the extension starts (the built-in connection, and the REPL when it runs the bundled peachq). Never used for your own q.",
+          "default": [
+            "-classic"
+          ],
+          "scope": "machine"
+        },
         "peachq.autoFocusOutputOnEntry": {
           "type": "boolean",
           "description": "Automatically focus the output console when running a query without an active results tab or receive log entry",
@@ -782,18 +807,6 @@
         "contents": "No connections registered.\n[Add Connection](command:peachq.connections.add)"
       }
     ],
-    "submenus": [
-      {
-        "id": "peachq.results.destination.terminalMenu",
-        "label": "Output Destination",
-        "icon": "$(terminal)"
-      },
-      {
-        "id": "peachq.results.destination.viewMenu",
-        "label": "Output Destination",
-        "icon": "$(table)"
-      }
-    ],
     "menus": {
       "commandPalette": [
         {
@@ -1249,38 +1262,6 @@
           "group": "inline"
         }
       ],
-      "editor/title": [
-        {
-          "submenu": "peachq.results.destination.terminalMenu",
-          "group": "navigation@-0.5",
-          "when": "resourceFilename =~ /\\.(?:q|quke|sql|py|kxquery)$/i && !peachq.showResultsInView"
-        },
-        {
-          "submenu": "peachq.results.destination.viewMenu",
-          "group": "navigation@-0.5",
-          "when": "resourceFilename =~ /\\.(?:q|quke|sql|py|kxquery)$/i && peachq.showResultsInView"
-        }
-      ],
-      "peachq.results.destination.terminalMenu": [
-        {
-          "command": "peachq.results.destination.terminal",
-          "group": "navigation@0"
-        },
-        {
-          "command": "peachq.results.destination.view",
-          "group": "navigation@1"
-        }
-      ],
-      "peachq.results.destination.viewMenu": [
-        {
-          "command": "peachq.results.destination.terminal",
-          "group": "navigation@0"
-        },
-        {
-          "command": "peachq.results.destination.view",
-          "group": "navigation@1"
-        }
-      ],
       "editor/title/run": [
         {
           "command": "peachq.scratchpad.python.run.file",
@@ -1497,7 +1478,7 @@
     "pretest:e2e": "npm run build && npm run pretest",
     "test:e2e": "node ./out-test/test/runE2E.js",
     "test:e2e:kx": "cross-env E2E_FAKE_KX=1 TEST_FILE=kx npm run test:e2e",
-    "test:e2e:peachq": "cross-env E2E_PEACHQ=1 TEST_FILE=replPeachq npm run test:e2e",
+    "test:e2e:peachq": "cross-env E2E_PEACHQ=1 TEST_FILE='*Peachq' npm run test:e2e",
     "test:e2e:bare": "node tools/fetch-peachq.mjs && cross-env E2E_BARE=1 TEST_FILE=builtin npm run test:e2e",
     "coverage": "rimraf out && c8 -o coverage-reports -r lcov -r cobertura -r html npm run test",
     "q-test": "bash tools/q-test.sh",

@@ -148,17 +148,22 @@ async function main() {
     else await connectToQServer(port);
 
     fs.writeFileSync(p("workspace", "smoke.q"), "([]a:1 2 3; b:`x`y`z)\n");
+    const resultsView = "peachq Results: Focus on peachq Results View";
+    cli("palette", resultsView, "--settle", "1500");
     cli("file.open", "smoke.q", "--settle", "1000");
-    cli("click", ".editor-actions [aria-label*='Output Destination']");
-    cli("click", ".monaco-menu .action-label >> text='peachq Results View'");
     cli("click", ".tab[aria-label='smoke.q']", "--no-snap");
     cli("palette", "peachq: Execute Entire File", "--settle", "3000");
-    cli("wait", "webview", "`z", "--timeout", "20000");
-    const grid = cli("wv.text").trim();
-    for (const t of ["a", "b", "1", "2", "3", "`x", "`y", "`z"])
-      check(grid.split(" | ").includes(t), `results webview shows ${t}`);
-
     cli("click", "[aria-label^='Maximize Panel']", "--no-snap");
+    cli("wait", "term", "3 z", "--timeout", "20000");
+    const shown = cli("term.read", "12");
+    check(/a b\n---\n1 x\n2 y\n3 z/.test(shown), "console shows q's table");
+    cli("palette", resultsView, "--settle", "1500");
+    cli("wait", "webview", "z", "--timeout", "20000");
+    const grid = cli("wv.text").trim().split(" | ");
+    for (const t of ["a", "b", "1", "2", "3", "x", "y", "z"])
+      check(grid.includes(t), `results grid shows ${t}`);
+    check(!grid.includes("`x"), "grid cells are typed, not q text");
+
     const shot = cli("shot", "smoke").trim();
     const s = pngStats(shot);
     check(s.width === 1600 && s.height === 1000, `screenshot is 1600x1000`);

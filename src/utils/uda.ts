@@ -13,6 +13,7 @@
 
 import { InsightsConnection } from "../classes/insightsConnection";
 import { ext } from "../extensionVariables";
+import { gridEnabled } from "./core";
 import { MetaApi, MetaObjectPayload } from "../models/meta";
 import { PREVIEW, parseValue } from "../models/query";
 import { typeProblem } from "../models/typeFormat";
@@ -473,7 +474,7 @@ export async function retrieveUDAtoCreateReqBody(
     return { error: "UDA is undefined" };
   }
 
-  const returnFormat = ext.isResultsTabVisible ? "structuredText" : "text";
+  const returnFormat = gridEnabled() ? "structuredText" : "text";
 
   const validationError = await validateUDA(uda, insightsConn);
   if (validationError) {

@@ -232,7 +232,7 @@ describe("workspaceCommand", () => {
       const spy = sinon.spy(ext.runScratchpadItem, "show");
       await workspaceCommand.updateStatusBarItems();
       sinon.assert.called(spy);
-      assert.strictEqual(ext.runScratchpadItem.text, "$(cloud) (active)");
+      assert.strictEqual(ext.runScratchpadItem.text, "$(cloud) (active: REPL)");
     });
 
     it("should show the connection of the active query", async () => {
@@ -655,6 +655,15 @@ describe("workspaceCommand", () => {
         const provider = new workspaceCommand.ConnectionLensProvider();
         const result = await provider.provideCodeLenses(document);
         assert.ok(result.length >= 1);
+      });
+
+      it("names the REPL when an unassigned file would run on it", async () => {
+        const document: vscode.TextDocument = <any>{
+          uri: vscode.Uri.file("/unassigned.q"),
+        };
+        const provider = new workspaceCommand.ConnectionLensProvider();
+        const [lens] = await provider.provideCodeLenses(document);
+        assert.strictEqual(lens.command?.title, "Run on (active: REPL)");
       });
 
       it("should return 2 lenses", async () => {

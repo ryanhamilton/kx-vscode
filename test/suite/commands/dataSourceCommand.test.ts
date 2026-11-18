@@ -28,6 +28,7 @@ import {
 import { ConnectionManagementService } from "../../../src/services/connectionManagerService";
 import { InsightsNode } from "../../../src/services/kdbTreeProvider";
 import { KdbResultsViewProvider } from "../../../src/services/resultsPanelProvider";
+import * as coreUtils from "../../../src/utils/core";
 import * as dataSourceUtils from "../../../src/utils/dataSource";
 import * as loggers from "../../../src/utils/loggers";
 import {
@@ -487,6 +488,7 @@ describe("dataSourceCommand", () => {
     let getDataInsightsStub: sinon.SinonStub;
     let writeQueryResultsToViewStub: sinon.SinonStub;
     let writeQueryResultsToConsoleStub: sinon.SinonStub;
+    let gridStub: sinon.SinonStub;
     let windowMock: sinon.SinonMock;
 
     ext.outputChannel = vscode.window.createOutputChannel("peachq", {
@@ -510,11 +512,11 @@ describe("dataSourceCommand", () => {
         serverCommand,
         "writeQueryResultsToConsole",
       );
+      gridStub = sinon.stub(coreUtils, "gridEnabled").returns(false);
     });
 
     afterEach(() => {
       sinon.restore();
-      ext.isResultsTabVisible = false;
     });
 
     it("should not proceed there is no connection selected", async () => {
@@ -560,7 +562,7 @@ describe("dataSourceCommand", () => {
         .withArgs("No Insights active connection found");
     });
 
-    it("should append the stack trace to the results panel message", async () => {
+    it("should append the stack trace to the console message", async () => {
       ext.connectedConnectionList.push(insightsConn);
       retrieveConnStub.resolves(insightsConn);
       insightsConn.meta = getMetaResponse;
@@ -571,7 +573,7 @@ describe("dataSourceCommand", () => {
         stacktrace: "  [0] {1+x}\n        ^\n",
       });
 
-      ext.isResultsTabVisible = true;
+      gridStub.returns(true);
       await dataSourceCommand.runDataSource(
         mockDataSourceFile,
         insightsConn.connLabel,
@@ -579,9 +581,10 @@ describe("dataSourceCommand", () => {
       );
 
       sinon.assert.calledWith(
-        writeQueryResultsToViewStub,
+        writeQueryResultsToConsoleStub,
         "Error: Executing code using (Q) raised - type: Mismatched types\n  [0] {1+x}\n        ^\n",
       );
+      sinon.assert.notCalled(writeQueryResultsToViewStub);
 
       ext.connectedConnectionList.length = 0;
     });
@@ -598,7 +601,7 @@ describe("dataSourceCommand", () => {
           release = resolve;
         }),
       );
-      ext.isResultsTabVisible = true;
+      gridStub.returns(true);
 
       const first = dataSourceCommand.runDataSource(
         mockDataSourceFile,
@@ -637,7 +640,7 @@ describe("dataSourceCommand", () => {
         .resolves(<any>undefined);
       ext.kdbQueryHistoryList.length = 0;
 
-      ext.isResultsTabVisible = true;
+      gridStub.returns(true);
       await dataSourceCommand.runDataSource(
         mockDataSourceFile,
         insightsConn.connLabel,
@@ -686,7 +689,6 @@ describe("dataSourceCommand", () => {
         stacktrace: "  [0] {1+x}\n        ^\n",
       });
 
-      ext.isResultsTabVisible = false;
       await dataSourceCommand.runDataSource(
         mockDataSourceFile,
         insightsConn.connLabel,
@@ -750,21 +752,21 @@ describe("dataSourceCommand", () => {
       ext.connectedConnectionList.length = 0;
     });
 
-    it("should return error for visible results panel", async () => {
+    it("should put an error in the console, not the grid, when the grid is on", async () => {
       ext.connectedConnectionList.push(insightsConn);
       retrieveConnStub.resolves(insightsConn);
       insightsConn.meta = getMetaResponse;
       getMetaStub.resolves(getMetaResponse);
       sinon.stub(dataSourceCommand, "runUDADataSource").resolves(dummyError);
 
-      ext.isResultsTabVisible = true;
+      gridStub.returns(true);
       await dataSourceCommand.runDataSource(
         mockDataSourceFile,
         insightsConn.connLabel,
         "test-file.kdb.json",
       );
-      sinon.assert.neverCalledWith(writeQueryResultsToConsoleStub);
-      sinon.assert.calledOnce(writeQueryResultsToViewStub);
+      sinon.assert.calledOnce(writeQueryResultsToConsoleStub);
+      sinon.assert.notCalled(writeQueryResultsToViewStub);
 
       ext.connectedConnectionList.length = 0;
     });
@@ -776,7 +778,6 @@ describe("dataSourceCommand", () => {
       getMetaStub.resolves(getMetaResponse);
       sinon.stub(dataSourceCommand, "runUDADataSource").resolves(dummyError);
 
-      ext.isResultsTabVisible = false;
       await dataSourceCommand.runDataSource(
         mockDataSourceFile,
         insightsConn.connLabel,
@@ -788,6 +789,29 @@ describe("dataSourceCommand", () => {
       ext.connectedConnectionList.length = 0;
     });
 
+    it("should put API results in the console and, quietly, the grid", async () => {
+      ext.connectedConnectionList.push(insightsConn);
+      retrieveConnStub.resolves(insightsConn);
+      insightsConn.meta = getMetaResponse;
+      mockDataSourceFile.dataSource.selectedType = DataSourceTypes.API;
+      getMetaStub.resolves(getMetaResponse);
+      getDataInsightsStub.resolves({ results: getDataResponse, error: "" });
+      const showInGrid = sinon.stub(serverCommand, "showInGrid").resolves();
+      gridStub.returns(true);
+
+      await dataSourceCommand.runDataSource(
+        mockDataSourceFile,
+        insightsConn.connLabel,
+        "test-file.kdb.json",
+      );
+
+      sinon.assert.calledOnce(writeQueryResultsToConsoleStub);
+      sinon.assert.calledOnce(showInGrid);
+      sinon.assert.notCalled(writeQueryResultsToViewStub);
+
+      ext.connectedConnectionList.length = 0;
+    });
+
     it("should return API results", async () => {
       ext.connectedConnectionList.push(insightsConn);
       retrieveConnStub.resolves(insightsConn);
@@ -795,7 +819,6 @@ describe("dataSourceCommand", () => {
       mockDataSourceFile.dataSource.selectedType = DataSourceTypes.API;
       getMetaStub.resolves(getMetaResponse);
       getDataInsightsStub.resolves({ results: getDataResponse, error: "" });
-      ext.isResultsTabVisible = false;
       await dataSourceCommand.runDataSource(
         mockDataSourceFile,
         insightsConn.connLabel,
@@ -814,7 +837,6 @@ describe("dataSourceCommand", () => {
       mockDataSourceFile.dataSource.selectedType = DataSourceTypes.UDA;
       getMetaStub.resolves(getMetaResponse);
       getDataInsightsStub.resolves({ results: getDataResponse, error: "" });
-      ext.isResultsTabVisible = false;
       await dataSourceCommand.runDataSource(
         mockDataSourceFile,
         insightsConn.connLabel,

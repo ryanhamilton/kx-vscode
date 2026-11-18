@@ -20,6 +20,8 @@ import { kdbStyles, newConnectionStyles } from "./styles";
 import {
   ConnectionType,
   InsightDetails,
+  QUERY_MODES,
+  QueryMode,
   ServerDetails,
   ServerType,
 } from "../../models/connectionsModels";
@@ -350,6 +352,26 @@ export class KdbNewConnectionView extends LitElement {
     </div>`;
   }
 
+  renderQueryModeField() {
+    return html`<div class="row">
+        <kdb-select
+          class="dropdown query-mode"
+          label="Query mode"
+          value="${this.kdbServer.queryMode ?? "auto"}"
+          .options="${[...QUERY_MODES]}"
+          @change="${(event: Event) =>
+            this.setKdbServer(
+              "queryMode",
+              (event.target as KdbSelect).value as QueryMode,
+            )}"></kdb-select>
+      </div>
+      <div class="row option-description option-help">
+        How a run is sent: auto uses the .vscode API when the process has it,
+        else the qStudio wrapper; naked sends exactly your text; qstudio-wrap
+        always wraps; vscode-wrap uses the .vscode API or the evaluate lambda.
+      </div>`;
+  }
+
   renderLblDropdownColorOptions() {
     return this.lblColorsList.map((color) => color.name);
   }
@@ -507,6 +529,7 @@ export class KdbNewConnectionView extends LitElement {
               ${this.renderTLSField()}
             `,
           )}
+          ${this.renderSection(ADVANCED_SECTION, this.renderQueryModeField())}
         </div>
       </div>
       ${this.renderConnectionLabelsSection()}
@@ -694,6 +717,10 @@ export class KdbNewConnectionView extends LitElement {
       if (this.kdbServer.tls) {
         this.openSections.add(AUTH_SECTION);
       }
+      this.kdbServer.queryMode = this.connectionData.queryMode;
+      if (this.kdbServer.queryMode) {
+        this.openSections.add(ADVANCED_SECTION);
+      }
     }
 
     return html`
@@ -761,6 +788,7 @@ export class KdbNewConnectionView extends LitElement {
                 ${this.renderTLSField()}
               `,
             )}
+            ${this.renderSection(ADVANCED_SECTION, this.renderQueryModeField())}
           </div>
         </div>
       </div>

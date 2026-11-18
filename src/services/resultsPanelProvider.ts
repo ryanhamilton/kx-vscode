@@ -63,7 +63,15 @@ export class KdbResultsViewProvider implements WebviewViewProvider {
 
     webviewView.webview.html = this.getWebviewContent(webviewView.webview);
 
-    this.updateWebView("");
+    const { queryResults, isInsights, connVersion, isPython } =
+      this.savedParamStates;
+    this.updateResults(
+      queryResults ?? "",
+      isInsights,
+      connVersion,
+      isPython,
+      true,
+    );
 
     webviewView.webview.onDidReceiveMessage((data) => {
       this.updateWebView(data);
@@ -75,10 +83,13 @@ export class KdbResultsViewProvider implements WebviewViewProvider {
     isInsights?: boolean,
     connVersion?: string,
     isPython?: boolean,
+    quiet?: boolean,
   ) {
     this.savedParamStates = { queryResults, isInsights, connVersion, isPython };
     if (this._view) {
-      this._view.show?.(true);
+      if (!quiet) {
+        this._view.show?.(true);
+      }
       this.isInsights = !!isInsights;
       this.isPython = !!isPython;
       this.updateWebView(queryResults, connVersion);

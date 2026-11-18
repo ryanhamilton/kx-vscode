@@ -409,6 +409,12 @@ describe("REPL", () => {
       sinon.assert.calledWith(spawnStub, started("/q/bin/q -q"));
     });
 
+    it("should start the bundled peachq with the peachq args", async () => {
+      sinon.stub(coreUtils, "bundledQ").returns("/q/bin/q");
+      await ReplConnectionClass.openInFolder(folder);
+      sinon.assert.calledWith(spawnStub, started("/q/bin/q -q -classic"));
+    });
+
     it("should pass a q path the shell would change through the environment", async () => {
       environmentStub.callsFake(() => ({
         qBinPath: "/Users/Jo $HOME/q/bin/q",

@@ -5,7 +5,7 @@ description:
   Command palette entries, keybindings, settings, execution matrix and telemetry
   events for the peachq VS Code extension.
 tags: [kdb, vscode, reference, keybindings, settings, telemetry]
-timestamp: 2026-10-20
+timestamp: 2026-11-18
 ---
 
 ## Command Palette
@@ -36,12 +36,31 @@ timestamp: 2026-10-20
 | peachq: Toggle Parameter Cache    | `q`                   | `ctrl`+`shift`+`y`       | `⌘`+`⇧`+`y`      |
 
 **Choose Connection** offers `(active)`, which runs on the connection or REPL
-last used, and each open REPL by name, such as `REPL (folderA)`, which always
-runs on that REPL, starting it in its folder if it is not running. A file
+last used (the status bar and the file's **Run on** lens name which, such as
+`(active: REPL)`), and each open REPL by name, such as `REPL (folderA)`, which
+always runs on that REPL, starting it in its folder if it is not running. A file
 already assigned `REPL` keeps running on the REPL last started or focused. The
 status bar names the REPL a file runs on. In a package that bundles peachq it
 also offers `peachq (built-in)`, which starts that peachq on `127.0.0.1` when
 connected.
+
+### Query results
+
+A run (line, selection, block or whole file) prints its result in the
+connection's console, always, and also puts a table, dictionary or keyed table
+in the peachq Results view without bringing it to the front or taking focus;
+`peachq.results.grid` set to `never` keeps the grid out of it. What is sent
+depends on the connection's **Query mode** (Advanced, in the connection form):
+
+| Query mode     | Sends                                                                                          | Console                  | Grid                       |
+| :------------- | :--------------------------------------------------------------------------------------------- | :----------------------- | :------------------------- |
+| `auto`         | the `.vscode` API when the process has it, else qStudio's wrapper                              | as the row it picks      | as the row it picks        |
+| `qstudio-wrap` | qStudio's wrapper around your text, as one string (`value`, `.Q.trp`, a 10 MB `-22!` grid cap) | the process's `.Q.s`     | typed values               |
+| `naked`        | exactly your text                                                                              | q's console text of it   | typed values               |
+| `vscode-wrap`  | the `.vscode` API when the process has it, else the evaluate lambda                            | laid out from the result | structured text built in q |
+
+A result over 10 MB is shown as text only and the grid says so. A multi-line run
+sent as one expression that fails prints one line pointing at `vscode-wrap`.
 
 In a peachq notebook cell, **Execute Current Selection** runs the selection, or
 the current line when nothing is selected, and shows its result in the cell's
@@ -90,26 +109,32 @@ to them. Whether a right click pastes is VS Code's
 
 ## Settings
 
-| Setting                                               | Scope               | Type      | Default       |
-| :---------------------------------------------------- | :------------------ | :-------- | :------------ |
-| [peachq.qHomeDirectory](q-home-directory.md)          | machine             | `string`  | `""`          |
-| peachq.servers                                        | machine             | `object`  | `{}`          |
-| peachq.insightsEnterpriseConnections                  | machine             | `object`  | `{}`          |
-| peachq.connectionLabels                               | machine             | `array`   | `[]`          |
-| peachq.labelsConnectionMap                            | machine             | `array`   | `[]`          |
-| peachq.hideSourceExpressions                          | machine             | `boolean` | `true`        |
-| peachq.neverShowQInstallAgain                         | machine             | `boolean` | `false`       |
-| peachq.autoFocusOutputOnEntry                         | machine             | `boolean` | `true`        |
-| peachq.notebookRowLimit                               | machine-overridable | `number`  | `100`         |
-| peachq.notebookRowLimitFrom                           | machine-overridable | `string`  | `"first"`     |
-| [peachq.qHomeDirectoryWorkspace](q-home-directory.md) | resource            | `string`  | `""`          |
-| peachq.connectionMap                                  | resource            | `object`  | `{}`          |
-| peachq.targetMap                                      | resource            | `object`  | `{}`          |
-| peachq.timeoutMap                                     | resource            | `object`  | `{}`          |
-| peachq.defaultTimeout                                 | resource            | `number`  | `30`          |
-| peachq.linting                                        | resource            | `boolean` | `false`       |
-| peachq.refactoring                                    | resource            | `string`  | `"Workspace"` |
-| peachq.deferToKx                                      | window              | `string`  | `"auto"`      |
+| Setting                                               | Scope               | Type      | Default        |
+| :---------------------------------------------------- | :------------------ | :-------- | :------------- |
+| [peachq.qHomeDirectory](q-home-directory.md)          | machine             | `string`  | `""`           |
+| peachq.servers                                        | machine             | `object`  | `{}`           |
+| peachq.insightsEnterpriseConnections                  | machine             | `object`  | `{}`           |
+| peachq.connectionLabels                               | machine             | `array`   | `[]`           |
+| peachq.labelsConnectionMap                            | machine             | `array`   | `[]`           |
+| peachq.hideSourceExpressions                          | machine             | `boolean` | `true`         |
+| peachq.neverShowQInstallAgain                         | machine             | `boolean` | `false`        |
+| peachq.autoFocusOutputOnEntry                         | machine             | `boolean` | `true`         |
+| peachq.results.grid                                   | machine             | `string`  | `"always"`     |
+| peachq.peachqArgs                                     | machine             | `array`   | `["-classic"]` |
+| peachq.notebookRowLimit                               | machine-overridable | `number`  | `100`          |
+| peachq.notebookRowLimitFrom                           | machine-overridable | `string`  | `"first"`      |
+| [peachq.qHomeDirectoryWorkspace](q-home-directory.md) | resource            | `string`  | `""`           |
+| peachq.connectionMap                                  | resource            | `object`  | `{}`           |
+| peachq.targetMap                                      | resource            | `object`  | `{}`           |
+| peachq.timeoutMap                                     | resource            | `object`  | `{}`           |
+| peachq.defaultTimeout                                 | resource            | `number`  | `30`           |
+| peachq.linting                                        | resource            | `boolean` | `false`        |
+| peachq.refactoring                                    | resource            | `string`  | `"Workspace"`  |
+| peachq.deferToKx                                      | window              | `string`  | `"auto"`       |
+
+`peachq.peachqArgs` is added to every peachq the extension starts: the built-in
+connection, and the REPL when it runs the bundled peachq. It is never passed to
+a q of your own.
 
 `peachq.connectionMap`, `peachq.targetMap` and `peachq.timeoutMap` are keyed by
 workspace relative path, so they only cover files inside the workspace. Files

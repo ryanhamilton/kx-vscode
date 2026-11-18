@@ -61,11 +61,6 @@ export namespace ext {
   export let queryHistoryProvider: QueryHistoryProvider;
   export let resultsViewProvider: KdbResultsViewProvider;
   export let notebookController: KxNotebookController;
-  // Output destination toggle, driven by the editor-toolbar selector: when true
-  // query results render in the peachq Results View, when false they go to the
-  // connection's output console (Terminal). Mirrored to the
-  // "peachq.showResultsInView" context key for the selector's menu state.
-  export let isResultsTabVisible: boolean;
   export let scratchpadTreeProvider: WorkspaceTreeProvider;
   export let queryTreeProvider: WorkspaceTreeProvider;
   export let runScratchpadItem: StatusBarItem;

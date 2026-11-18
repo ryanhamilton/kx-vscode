@@ -296,8 +296,8 @@ export class ConnectionConsole {
 
   /**
    * Appends a faint pointer telling the user the query results went to the KDB
-   * Results (grid) view, ending in a clickable phrase that opens it. Printed on
-   * the result-write path when the global "show in view" toggle is on.
+   * Results (grid) view, ending in a clickable phrase that opens it. Printed
+   * when a result goes to the grid without its text reaching the console.
    */
   appendResultsPointer(): void {
     this.send(

@@ -302,9 +302,7 @@ function structuredTable(
   // dictionary the key/values pair, both of which q prints without column
   // names. An empty result has nothing but its header, so that carries the
   // types too — the schema is the whole answer there.
-  const isList =
-    !Array.isArray(results.columns) ||
-    (columns.length === 1 && names[0] === "values" && !columns[0].isKey);
+  const isList = isListResult(results);
   const isDictionary =
     columns.length === 2 && !!columns[0].isKey && names.join() === "key,values";
   return {
@@ -317,6 +315,27 @@ function structuredTable(
           : names,
     keys: columns.filter((column) => column.isKey).length,
   };
+}
+
+export function isListResult(results: StructuredTextResults): boolean {
+  const { columns } = results;
+  return (
+    !Array.isArray(columns) ||
+    (columns.length === 1 && columns[0].name === "values" && !columns[0].isKey)
+  );
+}
+
+export function isStructuredResult(
+  result: unknown,
+): result is StructuredTextResults {
+  return typeof result === "object" && result !== null && "columns" in result;
+}
+
+export const SCRIPT_HINT =
+  "Hint: this ran as one q expression, not as a script. For script semantics set the connection's Query mode to vscode-wrap. Report a problem: https://github.com/ryanhamilton/kx-vscode/issues/new";
+
+export function scriptHint(query: string): string | undefined {
+  return query.trim().includes("\n") ? SCRIPT_HINT : undefined;
 }
 
 // A cell that arrives with newlines in it — a nested list, rendered down the

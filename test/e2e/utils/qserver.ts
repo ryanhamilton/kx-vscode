@@ -253,6 +253,21 @@ export class FakeQ {
     // What LocalConnection.executeQuery expects: no error, and data it can
     // JSON.parse.
     const data = typeof this.data === "function" ? this.data(args) : this.data;
-    return { error: false, data: JSON.stringify(data) };
+    // formatQ.q's structured text for a string: one unnamed column of .Q.s text.
+    const shaped =
+      args.returnFormat === "structuredText" && typeof data === "string"
+        ? {
+            count: 1,
+            columns: [
+              {
+                name: "values",
+                type: "chars",
+                values: [JSON.stringify(data)],
+                order: [0],
+              },
+            ],
+          }
+        : data;
+    return { error: false, data: JSON.stringify(shaped) };
   }
 }

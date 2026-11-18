@@ -14,10 +14,7 @@
 import { CancellationToken, InputBoxOptions, window } from "vscode";
 
 import { ext } from "../extensionVariables";
-import {
-  writeQueryResultsToConsole,
-  writeQueryResultsToView,
-} from "./serverCommand";
+import { showInGrid, writeQueryResultsToConsole } from "./serverCommand";
 import { InsightsConnection } from "../classes/insightsConnection";
 import { LocalConnection } from "../classes/localConnection";
 import { ServerType } from "../models/connectionsModels";
@@ -28,7 +25,7 @@ import { withErrorPrefix } from "../models/queryResult";
 import { ScratchpadStacktrace } from "../models/scratchpadResult";
 import { UDARequestBody } from "../models/uda";
 import { ConnectionManagementService } from "../services/connectionManagerService";
-import { noSelectedConnectionAction } from "../utils/core";
+import { gridEnabled, noSelectedConnectionAction } from "../utils/core";
 import {
   checkIfTimeParamIsCorrect,
   getConnectedInsightsNode,
@@ -179,65 +176,43 @@ export async function runDataSource(
           params: res.error,
         });
       }
-      if (isNotebook || ext.isResultsTabVisible) {
-        if (success) {
-          const resultCount =
-            typeof res === "string"
-              ? "0"
-              : res.rows
-                ? res.rows.length
-                : res.columns?.[0]?.values?.length || 0;
-          notify(`Results: ${resultCount} rows`, MessageKind.DEBUG, {
-            logger,
-          });
-        } else if (!success) {
-          res = formatDataSourceError(res);
-        }
-
-        if (isNotebook) {
-          if (!success) {
-            // formatDataSourceError only prefixes a string message; a buffer
-            // error would otherwise reach the cell as [object Object].
-            throw new Error(
-              typeof res === "string"
-                ? res
-                : withErrorPrefix("Datasource call failed."),
-            );
-          }
-          return res;
-        }
-
-        await writeQueryResultsToView(
-          res,
-          query,
-          connLabel,
-          executorName,
-          true,
-          selectedType,
-        );
+      if (success) {
+        const resultCount =
+          typeof res === "string"
+            ? "0"
+            : res.rows
+              ? res.rows.length
+              : res.columns?.[0]?.values?.length || 0;
+        notify(`Results: ${resultCount} rows`, MessageKind.DEBUG, {
+          logger,
+        });
       } else {
-        if (success) {
-          notify(
-            `Results is a string with length: ${res.length}`,
-            MessageKind.DEBUG,
-            { logger },
+        res = formatDataSourceError(res);
+      }
+
+      if (isNotebook) {
+        if (!success) {
+          // formatDataSourceError only prefixes a string message; a buffer
+          // error would otherwise reach the cell as [object Object].
+          throw new Error(
+            typeof res === "string"
+              ? res
+              : withErrorPrefix("Datasource call failed."),
           );
-        } else if (res.error) {
-          res = formatDataSourceError(res);
         }
+        return res;
+      }
 
-        const rowData = res.columns
-          ? convertRows(updatedExtractRowData(res), res)
-          : res;
-
-        await writeQueryResultsToConsole(
-          rowData,
-          query,
-          connLabel,
-          executorName,
-          true,
-          selectedType,
-        );
+      await writeQueryResultsToConsole(
+        res.columns ? convertRows(updatedExtractRowData(res), res) : res,
+        query,
+        connLabel,
+        executorName,
+        true,
+        selectedType,
+      );
+      if (success && typeof res !== "string" && gridEnabled()) {
+        await showInGrid(res, true);
       }
       addDStoQueryHistory(dataSourceForm, success, connLabel, executorName);
     }

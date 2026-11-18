@@ -17,6 +17,7 @@ import { join } from "path";
 import { commands } from "vscode";
 
 import { ext } from "../extensionVariables";
+import { QueryMode } from "../models/connectionsModels";
 import { RowLimit } from "../models/notebook";
 import {
   QueryResult,
@@ -24,12 +25,48 @@ import {
   withErrorPrefix,
 } from "../models/queryResult";
 import { ServerObject } from "../models/serverObject";
+import { decode } from "../q/decode";
+import { fromNaked, fromQStudio, qstudioWrap, TypedReply } from "../q/reply";
 import { handleQueryResults } from "../utils/execution";
 import { kdbOutputLog } from "../utils/loggers";
 import { MessageKind, notify } from "../utils/notifications";
-import { appendStacktrace, queryWrapper } from "../utils/queryUtils";
+import {
+  appendStacktrace,
+  queryWrapper,
+  sanitizeQuery,
+} from "../utils/queryUtils";
 
 const logger = "localConnection";
+
+// node-q has no raw reply option and decodes some types lossily. Its socket
+// handler deserializes each reply and emits it synchronously, so the bytes the
+// last deserialize saw are the reply a k() callback is handed.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const codec = require("node-q/lib/c.js");
+let lastReply: Uint8Array | undefined;
+if (!codec.deserialize.tapped) {
+  const deserialize = codec.deserialize;
+  codec.deserialize = (bytes: Buffer, ...rest: unknown[]) => {
+    lastReply = bytes.subarray(0, bytes.readUInt32LE(4));
+    return deserialize(bytes, ...rest);
+  };
+  codec.deserialize.tapped = true;
+}
+
+export type SendMode = "json" | "qstudio" | "naked";
+
+export function sendMode(mode: QueryMode | undefined, useAPI: boolean) {
+  switch (mode) {
+    case "naked":
+      return "naked";
+    case "qstudio-wrap":
+      return "qstudio";
+    case "vscode-wrap":
+      return "json";
+    default:
+      return useAPI ? "json" : "qstudio";
+  }
+}
 
 export class LocalConnection {
   public connected: boolean;
@@ -49,6 +86,7 @@ export class LocalConnection {
     labels: string[],
     creds?: string[],
     tls?: boolean,
+    public queryMode?: QueryMode,
   ) {
     const params = connectionString.split(":");
     if (!params) {
@@ -235,6 +273,53 @@ export class LocalConnection {
               resolve(unreadableResponse());
             }
           }
+        }
+        this.updateGlobal();
+      });
+    });
+  }
+
+  public async runQuery(
+    query: string,
+    context: string | undefined,
+    stringify: boolean,
+  ): Promise<any> {
+    switch (sendMode(this.queryMode, this.useAPI)) {
+      case "qstudio":
+        return this.typedReply(qstudioWrap(query), fromQStudio);
+      case "naked":
+        return this.typedReply(query, fromNaked);
+      default:
+        return this.executeQuery(sanitizeQuery(query), context, stringify);
+    }
+  }
+
+  private typedReply(
+    text: string,
+    read: (reply: ReturnType<typeof decode>) => TypedReply | undefined,
+  ): Promise<TypedReply | string> {
+    return new Promise((resolve, reject) => {
+      if (!this.connection) {
+        return reject(new Error("Not connected."));
+      }
+      this.connection.k(text, (err: Error) => {
+        const bytes = lastReply;
+        lastReply = undefined;
+        let reply: TypedReply | undefined;
+        try {
+          reply = bytes && read(decode(bytes));
+        } catch (error) {
+          notify("Could not decode the reply.", MessageKind.DEBUG, {
+            logger,
+            params: error,
+          });
+        }
+        if (reply) {
+          resolve(reply);
+        } else if (err && !bytes) {
+          resolve(withErrorPrefix(err.message));
+        } else {
+          resolve(unreadableResponse());
         }
         this.updateGlobal();
       });

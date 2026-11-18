@@ -121,7 +121,7 @@ async function start(a: ParsedArgs) {
 
 // Long-lived parent that owns q's stdin, so q does not exit on EOF.
 function keeper(port: string, q: string, users: string) {
-  const child = spawn(q, ["-p", port, "-U", users], {
+  const child = spawn(q, ["-p", port, "-U", users, "-classic"], {
     stdio: ["pipe", "ignore", "ignore"],
     cwd: dir(),
     windowsHide: true,
