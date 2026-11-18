@@ -17,7 +17,6 @@ import * as vscode from "vscode";
 import { ext } from "../extensionVariables";
 import { getEnvironment } from "../utils/core";
 import { getNonce } from "../utils/getNonce";
-import { getIconPath } from "../utils/iconsUtils";
 import {
   Cancellable,
   MessageKind,
@@ -96,7 +95,12 @@ export function showWelcome(folder?: vscode.WorkspaceFolder) {
         localResourceRoots: [vscode.Uri.joinPath(ext.context.extensionUri)],
       },
     );
-    panel.iconPath = <any>getIconPath("kx_logo.png");
+    panel.iconPath = vscode.Uri.joinPath(
+      ext.context.extensionUri,
+      "resources",
+      "images",
+      "peachq-logo.png",
+    );
     panel.webview.onDidReceiveMessage((msg) => {
       if (msg === "install") installKdbX();
       else if (msg === "repl") {
@@ -156,7 +160,7 @@ function getWebviewContent(webview: vscode.Webview) {
       <title>Welcome to peachq</title>
     </head>
     <body>
-      <kdb-welcome-view image="${getResource("resources/images/kx_welcome.png")}" checked="${getShowWelcome()}" dark="${isDark() ? "dark" : ""}" windows="${process.platform === "win32" ? "true" : ""}" q="${getQBinary()}"></kdb-welcome-view>
+      <kdb-welcome-view image="${getResource("resources/images/peachq-logo.png")}" checked="${getShowWelcome()}" dark="${isDark() ? "dark" : ""}" windows="${process.platform === "win32" ? "true" : ""}" q="${getQBinary()}"></kdb-welcome-view>
     </body>
     </html>
   `;

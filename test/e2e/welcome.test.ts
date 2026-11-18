@@ -97,7 +97,7 @@ describe("Welcome", () => {
 
     // What showWelcome passes the element: the bundled image, whether the
     // startup checkbox is ticked, and the theme the icons are drawn for.
-    const IMAGE = "https://example.com/kx_welcome.png";
+    const IMAGE = "https://example.com/peachq-logo.png";
 
     const DARK = "#CCCCCC";
     const LIGHT = "#404651";
