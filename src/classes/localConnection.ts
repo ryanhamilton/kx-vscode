@@ -327,8 +327,8 @@ export class LocalConnection {
     return reply;
   }
 
-  // The whole-file command: upstream's lambda as shipped, whatever the query
-  // mode, except naked, which sends only the user's text.
+  // The whole-file command: the .vscode API or upstream's lambda as shipped,
+  // whatever the query mode, except naked, which sends only the user's text.
   public runScript(query: string, context: string | undefined): Promise<any> {
     return this.queryMode === "naked"
       ? this.typedReply(query, fromNaked)

@@ -19,7 +19,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
 
-import { reachable, until } from "./utils";
+import { until } from "./utils";
 import { LocalConnection } from "../../src/classes/localConnection";
 import { getConextForRerunQuery } from "../../src/commands/serverCommand";
 import { ext } from "../../src/extensionVariables";
@@ -50,7 +50,8 @@ const DUMP = [
   'system "d ."',
   'system "c 2000 2000"',
   `{-1 "@@V@@",x,"\\t",ssr[-3!value y;"\\n";"\\\\n"]}'[string each r;r:(key\`.),raze {$[99h<>type v:value x;enlist x;(\`)~first key v;raze .z.s each \` sv/: x,/:1_key v;enlist x]} each \` sv/: \`,/:key[\`] except ${IGNORED}]`,
-  '-1 "@@END@@";',
+  '-1 "@@END@@"',
+  '-2 "@@END@@";',
 ].join(";");
 
 interface Run {
@@ -60,26 +61,25 @@ interface Run {
   state: Map<string, string>;
 }
 
-let port = 25400;
 const processes: ChildProcess[] = [];
 
-function peachq(cwd: string, listen?: number) {
-  const args = [
-    "-q",
-    "-classic",
-    ...(listen ? ["-p", `127.0.0.1:${listen}`] : []),
-  ];
+function peachq(cwd: string, listen = false) {
+  const args = ["-q", "-classic", ...(listen ? ["-p", "127.0.0.1:0W"] : [])];
   const child = spawn(process.env.PEACHQ_Q!, args, { cwd });
   processes.push(child);
   let out = "";
+  let err = "";
   child.stdout.on("data", (data) => (out += data));
-  child.stderr.on("data", (data) => (out += data));
-  return { child, out: () => out };
+  child.stderr.on("data", (data) => (err += data));
+  return { child, out: () => out, err: () => err };
 }
 
 async function dumped(q: ReturnType<typeof peachq>, error = "") {
   q.child.stdin!.write(`${DUMP}\n`);
-  await until(() => q.out().includes("@@END@@"), "the state dump");
+  await until(
+    () => q.out().includes("@@END@@") && q.err().includes("@@END@@"),
+    "the state dump",
+  );
   q.child.kill();
   const [before, after] = q.out().split("@@OUT@@\n");
   const state = new Map<string, string>();
@@ -91,9 +91,9 @@ async function dumped(q: ReturnType<typeof peachq>, error = "") {
       state.set(name, value.join("\t"));
     }
   }
-  const loadError = /^'(.*)\n\s*\[\d+\]\s+\S+?:(\d+): /m.exec(before);
+  const loadError = /^'(.*)\n\s*\[\d+\]\s+\S+?:(\d+): /m.exec(q.err());
   return {
-    printed: loadError ? before.slice(0, loadError.index) : before,
+    printed: before.replace(/^@@P@@\d+\n/, ""),
     error: loadError ? `${loadError[1]} at line ${loadError[2]}` : error,
     ctx,
     state,
@@ -122,11 +122,12 @@ function errorOf(text: string, reply: unknown) {
 }
 
 async function sent(file: string): Promise<Run> {
-  const listen = port++;
-  const q = peachq(path.dirname(file), listen);
-  await until(() => reachable("127.0.0.1", listen), `peachq on ${listen}`);
+  const q = peachq(path.dirname(file), true);
+  q.child.stdin!.write('-1 "@@P@@",string system "p";\n');
+  await until(() => /@@P@@\d+\n/.test(q.out()), "peachq to listen");
+  const port = Number(/@@P@@(\d+)/.exec(q.out())![1]);
   const connection = await new Promise<nodeq.Connection>((resolve, reject) =>
-    nodeq.connect({ host: "127.0.0.1", port: listen }, (error, conn) =>
+    nodeq.connect({ host: "127.0.0.1", port }, (error, conn) =>
       error ? reject(error) : resolve(conn),
     ),
   );
@@ -136,15 +137,16 @@ async function sent(file: string): Promise<Run> {
     useAPI: false,
     updateGlobal: () => undefined,
   }) as LocalConnection;
-  const reply = await conn.runScript(text, getConextForRerunQuery(text));
-  connection.close();
-  return dumped(q, errorOf(text, reply));
+  try {
+    const reply = await conn.runScript(text, getConextForRerunQuery(text));
+    return await dumped(q, errorOf(text, reply));
+  } finally {
+    connection.close();
+  }
 }
 
 const cell = (value?: string) =>
-  value === undefined
-    ? "<absent>"
-    : JSON.stringify(value).slice(1, -1).slice(0, 160);
+  value === undefined ? "<absent>" : JSON.stringify(value).slice(1, -1);
 
 function differences(script: string, a: Run, b: Run): string[][] {
   const rows: string[][] = [];
@@ -185,6 +187,7 @@ function expectedRows() {
 
 describe("\\l against the whole-file command on peachq", function () {
   const found: string[][] = [];
+  let compared = 0;
 
   before(function () {
     if (!process.env.PEACHQ_Q) {
@@ -208,7 +211,7 @@ describe("\\l against the whole-file command on peachq", function () {
       causes.get(`${row[0]}\t${row[1]}`) ?? "?",
     ]);
     const table = [HEADER, ...rows].map((row) => row.join("\t")).join("\n");
-    if (process.env.L_DIFF_WRITE) {
+    if (process.env.L_DIFF_WRITE && compared === CORPUS.length) {
       fs.writeFileSync(EXPECTED, `${table}\n`);
     }
     const byCause = new Map<string, number>();
@@ -226,6 +229,7 @@ describe("\\l against the whole-file command on peachq", function () {
       const file = path.join(REPO, script);
       const rows = differences(script, await loaded(file), await sent(file));
       found.push(...rows);
+      compared++;
       if (process.env.L_DIFF_WRITE) return;
       assert.deepStrictEqual(
         rows,
