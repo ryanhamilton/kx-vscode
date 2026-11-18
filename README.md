@@ -10,10 +10,12 @@ or with built-in peachq — no licence, no server.
 - **Console and grid together.** A run's text always goes to the console, and
   tables, dictionaries and keyed tables also land in the results grid, with
   typed columns, without taking focus.
-- **Built-in peachq.** The Linux (x64, arm64), macOS (Apple silicon) and Windows
-  (x64) packages carry [peachq](https://peachq.org), an open-source (MIT) q.
-  Connect to **peachq (built-in)** and q runs on your machine with nothing else
-  installed.
+- **Built-in peachq.** The Windows (x64), macOS (Apple silicon), Linux (x64,
+  arm64) and Alpine Linux (x64, arm64) packages carry
+  [peachq](https://peachq.org), an open-source (MIT) q. Connect to **peachq
+  (built-in)** and q runs on your machine with nothing else installed. Other
+  platforms (Intel Mac, Windows on Arm) get the universal package: everything
+  works against your own kdb+ or q, without the built-in peachq.
 - **Connections and variable browser.** Connect to any number of q processes
   over kdb+ IPC, with authentication and TLS. The Connections view lists each
   process's namespaces, tables, functions, variables, views and dictionaries.

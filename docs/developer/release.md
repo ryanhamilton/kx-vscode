@@ -22,8 +22,8 @@ in the `release` environment. The workflow, the packaging scripts,
 
 | Job       | Permissions                         | Does                                                                                                                                                                                     |
 | --------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `build`   | `contents: read`                    | Checks the `version` input equals `package.json`'s and runs `npm run package:targets`, which fails unless each of the 5 vsix has the right target, version, publisher and peachq binary. |
-| `release` | `contents: write`                   | Creates the draft GitHub release `v<version>` with the 5 vsix, or refreshes them on a draft made from the same commit.                                                                   |
+| `build`   | `contents: read`                    | Checks the `version` input equals `package.json`'s and runs `npm run package:targets`, which fails unless each of the 7 vsix has the right target, version, publisher and peachq binary. |
+| `release` | `contents: write`                   | Creates the draft GitHub release `v<version>` with the 7 vsix, or refreshes them on a draft made from the same commit.                                                                   |
 | `publish` | `id-token: write`, `contents: read` | Environment `release`. `vsce publish --oidc` and `ovsx publish --trusted-publishing`, one vsix at a time.                                                                                |
 
 A real run (`dry_run` false) refuses a prerelease version (the Marketplace does
@@ -53,8 +53,8 @@ token with a store and publishes nothing.
 4. Check the version on both stores:
    <https://marketplace.visualstudio.com/items?itemName=timestored.peachq> and
    <https://open-vsx.org/extension/timestored/peachq>. Each target (`linux-x64`,
-   `linux-arm64`, `darwin-arm64`, `win32-x64`) and the universal package should
-   be listed.
+   `linux-arm64`, `alpine-x64`, `alpine-arm64`, `darwin-arm64`, `win32-x64`) and
+   the universal package should be listed.
 5. Publish the draft release `v<version>` on GitHub, which creates the tag.
 
 ## The first Open VSX version
@@ -73,7 +73,7 @@ So the first release goes to Open VSX by hand, once:
 
 1. Run the workflow as above with `open_vsx` unticked; it publishes to the
    Marketplace only.
-2. Download the 5 vsix from the draft release (or the run's `vsix-<version>`
+2. Download the 7 vsix from the draft release (or the run's `vsix-<version>`
    artifact).
 3. On open-vsx.org, as an owner of the `timestored` namespace with the Publisher
    Agreement signed, create an access token (Settings → Access Tokens), then on

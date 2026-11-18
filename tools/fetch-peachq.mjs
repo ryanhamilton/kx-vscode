@@ -16,7 +16,7 @@
 // Downloads the peachq release pinned in .peachq-version into
 // bin/peachq/<vsce target>/, verified against the release's sha256.
 // `node tools/fetch-peachq.mjs` fetches the host's target, `--all` every
-// bundled one, or name targets (linux-x64 linux-arm64 darwin-arm64 win32-x64).
+// bundled one, or name targets (any key of ASSETS).
 
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -39,6 +39,8 @@ const REPO = "peachq-org/peachq";
 export const ASSETS = {
   "linux-x64": "peachq-linux-x86_64.tar.gz",
   "linux-arm64": "peachq-linux-arm64.tar.gz",
+  "alpine-x64": "peachq-linux-x86_64.tar.gz",
+  "alpine-arm64": "peachq-linux-arm64.tar.gz",
   "darwin-arm64": "peachq-macos-arm64.tar.gz",
   "win32-x64": "peachq-windows-x86_64.zip",
 };
