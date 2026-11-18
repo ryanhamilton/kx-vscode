@@ -17,6 +17,7 @@ import { join } from "path";
 import { commands } from "vscode";
 
 import { ext } from "../extensionVariables";
+import { NamespacedRuns, QueryMode } from "../models/connectionsModels";
 import { RowLimit } from "../models/notebook";
 import {
   QueryResult,
@@ -24,12 +25,62 @@ import {
   withErrorPrefix,
 } from "../models/queryResult";
 import { ServerObject } from "../models/serverObject";
+import { decode } from "../q/decode";
+import {
+  fromNaked,
+  fromQStudio,
+  isTypedReply,
+  qstudioWrap,
+  TypedReply,
+} from "../q/reply";
+import { QValue } from "../q/value";
 import { handleQueryResults } from "../utils/execution";
 import { kdbOutputLog } from "../utils/loggers";
 import { MessageKind, notify } from "../utils/notifications";
-import { appendStacktrace, queryWrapper } from "../utils/queryUtils";
+import {
+  appendStacktrace,
+  contextHint,
+  queryWrapper,
+  sanitizeQuery,
+} from "../utils/queryUtils";
 
 const logger = "localConnection";
+
+// node-q has no raw reply option and decodes some types lossily. Its socket
+// handler deserializes each reply and emits it synchronously, so the bytes the
+// last deserialize saw are the reply a k() callback is handed.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const codec = require("node-q/lib/c.js");
+let lastReply: Uint8Array | undefined;
+if (!codec.deserialize.tapped) {
+  const deserialize = codec.deserialize;
+  codec.deserialize = (bytes: Buffer, ...rest: unknown[]) => {
+    lastReply = bytes.subarray(0, bytes.readUInt32LE(4));
+    return deserialize(bytes, ...rest);
+  };
+  codec.deserialize.tapped = true;
+}
+
+export type SendMode = "json" | "qstudio" | "naked";
+
+export function sendMode(
+  mode: QueryMode | undefined,
+  useAPI: boolean,
+  inFileNamespace = false,
+): SendMode {
+  switch (mode) {
+    case "naked":
+      return "naked";
+    case "qstudio-wrap":
+      return "qstudio";
+    case "vscode-wrap":
+      return "json";
+    default:
+      return useAPI || inFileNamespace ? "json" : "qstudio";
+  }
+}
+
+export const isNamespaced = (context?: string) => !!context && context !== ".";
 
 export class LocalConnection {
   public connected: boolean;
@@ -49,6 +100,8 @@ export class LocalConnection {
     labels: string[],
     creds?: string[],
     tls?: boolean,
+    public queryMode?: QueryMode,
+    public namespacedRuns?: NamespacedRuns,
   ) {
     const params = connectionString.split(":");
     if (!params) {
@@ -235,6 +288,71 @@ export class LocalConnection {
               resolve(unreadableResponse());
             }
           }
+        }
+        this.updateGlobal();
+      });
+    });
+  }
+
+  // A default run from a namespaced region that has no answer yet for where
+  // such runs go.
+  public asksAboutNamespace(context?: string): boolean {
+    return (
+      isNamespaced(context) &&
+      (this.queryMode ?? "auto") === "auto" &&
+      !this.useAPI &&
+      (this.namespacedRuns ?? "ask") === "ask"
+    );
+  }
+
+  public async runQuery(
+    query: string,
+    context: string | undefined,
+    stringify: boolean,
+  ): Promise<any> {
+    const send = sendMode(
+      this.queryMode,
+      this.useAPI,
+      isNamespaced(context) && this.namespacedRuns === "file-namespace",
+    );
+    if (send === "json") {
+      return this.executeQuery(sanitizeQuery(query), context, stringify);
+    }
+    const reply = await (send === "qstudio"
+      ? this.typedReply(qstudioWrap(query), fromQStudio)
+      : this.typedReply(query, fromNaked));
+    if (isTypedReply(reply) && isNamespaced(context)) {
+      reply.hint = contextHint(context);
+    }
+    return reply;
+  }
+
+  private typedReply(
+    text: string,
+    read: (reply: QValue) => TypedReply | undefined,
+  ): Promise<TypedReply | string> {
+    return new Promise((resolve, reject) => {
+      if (!this.connection) {
+        return reject(new Error("Not connected."));
+      }
+      this.connection.k(text, (err: Error) => {
+        const bytes = lastReply;
+        lastReply = undefined;
+        let reply: TypedReply | undefined;
+        try {
+          reply = bytes && read(decode(bytes));
+        } catch (error) {
+          notify("Could not decode the reply.", MessageKind.DEBUG, {
+            logger,
+            params: error,
+          });
+        }
+        if (reply) {
+          resolve(reply);
+        } else if (err && !bytes) {
+          resolve(withErrorPrefix(err.message));
+        } else {
+          resolve(unreadableResponse());
         }
         this.updateGlobal();
       });

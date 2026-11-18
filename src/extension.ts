@@ -141,22 +141,6 @@ import { addWorkspaceFile, openWith, setUriContent } from "./utils/workspace";
 
 const logger = "extension";
 
-// Sets where query results are written — the peachq Results View (true) or the
-// connection's output console/Terminal (false) — and mirrors it into a context
-// key so the editor-toolbar selector reflects the current destination. When
-// switching to the Results View, reveal it so results are immediately visible.
-function setResultsDestination(showInView: boolean) {
-  ext.isResultsTabVisible = showInView;
-  vscode.commands.executeCommand(
-    "setContext",
-    "peachq.showResultsInView",
-    showInView,
-  );
-  if (showInView) {
-    vscode.commands.executeCommand(`${KdbResultsViewProvider.viewType}.focus`);
-  }
-}
-
 let client: LanguageClient;
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -192,9 +176,6 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.commands.executeCommand("setContext", "peachq.pythonEnabled", false);
   vscode.commands.executeCommand("setContext", "peachq.connected", []);
   vscode.commands.executeCommand("setContext", "peachq.kdbQHCopyList", []);
-
-  // Default query results to the output console (Terminal), not the view.
-  setResultsDestination(false);
 
   const bundled = bundledQ();
   if (bundled) {
@@ -547,12 +528,14 @@ function registerResultsPanelCommands(): CommandRegistration[] {
         isInsights: boolean,
         connVersion?: string,
         isPython?: boolean,
+        quiet?: boolean,
       ) => {
         ext.resultsViewProvider.updateResults(
           results,
           isInsights,
           connVersion,
           isPython,
+          quiet,
         );
       },
     },
@@ -565,15 +548,16 @@ function registerResultsPanelCommands(): CommandRegistration[] {
       callback: () => ext.resultsViewProvider.exportToCsv(),
     },
     {
-      // Editor-toolbar selector: route query results to the connection's
-      // output console (Terminal).
+      // Hidden: results always reach the console now.
       command: "peachq.results.destination.terminal",
-      callback: () => setResultsDestination(false),
+      callback: () => undefined,
     },
     {
-      // Editor-toolbar selector: route query results to the peachq Results View.
       command: "peachq.results.destination.view",
-      callback: () => setResultsDestination(true),
+      callback: () =>
+        vscode.commands.executeCommand(
+          `${KdbResultsViewProvider.viewType}.focus`,
+        ),
     },
   ];
 

@@ -441,6 +441,18 @@ export function getAutoFocusOutputOnEntrySetting(): boolean {
     .get<boolean>("autoFocusOutputOnEntry", true);
 }
 
+export function peachqArgs(): string[] {
+  return workspace
+    .getConfiguration("peachq")
+    .get<string[]>("peachqArgs", ["-classic"]);
+}
+
+export function gridEnabled(): boolean {
+  return (
+    workspace.getConfiguration("peachq").get<string>("results.grid") !== "never"
+  );
+}
+
 export function getHideDetailedConsoleQueryOutputSetting(): boolean {
   return workspace
     .getConfiguration("peachq")

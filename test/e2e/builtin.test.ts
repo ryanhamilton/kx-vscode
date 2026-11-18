@@ -14,7 +14,6 @@
 import * as assert from "node:assert";
 import { execFileSync } from "node:child_process";
 import * as fs from "node:fs";
-import * as net from "node:net";
 import * as os from "node:os";
 import * as path from "node:path";
 import * as vscode from "vscode";
@@ -25,6 +24,7 @@ import {
   executeNotebook,
   focus,
   qNotebook,
+  reachable,
   terminal,
   terminalText,
   until,
@@ -39,25 +39,15 @@ function bundledProcess() {
   const lines = execFileSync("/bin/ps", ["-A", "-o", "pid=,args="], {
     encoding: "utf8",
   }).split("\n");
+  const own = vscode.extensions.getExtension("peachq.peachq")!.extensionPath;
   const line = lines.find((found) =>
-    found.includes(`${path.sep}bin${path.sep}peachq${path.sep}`),
+    found.includes(path.join(own, "bin", "peachq") + path.sep),
   );
   if (!line) {
     return undefined;
   }
   const [pid, ...args] = line.trim().split(/\s+/);
   return { pid: Number(pid), args };
-}
-
-function reachable(host: string, port: number) {
-  return new Promise<boolean>((resolve) => {
-    const socket = net.createConnection({ host, port });
-    socket.once("connect", () => {
-      socket.destroy();
-      resolve(true);
-    });
-    socket.once("error", () => resolve(false));
-  });
 }
 
 describe("The built-in peachq connection, with no q installed", () => {
@@ -113,6 +103,7 @@ describe("The built-in peachq connection, with no q installed", () => {
   it("listens on 127.0.0.1 only, behind a private users file", async () => {
     server = bundledProcess();
     assert.ok(server, "no bundled peachq is running");
+    assert.ok(server.args.includes("-classic"), server.args.join(" "));
     const flag = server.args.indexOf("-p");
     const listen = /^127\.0\.0\.1:(\d+)$/.exec(server.args[flag + 1] ?? "");
     assert.ok(listen, `listens on ${server.args.join(" ")}`);
@@ -151,6 +142,7 @@ describe("The built-in peachq connection, with no q installed", () => {
     ]);
     assert.deepStrictEqual(await executeNotebook(notebook), ["2\r\n"]);
     assert.ok(bundledProcess()?.args.includes("-q"), "no bundled peachq REPL");
+    assert.ok(bundledProcess()?.args.includes("-classic"), "REPL not -classic");
     await discardNotebook(notebook);
   });
 });

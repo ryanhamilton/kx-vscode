@@ -45,13 +45,13 @@ export async function run(): Promise<void> {
     console.log(`🧪 Running specific end to end file: ${testFile}.test.js`);
   }
 
-  // builtin.test.ts and replPeachq.test.ts need the windows test/runE2E.ts
+  // builtin.test.ts and the *Peachq.test.ts files need the windows test/runE2E.ts
   // opens for E2E_BARE and E2E_PEACHQ.
   const files = await glob(pattern, {
     cwd: testsRoot,
     ignore: testFile
       ? []
-      : ["e2e/**/builtin.test.js", "e2e/**/replPeachq.test.js"],
+      : ["e2e/**/builtin.test.js", "e2e/**/*Peachq.test.js"],
   });
 
   if (files.length === 0) {

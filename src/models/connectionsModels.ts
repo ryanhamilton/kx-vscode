@@ -23,6 +23,19 @@ export enum ServerType {
   undefined,
 }
 
+export const QUERY_MODES = [
+  "auto",
+  "naked",
+  "qstudio-wrap",
+  "vscode-wrap",
+] as const;
+
+export type QueryMode = (typeof QUERY_MODES)[number];
+
+export const NAMESPACED_RUNS = ["ask", "file-namespace", "as-typed"] as const;
+
+export type NamespacedRuns = (typeof NAMESPACED_RUNS)[number];
+
 export interface ServerDetails {
   serverName: string;
   serverPort: string;
@@ -31,6 +44,8 @@ export interface ServerDetails {
   tls: boolean;
   username?: string;
   password?: string;
+  queryMode?: QueryMode;
+  namespacedRuns?: NamespacedRuns;
 }
 
 export interface Server {

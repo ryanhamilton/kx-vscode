@@ -35,12 +35,15 @@ import {
   kdb,
   labelOf,
   plain,
+  PLAIN_CONNECTION,
+  PLAIN_SERVER,
   redial,
   SERVER,
   start,
   startPlain,
 } from "./utils/connection";
 import { FAILURE, FakeQ } from "./utils/qserver";
+import { qstudioWrap } from "../../src/q/reply";
 
 // Copies of the main fixtures, under the paths the workspace settings assign
 // to TESTLOCAL. They need their own paths because peachq.connectionMap is keyed
@@ -387,7 +390,56 @@ describe("Executing on a kdb+ connection", () => {
       await startPlain();
     });
 
-    it("sends the evaluate lambda instead of the namespace function", async () => {
+    after(async () => {
+      await setQueryMode(PLAIN_SERVER, undefined);
+    });
+
+    // Saved the way the edit form saves it; the mode is read when the
+    // connection is made.
+    async function setQueryMode(
+      server: typeof PLAIN_SERVER,
+      queryMode: string | undefined,
+    ) {
+      await vscode.commands.executeCommand(
+        "peachq.connections.edit.kdb",
+        { ...server, queryMode },
+        server.serverAlias,
+        false,
+        [],
+      );
+      await vscode.commands.executeCommand(
+        "peachq.connections.disconnect",
+        PLAIN_CONNECTION,
+      );
+      // The tree rebuilds the node the connection is made from when it renders.
+      await vscode.commands.executeCommand("peachq-servers.focus");
+      plain.clear();
+      await until(async () => {
+        await vscode.commands.executeCommand(
+          "peachq.connections.connect.via.dialog",
+          PLAIN_CONNECTION,
+        );
+        return plain.requests.some((r) => r.fn === ".vscode.getManifest");
+      }, `${server.serverAlias} to reconnect`);
+    }
+
+    it("sends qStudio's wrapper instead of the namespace function", async () => {
+      await focus(PLAIN_FILE);
+
+      plain.clear();
+      await vscode.commands.executeCommand("peachq.execute.fileQuery");
+      const sent = () =>
+        plain.requests.filter((request) => request.fn.includes("PLAIN_KDB"));
+      await until(() => sent().length > 0, "the query to arrive");
+
+      assert.deepStrictEqual(
+        sent().map((request) => request.fn),
+        [qstudioWrap(fs.readFileSync(PLAIN_FILE.fsPath, "utf8"))],
+      );
+    });
+
+    it("sends the evaluate lambda when the connection asks for vscode-wrap", async () => {
+      await setQueryMode(PLAIN_SERVER, "vscode-wrap");
       await focus(PLAIN_FILE);
 
       plain.clear();
@@ -559,12 +611,14 @@ describe("Executing on a kdb+ connection", () => {
     });
   });
 
-  describe("the results destination", () => {
-    // Terminal is the default; put it back for whatever runs next.
+  describe("where the results go", () => {
+    const grid = (value: string | undefined) =>
+      vscode.workspace
+        .getConfiguration("peachq")
+        .update("results.grid", value, vscode.ConfigurationTarget.Global);
+
     after(async () => {
-      await vscode.commands.executeCommand(
-        "peachq.results.destination.terminal",
-      );
+      await grid(undefined);
     });
 
     const printed = (text: string) => text.split(RESULT).length - 1;
@@ -582,10 +636,8 @@ describe("Executing on a kdb+ connection", () => {
       assert.fail(`the console did not print the result ${count} times`);
     }
 
-    it("asks for text and prints to the console for the terminal", async () => {
-      await vscode.commands.executeCommand(
-        "peachq.results.destination.terminal",
-      );
+    it("asks for text and prints to the console when the grid is off", async () => {
+      await grid("never");
       await focus(Q_FILE);
 
       const before = printed(await terminalText(CONSOLE));
@@ -596,37 +648,27 @@ describe("Executing on a kdb+ connection", () => {
       await untilPrinted(before + 1);
     });
 
-    it("asks for structured text and leaves the console alone for the view", async () => {
-      await vscode.commands.executeCommand("peachq.results.destination.view");
+    it("asks for structured text and prints to the console as well as the grid", async () => {
+      await grid(undefined);
       await focus(Q_FILE);
 
       const before = printed(await terminalText(CONSOLE));
       kdb.clear();
       await vscode.commands.executeCommand("peachq.execute.fileQuery");
 
-      // Structured text is what the results view renders from; the console is
-      // left as it was.
       assert.strictEqual(kdb.queries()[0].args?.returnFormat, "structuredText");
-      assert.strictEqual(
-        printed(await terminalText(CONSOLE)),
-        before,
-        "the console printed the result as well",
-      );
+      await untilPrinted(before + 1);
     });
   });
 
   describe("behind a gateway that wraps every result", () => {
-    after(async () => {
+    after(() => {
       kdb.envelope = undefined;
-      await vscode.commands.executeCommand(
-        "peachq.results.destination.terminal",
-      );
     });
 
     // Its envelope reuses the wrapper's key names, but the data is not the
     // structured text the results view asks for.
     it("finishes the query rather than leaving it running", async () => {
-      await vscode.commands.executeCommand("peachq.results.destination.view");
       await focus(Q_FILE);
       kdb.envelope = { error: false, data: "OK" };
 

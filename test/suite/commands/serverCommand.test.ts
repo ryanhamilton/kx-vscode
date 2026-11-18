@@ -32,6 +32,8 @@ import { ExecutionTypes } from "../../../src/models/execution";
 import { QueryHistory } from "../../../src/models/queryHistory";
 import { ScratchpadResult } from "../../../src/models/scratchpadResult";
 import { NewConnectionPannel } from "../../../src/panels/newConnection";
+import { decode } from "../../../src/q/decode";
+import { fromQStudio, toGrid } from "../../../src/q/reply";
 import { ConnectionManagementService } from "../../../src/services/connectionManagerService";
 import {
   InsightsNode,
@@ -46,8 +48,10 @@ import * as loggers from "../../../src/utils/loggers";
 import * as notifications from "../../../src/utils/notifications";
 import * as plotUtils from "../../../src/utils/plotUtils";
 import * as queryUtils from "../../../src/utils/queryUtils";
+import { contextHint, SCRIPT_HINT } from "../../../src/utils/queryUtils";
 import * as kdbValidators from "../../../src/validators/kdbValidator";
 import { createMockDatasource } from "../../fixtures/config/datasource";
+import { PEACHQ_REPLIES } from "../../fixtures/qReplies";
 
 describe("serverCommand", () => {
   const servers = {
@@ -1957,6 +1961,120 @@ describe("serverCommand", () => {
     });
   });
 
+  describe("writeLocalResults", () => {
+    let lines: string[];
+    let executeCommand: sinon.SinonStub;
+    let grid: string;
+
+    const table = decode(Buffer.from(PEACHQ_REPLIES.table, "hex"));
+    const typed = fromQStudio(table)!;
+
+    const write = (results: unknown, query = "q") =>
+      serverCommand.writeLocalResults(
+        results,
+        query,
+        "server1",
+        "test.q",
+        "SCRATCHPAD",
+        false,
+        "1",
+      );
+
+    const updates = () =>
+      executeCommand
+        .getCalls()
+        .filter((call) => call.args[0] === "peachq.resultsPanel.update")
+        .map((call) => call.args.slice(1));
+
+    beforeEach(() => {
+      lines = [];
+      grid = "always";
+      ext.queryHistoryProvider ??= <any>{ refresh: sinon.stub() };
+      ext.connectionConsoles.set("server1", <any>{
+        appendLine: (value: string) => lines.push(value),
+        appendError: (value: string) => lines.push(value),
+        appendParts: (parts: { text: string }[]) =>
+          lines.push(parts.map((part) => part.text).join("")),
+        appendResult: (result: string[]) => lines.push(...result),
+        terminal: { show: sinon.stub() },
+      });
+      sinon.stub(vscode.workspace, "getConfiguration").returns(<any>{
+        get: (key: string, fallback: unknown) =>
+          key === "results.grid" ? grid : fallback,
+        update: sinon.stub(),
+      });
+      executeCommand = sinon.stub(vscode.commands, "executeCommand").resolves();
+    });
+
+    afterEach(() => {
+      ext.connectionConsoles.delete("server1");
+      sinon.restore();
+    });
+
+    it("prints the server's text and fills the grid with typed cells, quietly", async () => {
+      await write(typed);
+
+      assert.ok(lines.join("\n").includes("a b\n---\n1 x"), lines.join("\n"));
+      const [[shown, isInsights, , , quiet]] = updates();
+      assert.deepStrictEqual(shown, toGrid(typed.value));
+      assert.strictEqual(isInsights, false);
+      assert.strictEqual(quiet, true);
+    });
+
+    it("keeps an atom out of the grid", async () => {
+      await write({
+        console: "42\n",
+        value: { kind: "atom", type: 7, value: 42n },
+      });
+      assert.ok(lines.includes("42"), lines.join("\n"));
+      assert.deepStrictEqual(updates(), []);
+    });
+
+    it("says why a result over the size cap is not in the grid", async () => {
+      await write({ console: "0 1 2 ..\n", tooLarge: true });
+      assert.deepStrictEqual(updates(), [
+        [serverCommand.TOO_LARGE_FOR_GRID, false, undefined, false, true],
+      ]);
+    });
+
+    it("leaves the grid alone when it is turned off", async () => {
+      grid = "never";
+      await write(typed);
+      assert.ok(lines.join("\n").includes("1 x"));
+      assert.deepStrictEqual(updates(), []);
+    });
+
+    it("prints structured text from the .vscode API as a table as well", async () => {
+      const structured = toGrid(typed.value)!;
+      await write(structured);
+      assert.ok(
+        lines.some((line) => /^1\s+x/.test(line)),
+        lines.join("\n"),
+      );
+      assert.deepStrictEqual(updates()[0][0], structured);
+    });
+
+    it("points a failed multi-line run at the per-server override", async () => {
+      await write({ console: "", error: "b" }, "a:1\nb:2");
+      const shown = lines.join("\n");
+      assert.ok(shown.includes("b"), shown);
+      assert.strictEqual(shown.split(SCRIPT_HINT).length - 1, 1, shown);
+      assert.deepStrictEqual(updates(), []);
+    });
+
+    it("says a run went to the root namespace when the file is in another", async () => {
+      await write({ ...typed, hint: contextHint(".foo") });
+      const shown = lines.join("\n");
+      assert.ok(shown.includes("1 x"), shown);
+      assert.ok(shown.includes(contextHint(".foo")), shown);
+    });
+
+    it("does not hint on a one-line failure", async () => {
+      await write({ console: "", error: "type" }, "1+`a");
+      assert.ok(!lines.join("\n").includes(SCRIPT_HINT));
+    });
+  });
+
   describe("console error colouring", () => {
     // Every connection type gets a console keyed by its label on connect, so
     // these cover the q, Insights and quick connection labels the same way.
@@ -1989,7 +2107,7 @@ describe("serverCommand", () => {
 
     beforeEach(() => {
       writes = [];
-      ext.isResultsTabVisible = false;
+      sinon.stub(coreUtils, "gridEnabled").returns(false);
       ext.queryHistoryProvider ??= <any>{ refresh: sinon.stub() };
       for (const { connLabel } of connections) {
         ext.connectionConsoles.set(connLabel, <any>{

@@ -40,7 +40,10 @@ import {
   runQuery,
   setQuickPassword,
 } from "./serverCommand";
-import { getActiveTarget } from "../classes/activeTarget";
+import {
+  getActiveTarget,
+  onDidChangeActiveTarget,
+} from "../classes/activeTarget";
 import { InsightsConnection } from "../classes/insightsConnection";
 import { LocalConnection } from "../classes/localConnection";
 import { QNotFoundError, ReplConnection } from "../classes/replConnection";
@@ -176,8 +179,22 @@ export function runItemText(text: string) {
   return text === ext.REPL && active ? `${ext.REPL} → ${active}` : text;
 }
 
+// What an unassigned file runs on, so a run never lands on the REPL unseen.
+function activeTargetText() {
+  const active = getActiveTarget();
+  const conn =
+    active?.kind === "connection" &&
+    new ConnectionManagementService().retrieveConnectedConnection(
+      active.connLabel,
+    );
+  return conn
+    ? `(active: ${conn.connLabel})`
+    : `(active: ${runItemText(ext.REPL)})`;
+}
+
 function setRunScratchpadItemText(uri: Uri, text: string) {
-  ext.runScratchpadItem.text = `$(cloud) ${runItemText(text)}`;
+  const shown = text === "(active)" ? activeTargetText() : runItemText(text);
+  ext.runScratchpadItem.text = `$(cloud) ${shown}`;
   ext.runScratchpadItem.tooltip = `peachq: Choose connection for '${getBasename(uri)}'`;
 }
 
@@ -1155,7 +1172,13 @@ function update(uri: Uri) {
 }
 
 export class ConnectionLensProvider implements CodeLensProvider {
-  readonly onDidChangeCodeLenses = onDidChangeSessionMaps;
+  private readonly changed = new EventEmitter<void>();
+  readonly onDidChangeCodeLenses = this.changed.event;
+
+  constructor() {
+    onDidChangeSessionMaps(() => this.changed.fire());
+    onDidChangeActiveTarget(() => this.changed.fire());
+  }
 
   async provideCodeLenses(document: TextDocument) {
     const server = getServerForUri(document.uri);
@@ -1166,7 +1189,7 @@ export class ConnectionLensProvider implements CodeLensProvider {
     lenses.push(
       new CodeLens(top, {
         command: "peachq.file.pickConnection",
-        title: server ? `Run on ${server}` : "Run on active",
+        title: `Run on ${server || activeTargetText()}`,
       }),
     );
 
@@ -1249,6 +1272,7 @@ export function connectWorkspaceCommands() {
   window.tabGroups.onDidChangeTabs(() => updateStatusBarItems());
   window.tabGroups.onDidChangeTabGroups(() => updateStatusBarItems());
   ReplConnection.onDidChangeActive(() => updateStatusBarItems());
+  onDidChangeActiveTarget(() => updateStatusBarItems());
   activeEditorChanged(window.activeTextEditor);
 }
 

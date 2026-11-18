@@ -14,10 +14,18 @@
 import * as assert from "assert";
 import * as sinon from "sinon";
 
-import { LocalConnection } from "../../../src/classes/localConnection";
+import {
+  LocalConnection,
+  sendMode,
+} from "../../../src/classes/localConnection";
 import { ext } from "../../../src/extensionVariables";
+import { qstudioWrap, TypedReply } from "../../../src/q/reply";
 import * as loggers from "../../../src/utils/loggers";
 import * as notifications from "../../../src/utils/notifications";
+import { PEACHQ_REPLIES } from "../../fixtures/qReplies";
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const codec = require("node-q/lib/c.js");
 
 describe("LocalConnection", () => {
   let localConn: LocalConnection;
@@ -210,6 +218,123 @@ describe("LocalConnection", () => {
         );
       });
     }
+  });
+
+  describe("sendMode", () => {
+    for (const [mode, useAPI, sent] of [
+      [undefined, false, "qstudio"],
+      ["auto", false, "qstudio"],
+      ["auto", true, "json"],
+      ["qstudio-wrap", true, "qstudio"],
+      ["naked", true, "naked"],
+      ["vscode-wrap", false, "json"],
+    ] as const) {
+      it(`${mode} ${useAPI ? "with" : "without"} .vscode sends ${sent}`, () => {
+        assert.strictEqual(sendMode(mode, useAPI), sent);
+      });
+    }
+
+    it("auto sends a run in the file's namespace through vscode-wrap", () => {
+      assert.strictEqual(sendMode("auto", false, true), "json");
+      assert.strictEqual(sendMode("qstudio-wrap", false, true), "qstudio");
+    });
+  });
+
+  describe("asksAboutNamespace", () => {
+    it("asks for a namespaced auto run that would be wrapped", () => {
+      assert.strictEqual(localConn.asksAboutNamespace(".foo"), true);
+    });
+
+    for (const [why, set] of [
+      ["from the root namespace", () => undefined],
+      ["once answered", () => (localConn.namespacedRuns = "as-typed")],
+      ["with the .vscode API", () => (localConn.useAPI = true)],
+      ["in another query mode", () => (localConn.queryMode = "naked")],
+    ] as const) {
+      it(`does not ask ${why}`, () => {
+        set();
+        const context = why === "from the root namespace" ? "." : ".foo";
+        assert.strictEqual(localConn.asksAboutNamespace(context), false);
+      });
+    }
+  });
+
+  describe("runQuery", () => {
+    let sent: unknown[][];
+
+    // A node-q connection answering with real peachq bytes: they go through
+    // the codec node-q decodes with, as a reply off the socket does.
+    function answer(hex: string) {
+      sent = [];
+      localConn["connection"] = <any>{
+        k: (...args: unknown[]) => {
+          sent.push(args.slice(0, -1));
+          codec.deserialize(Buffer.from(hex, "hex"));
+          (args[args.length - 1] as (err?: Error) => void)();
+        },
+      };
+    }
+
+    beforeEach(() => {
+      sinon.stub(localConn, "updateGlobal" as any);
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it("sends the qStudio wrapper as one string and reads the typed reply", async () => {
+      answer(PEACHQ_REPLIES.table);
+      const query = "([]a:1 2 3;b:`x`y`z);";
+      const reply = (await localConn.runQuery(query, ".", false)) as TypedReply;
+
+      assert.deepStrictEqual(sent, [[qstudioWrap(query)]]);
+      assert.strictEqual(reply.console, "a b\n---\n1 x\n2 y\n3 z\n");
+      assert.strictEqual(reply.value?.kind, "table");
+    });
+
+    it("says when a run left the file's namespace behind", async () => {
+      answer(PEACHQ_REPLIES.table);
+      const reply = (await localConn.runQuery(
+        "x",
+        ".foo",
+        false,
+      )) as TypedReply;
+      assert.ok(reply.hint?.includes(".foo"), reply.hint);
+    });
+
+    it("runs in the file's namespace through the evaluate path when told to", async () => {
+      const executeQuery = sinon.stub(localConn, "executeQuery").resolves("x");
+      localConn.namespacedRuns = "file-namespace";
+
+      await localConn.runQuery("x:1", ".foo", false);
+
+      sinon.assert.calledOnceWithExactly(executeQuery, "x:1", ".foo", false);
+    });
+
+    it("sends exactly the user's text in naked mode", async () => {
+      answer(PEACHQ_REPLIES.naked);
+      localConn.queryMode = "naked";
+      const reply = (await localConn.runQuery("`a", ".", false)) as TypedReply;
+
+      assert.deepStrictEqual(sent, [["`a"]]);
+      assert.strictEqual(reply.console, "a b\n---\n1 x\n2 y\n3 z\n");
+    });
+
+    it("uses the .vscode API when the process has it", async () => {
+      const executeQuery = sinon.stub(localConn, "executeQuery").resolves("x");
+      localConn.useAPI = true;
+
+      await localConn.runQuery("til 3;", ".foo", true);
+
+      sinon.assert.calledOnceWithExactly(executeQuery, "til 3", ".foo", true);
+    });
+
+    it("reports a reply it cannot read", async () => {
+      answer(PEACHQ_REPLIES.naked);
+      const reply = await localConn.runQuery("til 3", ".", false);
+      assert.ok(String(reply).includes("could not read"), String(reply));
+    });
   });
 
   describe("loadServerObjects", () => {

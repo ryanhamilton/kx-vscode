@@ -797,18 +797,19 @@ describe("Executing on an Insights connection", () => {
     });
   });
 
-  describe("the results destination", () => {
+  describe("where the results go", () => {
+    const grid = (value: string | undefined) =>
+      vscode.workspace
+        .getConfiguration("peachq")
+        .update("results.grid", value, vscode.ConfigurationTarget.Global);
+
     after(async () => {
-      await vscode.commands.executeCommand(
-        "peachq.results.destination.terminal",
-      );
+      await grid(undefined);
     });
 
     // Pending: times out on dev as inherited from upstream (PLAN.md, Deferred).
-    it.skip("asks for text and prints to the console for the terminal", async () => {
-      await vscode.commands.executeCommand(
-        "peachq.results.destination.terminal",
-      );
+    it.skip("asks for text and prints to the console when the grid is off", async () => {
+      await grid("never");
       await focus(Q_FILE);
       const request = await run("peachq.execute.fileQuery");
 
@@ -820,8 +821,8 @@ describe("Executing on an Insights connection", () => {
       );
     });
 
-    it("asks for structured text for the view", async () => {
-      await vscode.commands.executeCommand("peachq.results.destination.view");
+    it("asks for structured text for the grid", async () => {
+      await grid(undefined);
       await focus(Q_FILE);
       const request = await run("peachq.execute.fileQuery");
 
@@ -976,7 +977,7 @@ describe("Executing on an Insights connection", () => {
       const request = await runOn(older, OLDER_FILE);
 
       assert.strictEqual(request.body.returnFormat, undefined);
-      assert.strictEqual(request.body.isTableView, false);
+      assert.strictEqual(request.body.isTableView, true);
     });
 
     /**
