@@ -48,7 +48,7 @@ import * as loggers from "../../../src/utils/loggers";
 import * as notifications from "../../../src/utils/notifications";
 import * as plotUtils from "../../../src/utils/plotUtils";
 import * as queryUtils from "../../../src/utils/queryUtils";
-import { SCRIPT_HINT } from "../../../src/utils/queryUtils";
+import { contextHint, SCRIPT_HINT } from "../../../src/utils/queryUtils";
 import * as kdbValidators from "../../../src/validators/kdbValidator";
 import { createMockDatasource } from "../../fixtures/config/datasource";
 import { PEACHQ_REPLIES } from "../../fixtures/qReplies";
@@ -2060,6 +2060,13 @@ describe("serverCommand", () => {
       assert.ok(shown.includes("b"), shown);
       assert.strictEqual(shown.split(SCRIPT_HINT).length - 1, 1, shown);
       assert.deepStrictEqual(updates(), []);
+    });
+
+    it("says a run went to the root namespace when the file is in another", async () => {
+      await write({ ...typed, hint: contextHint(".foo") });
+      const shown = lines.join("\n");
+      assert.ok(shown.includes("1 x"), shown);
+      assert.ok(shown.includes(contextHint(".foo")), shown);
     });
 
     it("does not hint on a one-line failure", async () => {

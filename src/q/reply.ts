@@ -40,6 +40,7 @@ export interface TypedReply {
   value?: QValue;
   tooLarge?: boolean;
   error?: string;
+  hint?: string;
 }
 
 export function isTypedReply(result: unknown): result is TypedReply {

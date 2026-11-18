@@ -52,7 +52,7 @@ import {
 } from "../models/queryResult";
 import { ScratchpadResult } from "../models/scratchpadResult";
 import { NewConnectionPannel } from "../panels/newConnection";
-import { isTypedReply, toGrid } from "../q/reply";
+import { isTypedReply, toGrid, TypedReply } from "../q/reply";
 import { ConnectionManagementService } from "../services/connectionManagerService";
 import {
   InsightsMetaNode,
@@ -1056,11 +1056,7 @@ export async function writeLocalResults(
     return;
   }
   const text = typed
-    ? results.error === undefined
-      ? results.console
-      : withErrorPrefix(
-          [results.error, scriptHint(query)].filter(Boolean).join("\n"),
-        )
+    ? typedText(results, query)
     : isStructuredResult(results)
       ? convertRows(updatedExtractRowData(results), results)
       : results;
@@ -1079,6 +1075,19 @@ export async function writeLocalResults(
   if (grid) {
     await showInGrid(grid, false, undefined, isPython);
   }
+}
+
+function typedText(reply: TypedReply, query: string) {
+  const failed = reply.error !== undefined;
+  const hints = [reply.hint, failed ? scriptHint(query) : undefined].filter(
+    Boolean,
+  );
+  if (hints.length === 0) {
+    return failed ? withErrorPrefix(reply.error!) : reply.console;
+  }
+  const body = (failed ? reply.error! : reply.console).replace(/\n+$/, "");
+  const shown = [body, ...hints].filter(Boolean).join("\n");
+  return failed ? withErrorPrefix(shown) : shown;
 }
 
 export function showInGrid(

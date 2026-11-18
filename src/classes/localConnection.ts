@@ -26,12 +26,20 @@ import {
 } from "../models/queryResult";
 import { ServerObject } from "../models/serverObject";
 import { decode } from "../q/decode";
-import { fromNaked, fromQStudio, qstudioWrap, TypedReply } from "../q/reply";
+import {
+  fromNaked,
+  fromQStudio,
+  isTypedReply,
+  qstudioWrap,
+  TypedReply,
+} from "../q/reply";
+import { QValue } from "../q/value";
 import { handleQueryResults } from "../utils/execution";
 import { kdbOutputLog } from "../utils/loggers";
 import { MessageKind, notify } from "../utils/notifications";
 import {
   appendStacktrace,
+  contextHint,
   queryWrapper,
   sanitizeQuery,
 } from "../utils/queryUtils";
@@ -284,19 +292,22 @@ export class LocalConnection {
     context: string | undefined,
     stringify: boolean,
   ): Promise<any> {
-    switch (sendMode(this.queryMode, this.useAPI)) {
-      case "qstudio":
-        return this.typedReply(qstudioWrap(query), fromQStudio);
-      case "naked":
-        return this.typedReply(query, fromNaked);
-      default:
-        return this.executeQuery(sanitizeQuery(query), context, stringify);
+    const send = sendMode(this.queryMode, this.useAPI);
+    if (send === "json") {
+      return this.executeQuery(sanitizeQuery(query), context, stringify);
     }
+    const reply = await (send === "qstudio"
+      ? this.typedReply(qstudioWrap(query), fromQStudio)
+      : this.typedReply(query, fromNaked));
+    if (isTypedReply(reply) && context && context !== ".") {
+      reply.hint = contextHint(context);
+    }
+    return reply;
   }
 
   private typedReply(
     text: string,
-    read: (reply: ReturnType<typeof decode>) => TypedReply | undefined,
+    read: (reply: QValue) => TypedReply | undefined,
   ): Promise<TypedReply | string> {
     return new Promise((resolve, reject) => {
       if (!this.connection) {

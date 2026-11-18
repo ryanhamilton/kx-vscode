@@ -269,6 +269,16 @@ describe("LocalConnection", () => {
       assert.strictEqual(reply.value?.kind, "table");
     });
 
+    it("says when a run left the file's namespace behind", async () => {
+      answer(PEACHQ_REPLIES.table);
+      const reply = (await localConn.runQuery(
+        "x",
+        ".foo",
+        false,
+      )) as TypedReply;
+      assert.ok(reply.hint?.includes(".foo"), reply.hint);
+    });
+
     it("sends exactly the user's text in naked mode", async () => {
       answer(PEACHQ_REPLIES.naked);
       localConn.queryMode = "naked";
