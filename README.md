@@ -7,9 +7,9 @@ or with built-in peachq — no licence, no server.
 
 ## Features
 
-- **Both outputs, every run.** The console shows the process's own text for
-  every result, and tables, dictionaries and keyed tables also land in the
-  results grid, with typed columns, without taking focus.
+- **Console and grid together.** A run's text always goes to the console, and
+  tables, dictionaries and keyed tables also land in the results grid, with
+  typed columns, without taking focus.
 - **Built-in peachq.** The Linux (x64, arm64), macOS (Apple silicon) and Windows
   (x64) packages carry [peachq](https://peachq.org), an open-source (MIT) q.
   Connect to **peachq (built-in)** and q runs on your machine with nothing else

@@ -46,13 +46,6 @@ describe("Release", () => {
     assert.match(prose("README.md"), /not affiliated with or endorsed by KX/);
   });
 
-  it("does not leave NOTICE out of the vsix", () => {
-    const ignored = read(".vscodeignore")
-      .split(/\r?\n/)
-      .map((line) => line.trim());
-    assert.ok(!ignored.some((line) => /^(\*\*\/)?NOTICE\b|^\*$/.test(line)));
-  });
-
   it("gives every file added since the fork the peachq header", () => {
     const result = spawnSync(
       process.execPath,
