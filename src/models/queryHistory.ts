@@ -27,4 +27,5 @@ export interface QueryHistory {
   isWorkbook?: boolean;
   duration?: string;
   isFromConnTree?: boolean;
+  asScript?: boolean;
 }

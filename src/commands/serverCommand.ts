@@ -1050,6 +1050,11 @@ export async function executeQuery(
       duration,
       isFromConnTree,
     );
+    // The console wrote this run's history entry; a rerun repeats it as a script.
+    const entry = ext.kdbQueryHistoryList[0];
+    if (asScript && entry?.query === query) {
+      entry.asScript = true;
+    }
   }
 }
 
@@ -1305,6 +1310,11 @@ export function rerunQuery(rerunQueryElement: QueryHistory) {
       rerunQueryElement.language !== "q",
       !!rerunQueryElement.isWorkbook,
       !!rerunQueryElement.isFromConnTree,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      !!rerunQueryElement.asScript,
     );
   } else {
     const dsFile = rerunQueryElement.query as DataSourceFiles;
