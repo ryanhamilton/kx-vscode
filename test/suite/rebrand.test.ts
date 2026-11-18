@@ -39,7 +39,7 @@ describe("Rebrand", () => {
     it("is timestored.peachq", () => {
       assert.strictEqual(pkg.publisher, "timestored");
       assert.strictEqual(pkg.name, "peachq");
-      assert.strictEqual(pkg.displayName, "peachq");
+      assert.strictEqual(pkg.displayName, "peachq – q & kdb+ IDE");
     });
 
     const contributed: [string, string[]][] = [

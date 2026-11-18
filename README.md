@@ -37,7 +37,10 @@ or with built-in peachq — no licence, no server.
 
 ## Getting started
 
-1. Install **peachq** from the Extensions view.
+1. Install **peachq** from the Extensions view, or
+   [open it in VS Code](https://vscode.dev/redirect?url=vscode:extension/timestored.peachq)
+   from its
+   [Marketplace page](https://marketplace.visualstudio.com/items?itemName=timestored.peachq).
 2. Open the peachq view in the activity bar. Under **Connections**, right-click
    **peachq (built-in)** and choose **Connect server**. The extension starts
    peachq on `127.0.0.1` with a one-off password and stops it when you
@@ -101,4 +104,5 @@ not affiliated with or endorsed by KX.
 ## Links
 
 - [Issues](https://github.com/timestored/vscode-peachq/issues)
+- [Marketplace](https://marketplace.visualstudio.com/items?itemName=timestored.peachq)
 - [peachq.org](https://peachq.org)

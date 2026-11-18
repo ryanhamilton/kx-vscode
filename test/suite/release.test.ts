@@ -28,6 +28,41 @@ describe("Release", () => {
     assert.strictEqual(pkg.name, "peachq");
   });
 
+  it("has a full Marketplace listing", () => {
+    const repo = "https://github.com/timestored/vscode-peachq";
+    assert.strictEqual(pkg.displayName, "peachq – q & kdb+ IDE");
+    assert.match(pkg.galleryBanner.color, /^#[0-9A-Fa-f]{6}$/);
+    assert.match(pkg.galleryBanner.theme, /^(dark|light)$/);
+    assert.strictEqual(pkg.bugs.url, `${repo}/issues`);
+    assert.match(pkg.qna, /^https:\/\//);
+    assert.strictEqual(pkg.homepage, "https://peachq.org");
+    assert.ok(pkg.keywords.length <= 30);
+    for (const k of ["q", "kdb+", "peachq", "qlang", "kdb"]) {
+      assert.ok(pkg.keywords.includes(k), k);
+    }
+  });
+
+  it("links README images absolutely, so the Marketplace can show them", () => {
+    const readme = read("README.md");
+    const images = [
+      ...readme.matchAll(/!\[[^\]]*\]\(([^)\s]+)/g),
+      ...readme.matchAll(/<img[^>]*\ssrc=["']([^"']+)/g),
+    ].map((m) => m[1]);
+    assert.ok(images.length > 0);
+    for (const src of images) assert.match(src, /^https:\/\//, src);
+  });
+
+  it("links the install page and the Marketplace from the README", () => {
+    const readme = read("README.md");
+    const id = `${pkg.publisher}.${pkg.name}`;
+    assert.ok(readme.includes(`vscode:extension/${id}`));
+    assert.ok(
+      readme.includes(
+        `https://marketplace.visualstudio.com/items?itemName=${id}`,
+      ),
+    );
+  });
+
   it("is licensed Apache-2.0, as LICENSE and every header say", () => {
     assert.strictEqual(pkg.license, "Apache-2.0");
     assert.match(read("LICENSE"), /Apache License\s+Version 2\.0/);

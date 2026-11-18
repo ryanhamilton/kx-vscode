@@ -1,6 +1,6 @@
 {
   "name": "peachq",
-  "displayName": "peachq",
+  "displayName": "peachq – q & kdb+ IDE",
   "description": "q language support: run, chart and lint q against any kdb+ process, or with built-in peachq — no licence needed",
   "publisher": "timestored",
   "version": "1.30.0",
@@ -17,7 +17,7 @@
   "categories": [
     "Programming Languages",
     "Data Science",
-    "Formatters",
+    "Notebooks",
     "Snippets"
   ],
   "keywords": [
@@ -25,7 +25,10 @@
     "kdb+",
     "peachq",
     "qlang",
-    "kdb"
+    "kdb",
+    "q language",
+    "qsql",
+    "time series"
   ],
   "activationEvents": [
     "onLanguage:python",
@@ -1428,7 +1431,12 @@
   "bugs": {
     "url": "https://github.com/timestored/vscode-peachq/issues"
   },
-  "homepage": "https://github.com/timestored/vscode-peachq",
+  "homepage": "https://peachq.org",
+  "qna": "https://github.com/timestored/vscode-peachq/issues",
+  "galleryBanner": {
+    "color": "#2B1D1A",
+    "theme": "dark"
+  },
   "prettier": {
     "printWidth": 80,
     "bracketSameLine": true,

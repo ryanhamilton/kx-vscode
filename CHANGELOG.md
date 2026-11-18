@@ -53,3 +53,5 @@ history: https://github.com/KxSystems/kx-vscode/blob/main/CHANGELOG.md
   added since the fork carry a peachq contributors header; KX's files keep KX's.
 - Version 1.30.0, a new README for the marketplace page, and product wording in
   settings and docs that names q, not kdb.
+- Marketplace listing: display name "peachq – q & kdb+ IDE", banner, links,
+  keywords and categories.
