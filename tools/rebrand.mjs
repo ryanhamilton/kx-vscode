@@ -177,7 +177,7 @@ const DEFER_WHEN = "!peachq.deferringToKx";
 
 export const METADATA = {
   name: "peachq",
-  displayName: "peachq",
+  displayName: "peachq – q & kdb+ IDE",
   publisher: "timestored",
   description:
     "q language support: run, chart and lint q against any kdb+ process, or with built-in peachq — no licence needed",
@@ -186,8 +186,26 @@ export const METADATA = {
     type: "git",
     url: "https://github.com/timestored/vscode-peachq.git",
   },
-  homepage: "https://github.com/timestored/vscode-peachq",
+  homepage: "https://peachq.org",
   bugs: { url: "https://github.com/timestored/vscode-peachq/issues" },
+  qna: "https://github.com/timestored/vscode-peachq/issues",
+  galleryBanner: { color: "#2B1D1A", theme: "dark" },
+  categories: [
+    "Programming Languages",
+    "Data Science",
+    "Notebooks",
+    "Snippets",
+  ],
+  keywords: [
+    "q",
+    "kdb+",
+    "peachq",
+    "qlang",
+    "kdb",
+    "q language",
+    "qsql",
+    "time series",
+  ],
 };
 const ACTIVITY_ICON = "resources/images/peachq-icon.svg";
 
