@@ -662,17 +662,13 @@ describe("Executing on a kdb+ connection", () => {
   });
 
   describe("behind a gateway that wraps every result", () => {
-    after(async () => {
+    after(() => {
       kdb.envelope = undefined;
-      await vscode.commands.executeCommand(
-        "peachq.results.destination.terminal",
-      );
     });
 
     // Its envelope reuses the wrapper's key names, but the data is not the
     // structured text the results view asks for.
     it("finishes the query rather than leaving it running", async () => {
-      await vscode.commands.executeCommand("peachq.results.destination.view");
       await focus(Q_FILE);
       kdb.envelope = { error: false, data: "OK" };
 

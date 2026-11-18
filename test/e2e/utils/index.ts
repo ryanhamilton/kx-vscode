@@ -13,6 +13,7 @@
 
 import * as assert from "node:assert";
 import * as fs from "node:fs";
+import * as net from "node:net";
 import * as path from "node:path";
 import * as vscode from "vscode";
 
@@ -127,6 +128,17 @@ export async function completions(
  * nothing to wait for, so it waits for the command to have been able to do it
  * before deciding it did not.
  */
+export function reachable(host: string, port: number) {
+  return new Promise<boolean>((resolve) => {
+    const socket = net.createConnection({ host, port });
+    socket.once("connect", () => {
+      socket.destroy();
+      resolve(true);
+    });
+    socket.once("error", () => resolve(false));
+  });
+}
+
 export const settle = () => new Promise((resolve) => setTimeout(resolve, 250));
 
 // Generous enough for a loaded CI runner; it only costs that long when

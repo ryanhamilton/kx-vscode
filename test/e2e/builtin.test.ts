@@ -14,7 +14,6 @@
 import * as assert from "node:assert";
 import { execFileSync } from "node:child_process";
 import * as fs from "node:fs";
-import * as net from "node:net";
 import * as os from "node:os";
 import * as path from "node:path";
 import * as vscode from "vscode";
@@ -25,6 +24,7 @@ import {
   executeNotebook,
   focus,
   qNotebook,
+  reachable,
   terminal,
   terminalText,
   until,
@@ -48,17 +48,6 @@ function bundledProcess() {
   }
   const [pid, ...args] = line.trim().split(/\s+/);
   return { pid: Number(pid), args };
-}
-
-function reachable(host: string, port: number) {
-  return new Promise<boolean>((resolve) => {
-    const socket = net.createConnection({ host, port });
-    socket.once("connect", () => {
-      socket.destroy();
-      resolve(true);
-    });
-    socket.once("error", () => resolve(false));
-  });
 }
 
 describe("The built-in peachq connection, with no q installed", () => {

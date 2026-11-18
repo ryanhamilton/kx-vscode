@@ -1022,8 +1022,8 @@ function gridOf(results: unknown) {
     : undefined;
 }
 
-// Every result reaches the console; tables and dictionaries also reach the
-// grid, which is updated without being revealed.
+// Every result but an image reaches the console; tables and dictionaries also
+// reach the grid, which is updated without being revealed.
 export async function writeLocalResults(
   results: any,
   query: string,

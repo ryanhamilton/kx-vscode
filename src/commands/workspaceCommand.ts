@@ -180,7 +180,7 @@ export function runItemText(text: string) {
 }
 
 // What an unassigned file runs on, so a run never lands on the REPL unseen.
-export function activeTargetText() {
+function activeTargetText() {
   const active = getActiveTarget();
   const conn =
     active?.kind === "connection" &&

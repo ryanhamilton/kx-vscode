@@ -69,7 +69,6 @@ describe("Exporting the results as CSV", () => {
 
     // The view only renders once it has been resolved, and only holds
     // something to export once a query has been rendered into it.
-    await vscode.commands.executeCommand("peachq.results.destination.view");
     await vscode.commands.executeCommand("peachq-results.focus");
     await focus(QUERY_FILE);
     kdb.clear();
@@ -118,7 +117,6 @@ describe("Exporting the results as CSV", () => {
     kdb.data = "OK";
     fs.rmSync(QUERY_FILE.fsPath, { force: true });
     discard();
-    await vscode.commands.executeCommand("peachq.results.destination.terminal");
     await vscode.commands.executeCommand("workbench.action.closeAllEditors");
   });
 

@@ -15,11 +15,17 @@ import * as nodeq from "node-q";
 import * as assert from "node:assert";
 import { ChildProcess, execFileSync, spawn } from "node:child_process";
 import * as fs from "node:fs";
-import * as net from "node:net";
 import * as path from "node:path";
 import * as vscode from "vscode";
 
-import { activate, focus, terminal, terminalText, until } from "./utils";
+import {
+  activate,
+  focus,
+  reachable,
+  terminal,
+  terminalText,
+  until,
+} from "./utils";
 import { ensure, labelOf } from "./utils/connection";
 import { qstudioWrap } from "../../src/q/reply";
 
@@ -47,17 +53,6 @@ const API = server("PQAPI", 25111);
 
 const processes: ChildProcess[] = [];
 
-function listening(port: number) {
-  return new Promise<boolean>((resolve) => {
-    const socket = net.createConnection({ host: "127.0.0.1", port });
-    socket.once("connect", () => {
-      socket.destroy();
-      resolve(true);
-    });
-    socket.once("error", () => resolve(false));
-  });
-}
-
 async function startPeachq(port: number, ...lines: string[]) {
   const folder = vscode.workspace.workspaceFolders![0].uri.fsPath;
   const script = path.join(folder, `server${port}.q`);
@@ -72,7 +67,7 @@ async function startPeachq(port: number, ...lines: string[]) {
       { stdio: ["pipe", "ignore", "ignore"] },
     ),
   );
-  await until(() => listening(port), `peachq on ${port}`);
+  await until(() => reachable("127.0.0.1", port), `peachq on ${port}`);
 }
 
 // Asked over a connection of its own, so the extension is not part of it.

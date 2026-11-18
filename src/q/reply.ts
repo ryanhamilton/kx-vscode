@@ -19,10 +19,10 @@ import {
 } from "../models/queryResult";
 
 // qStudio QueryManager.java:276-278 byte for byte; some sites detect it.
-export const QSTUDIO_WRAPPER =
+const QSTUDIO_WRAPPER =
   '{v:$[`trp in key .Q; .Q.trp[{( (1b;`) ;value x)};x;{((0b;`);x;$[4<count y; .Q.sbt -4 _ y; ""])}]; ((1b;`);value x)]; a:10485760j>@[-22!;v;{0}]; (a;$[a;v;0b];.Q.s v 1)} "';
 
-export function qstudioEscape(query: string): string {
+function qstudioEscape(query: string): string {
   return query
     .replace(/\\/g, "\\\\")
     .replace(/\t/g, "\\t")

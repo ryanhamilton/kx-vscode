@@ -98,7 +98,7 @@
         },
         "peachq.autoFocusOutputOnEntry": {
           "type": "boolean",
-          "description": "Automatically focus the output console when running a query without an active results tab or receive log entry",
+          "description": "Reveal the output console when it prints a query result or a log entry",
           "default": true,
           "scope": "machine"
         },

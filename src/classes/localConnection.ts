@@ -63,7 +63,10 @@ if (!codec.deserialize.tapped) {
 
 export type SendMode = "json" | "qstudio" | "naked";
 
-export function sendMode(mode: QueryMode | undefined, useAPI: boolean) {
+export function sendMode(
+  mode: QueryMode | undefined,
+  useAPI: boolean,
+): SendMode {
   switch (mode) {
     case "naked":
       return "naked";
