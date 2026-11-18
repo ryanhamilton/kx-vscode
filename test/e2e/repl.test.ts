@@ -330,7 +330,7 @@ describe("Executing on the REPL", () => {
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
         id: "peachq-notebook-1",
-        extension: "peachq.peachq",
+        extension: "timestored.peachq",
       });
 
       const sent = await run("notebook.execute");
@@ -365,7 +365,7 @@ describe("Executing on the REPL", () => {
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
         id: "peachq-notebook-1",
-        extension: "peachq.peachq",
+        extension: "timestored.peachq",
       });
 
       await vscode.commands.executeCommand("notebook.execute");
@@ -601,7 +601,7 @@ describe("Executing on the REPL", () => {
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
         id: "peachq-notebook-1",
-        extension: "peachq.peachq",
+        extension: "timestored.peachq",
       });
 
       const from = mark();

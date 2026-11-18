@@ -354,7 +354,7 @@ describe("Executing on an Insights connection", () => {
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
         id: "peachq-notebook-1",
-        extension: "peachq.peachq",
+        extension: "timestored.peachq",
       });
 
       insights.clear();
@@ -419,7 +419,7 @@ describe("Executing on an Insights connection", () => {
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
         id: "peachq-notebook-1",
-        extension: "peachq.peachq",
+        extension: "timestored.peachq",
       });
     });
 
@@ -487,7 +487,7 @@ describe("Executing on an Insights connection", () => {
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
         id: "peachq-notebook-1",
-        extension: "peachq.peachq",
+        extension: "timestored.peachq",
       });
     });
 
@@ -533,7 +533,7 @@ describe("Executing on an Insights connection", () => {
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
         id: "peachq-notebook-1",
-        extension: "peachq.peachq",
+        extension: "timestored.peachq",
       });
     });
 
@@ -580,7 +580,7 @@ describe("Executing on an Insights connection", () => {
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
         id: "peachq-notebook-1",
-        extension: "peachq.peachq",
+        extension: "timestored.peachq",
       });
     });
 
@@ -634,7 +634,7 @@ describe("Executing on an Insights connection", () => {
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
         id: "peachq-notebook-1",
-        extension: "peachq.peachq",
+        extension: "timestored.peachq",
       });
     });
 
@@ -727,7 +727,7 @@ describe("Executing on an Insights connection", () => {
       await vscode.window.showNotebookDocument(notebook);
       await vscode.commands.executeCommand("notebook.selectKernel", {
         id: "peachq-notebook-1",
-        extension: "peachq.peachq",
+        extension: "timestored.peachq",
       });
 
       insights.clear();

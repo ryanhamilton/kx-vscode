@@ -15,7 +15,7 @@ Major changes since the fork (KX dev at 654ea443):
 
 - Telemetry and KX prompts removed: no Application Insights reporter, no
   survey or newsletter prompts; bug and feature links point at this fork.
-- Renamed to peachq.peachq, with peachq.* settings, commands and views.
+- Renamed to timestored.peachq, with peachq.* settings, commands and views.
 - Coexists with the KX extension (pauses its q features where KX is enabled)
   and imports the KX extension's connections and settings.
 - CI on GitHub Actions; the injected q code is tested with qunit on peachq.

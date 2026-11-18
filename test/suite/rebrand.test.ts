@@ -36,8 +36,8 @@ describe("Rebrand", () => {
     const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
     const c = pkg.contributes;
 
-    it("is peachq.peachq", () => {
-      assert.strictEqual(pkg.publisher, "peachq");
+    it("is timestored.peachq", () => {
+      assert.strictEqual(pkg.publisher, "timestored");
       assert.strictEqual(pkg.name, "peachq");
       assert.strictEqual(pkg.displayName, "peachq");
     });

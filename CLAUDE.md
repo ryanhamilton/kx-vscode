@@ -13,7 +13,7 @@
 
 ## Overview
 
-**peachq** (`peachq.peachq`), a fork of the KX extension (`KX.kdb`) — an IDE for
+**peachq** (`timestored.peachq`), a fork of the KX extension (`KX.kdb`) — an IDE for
 the q language and the kdb product suite (KDB-X, kdb Insights Enterprise, kdb+
 Personal Edition): edit q/Python/SQL, connect to multiple kdb processes, run
 queries, view results. Beside an enabled KX extension it defers

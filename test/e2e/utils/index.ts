@@ -157,7 +157,7 @@ export async function until(
 }
 
 export async function activate() {
-  const extension = vscode.extensions.getExtension("peachq.peachq");
+  const extension = vscode.extensions.getExtension("timestored.peachq");
   assert.ok(extension, "the kdb extension is not installed in this window");
   await extension.activate();
 }
@@ -273,7 +273,7 @@ export async function startNotebook(notebook: vscode.NotebookDocument) {
   await vscode.window.showNotebookDocument(notebook);
   await vscode.commands.executeCommand("notebook.selectKernel", {
     id: "peachq-notebook-1",
-    extension: "peachq.peachq",
+    extension: "timestored.peachq",
   });
   await vscode.commands.executeCommand("notebook.clearAllCellsOutputs");
   await until(

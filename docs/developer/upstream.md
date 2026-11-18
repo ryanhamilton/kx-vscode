@@ -10,10 +10,10 @@ timestamp: 2026-11-17
 
 # Merging Upstream
 
-This extension (`peachq.peachq`) is a fork of the KX extension (`KX.kdb`). Every
-public id differs: commands, settings, views, the notebook type, custom editors,
-language ids and product-name strings. One script owns those differences:
-[`tools/rebrand.mjs`](../../tools/rebrand.mjs).
+This extension (`timestored.peachq`) is a fork of the KX extension (`KX.kdb`).
+Every public id differs: commands, settings, views, the notebook type, custom
+editors, language ids and product-name strings. One script owns those
+differences: [`tools/rebrand.mjs`](../../tools/rebrand.mjs).
 
 ## The script
 

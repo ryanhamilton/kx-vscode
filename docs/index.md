@@ -11,7 +11,7 @@ timestamp: 2026-07-10
 # peachq Extension Wiki
 
 This is the in-repo wiki for the
-[peachq VS Code extension](https://marketplace.visualstudio.com/items?itemName=peachq.peachq),
+[peachq VS Code extension](https://marketplace.visualstudio.com/items?itemName=timestored.peachq),
 covering developer and user notes.
 
 These pages follow the

@@ -23,6 +23,11 @@ const prose = (file: string) => read(file).replace(/\s+/g, " ");
 describe("Release", () => {
   const pkg = JSON.parse(read("package.json"));
 
+  it("is published by timestored as peachq", () => {
+    assert.strictEqual(pkg.publisher, "timestored");
+    assert.strictEqual(pkg.name, "peachq");
+  });
+
   it("is licensed Apache-2.0, as LICENSE and every header say", () => {
     assert.strictEqual(pkg.license, "Apache-2.0");
     assert.match(read("LICENSE"), /Apache License\s+Version 2\.0/);

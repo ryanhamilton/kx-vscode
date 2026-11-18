@@ -31,7 +31,7 @@ describe(KX ? "Beside the KX extension" : "Without the KX extension", () => {
   let wasActive = false;
 
   before(async () => {
-    const extension = vscode.extensions.getExtension("peachq.peachq");
+    const extension = vscode.extensions.getExtension("timestored.peachq");
     assert.ok(extension, "peachq is not installed in this window");
     wasActive = extension.isActive;
     if (KX) {
@@ -43,7 +43,7 @@ describe(KX ? "Beside the KX extension" : "Without the KX extension", () => {
 
   it("registers every command it contributes", async () => {
     const registered = new Set(await vscode.commands.getCommands(true));
-    const { commands } = vscode.extensions.getExtension("peachq.peachq")!
+    const { commands } = vscode.extensions.getExtension("timestored.peachq")!
       .packageJSON.contributes as { commands: { command: string }[] };
     assert.deepStrictEqual(
       commands.map((c) => c.command).filter((id) => !registered.has(id)),

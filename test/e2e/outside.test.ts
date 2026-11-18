@@ -46,7 +46,7 @@ function items() {
     .sort((a, b) => a.localeCompare(b))
     .map((label) => `REPL (${label})`);
 
-  const extension = vscode.extensions.getExtension("peachq.peachq")!;
+  const extension = vscode.extensions.getExtension("timestored.peachq")!;
   const bundled = path.join(
     extension.extensionPath,
     "bin",

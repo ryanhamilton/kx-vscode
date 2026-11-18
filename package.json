@@ -2,7 +2,7 @@
   "name": "peachq",
   "displayName": "peachq",
   "description": "q language support: run, chart and lint q against any kdb+ process, or with built-in peachq — no licence needed",
-  "publisher": "peachq",
+  "publisher": "timestored",
   "version": "1.30.0",
   "icon": "resources/images/peachq-logo.png",
   "repository": {

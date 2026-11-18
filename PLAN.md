@@ -1,6 +1,6 @@
 # Plan
 
-Open q extension (`peachq.peachq`), carved from the KX fork. Staged PRs into `dev`:
+Open q extension (`timestored.peachq`), carved from the KX fork. Staged PRs into `dev`:
 
 1. Telemetry and KX nags out, headless test runs — PR #1 (done, b282de2d)
 2. Rename to `peachq.peachq`, coexist with the KX extension, one-time import of KX settings and connections — PR #2 (done, ed41311c)

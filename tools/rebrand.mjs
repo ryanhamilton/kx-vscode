@@ -13,7 +13,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Renames the extension's public edges from KX.kdb to peachq.peachq.
+// Renames the extension's public edges from KX.kdb to timestored.peachq.
 // Run from anywhere: `node tools/rebrand.mjs` rewrites in place,
 // `--check` only reports and exits 1 if anything would change.
 // See docs/developer/upstream.md for the upstream merge workflow.
@@ -141,7 +141,7 @@ const alt = (list) => list.join("|");
 // `(?<![\w.$/-])` keeps file names such as `.kdb.q` and
 // `sample-kx-notebooks.md` and members such as `qserver.kdb` intact.
 export const RULES = [
-  [/(?<!itemName=)\bKX\.kdb(?![\w-])/g, "peachq.peachq"],
+  [/(?<!itemName=)\bKX\.kdb(?![\w-])/g, "timestored.peachq"],
   [
     new RegExp(
       `(?<![\\w.$/-])kdb(\\\\?)\\.(?=(?:${alt(NAMESPACES)})\\\\?\\.|(?:${alt(IDS)})(?!\\w))`,
@@ -178,7 +178,7 @@ const DEFER_WHEN = "!peachq.deferringToKx";
 export const METADATA = {
   name: "peachq",
   displayName: "peachq",
-  publisher: "peachq",
+  publisher: "timestored",
   description:
     "q language support: run, chart and lint q against any kdb+ process, or with built-in peachq — no licence needed",
   icon: "resources/images/peachq-logo.png",
