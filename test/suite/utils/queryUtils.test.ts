@@ -12,6 +12,7 @@
  */
 
 import * as assert from "assert";
+import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import * as sinon from "sinon";
 
@@ -787,6 +788,22 @@ describe("queryUtils", () => {
       );
       assert.deepStrictEqual(res, { ...jsonHeaders, timeout: "13" });
     });
+  });
+
+  it("names the whole-file command by its title", () => {
+    const manifest = JSON.parse(
+      readFileSync(
+        path.resolve(__dirname, "..", "..", "..", "..", "package.json"),
+        "utf8",
+      ),
+    );
+    const command = manifest.contributes.commands.find(
+      (each: { command: string }) =>
+        each.command === "peachq.execute.fileQuery",
+    );
+    assert.strictEqual(command.title, queryUtils.WHOLE_FILE_COMMAND);
+    assert.ok(queryUtils.SCRIPT_HINT.includes(command.title));
+    assert.ok(queryUtils.contextHint(".foo").includes(command.title));
   });
 
   describe("queryWrapper", () => {

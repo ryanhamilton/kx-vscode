@@ -26,17 +26,18 @@ npm install
 
 Run these with `npm run scriptName`
 
-| Script         | Description                                                                          |
-| :------------- | :----------------------------------------------------------------------------------- |
-| `update-deps`  | Update dependencies to latest patch version                                          |
-| `format`       | Format all `ts` files                                                                |
-| `lint`         | Lint all `ts` files                                                                  |
-| `package`      | Produce `vsix`                                                                       |
-| `test`         | Perform [Unit Tests](https://github.com/KxSystems/kx-vscode/tree/dev/test/suite)     |
-| `test:e2e`     | Perform [End to End Tests](https://github.com/KxSystems/kx-vscode/tree/dev/test/e2e) |
-| `coverage`     | Produce coverage reports                                                             |
-| `q-test`       | Perform [q Tests](../../test/q/qunit) on peachq                                      |
-| `gen:q-render` | Regenerate the [q value text fixture](../../test/fixtures/q-render) with peachq      |
+| Script         | Description                                                                               |
+| :------------- | :---------------------------------------------------------------------------------------- |
+| `update-deps`  | Update dependencies to latest patch version                                               |
+| `format`       | Format all `ts` files                                                                     |
+| `lint`         | Lint all `ts` files                                                                       |
+| `package`      | Produce `vsix`                                                                            |
+| `test`         | Perform [Unit Tests](https://github.com/KxSystems/kx-vscode/tree/dev/test/suite)          |
+| `test:e2e`     | Perform [End to End Tests](https://github.com/KxSystems/kx-vscode/tree/dev/test/e2e)      |
+| `coverage`     | Produce coverage reports                                                                  |
+| `q-test`       | Perform [q Tests](../../test/q/qunit) on peachq                                           |
+| `gen:q-render` | Regenerate the [q value text fixture](../../test/fixtures/q-render) with peachq           |
+| `test:l-diff`  | Compare `\l` with the whole-file command on peachq ([corpus](../../test/fixtures/l-diff)) |
 
 ## Debugging
 
@@ -240,9 +241,20 @@ which falls back to the bundled peachq.
 `PEACHQ_Q=<peachq binary> npm run test:e2e:peachq` runs
 `test/e2e/replPeachq.test.ts` in a window whose only q is that peachq, pinning
 the REPL contract as qdocs documents kdb: exact output, errors that leave the
-next query running, multi-line cells and the fatal timestamped exit. Rows
-peachq breaks are skipped, each with its `NOTES-FOR-PEACHQ.md` line. Without
-`PEACHQ_Q` the suite skips itself. CI runs it on the pinned peachq.
+next query running, multi-line cells and the fatal timestamped exit. Rows peachq
+breaks are skipped, each with its `NOTES-FOR-PEACHQ.md` line. Without `PEACHQ_Q`
+the suite skips itself. CI runs it on the pinned peachq.
+
+`PEACHQ_Q=<peachq binary> npm run test:l-diff` runs `test/e2e/lDiff.test.ts`:
+each script in its corpus (repo fixtures, `test/fixtures/l-diff/suspects`, and
+third-party scripts under `test/fixtures/l-diff/third-party` with their sources
+and licences) is loaded with `\l` in one fresh peachq `-classic` and sent by the
+whole-file command's own `runScript` to another, over IPC. Every name outside
+`.q .Q .h .z .o .j .m .pq .help .axq`, the printed output, the first error and
+its line, and the final `\d` are compared, and the differences must match
+`test/fixtures/l-diff/expected.tsv`, whose last column names each one's cause.
+`L_DIFF_WRITE=1` rewrites the table, keeping the causes of rows it still finds
+(`?` for new ones). CI runs it on the pinned peachq.
 
 ## Restart Extension Host
 

@@ -34,6 +34,13 @@ history: https://github.com/KxSystems/kx-vscode/blob/main/CHANGELOG.md
   typed, and keeps the answer with the connection (Namespaced runs). The status
   bar and the **Run on** lens name the connection or REPL an unassigned file
   runs on.
+- **Execute Entire File** on a q file is now **Execute Whole File as if loaded
+  with \l**: it always sends the file through upstream's evaluate lambda,
+  unmodified (or the `.vscode` API), in the file's namespace and without asking,
+  except on a `naked` connection. Run the whole file the default way by
+  selecting it all. `npm run test:l-diff` compares it with `\l` on peachq over
+  48 scripts; the differences are listed in the reference card. The hints after
+  a failed multi-line or namespaced run name the command.
 - Every peachq the extension starts runs with `peachq.peachqArgs`, by default
   `-classic`.
 - The REPL starts q in quiet mode (`-q`), so piped input is not echoed back with

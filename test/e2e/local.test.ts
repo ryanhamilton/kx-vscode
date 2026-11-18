@@ -427,7 +427,7 @@ describe("Executing on a kdb+ connection", () => {
       await focus(PLAIN_FILE);
 
       plain.clear();
-      await vscode.commands.executeCommand("peachq.execute.fileQuery");
+      await vscode.commands.executeCommand("peachq.execute.selectedQuery");
       const sent = () =>
         plain.requests.filter((request) => request.fn.includes("PLAIN_KDB"));
       await until(() => sent().length > 0, "the query to arrive");
@@ -443,7 +443,7 @@ describe("Executing on a kdb+ connection", () => {
       await focus(PLAIN_FILE);
 
       plain.clear();
-      await vscode.commands.executeCommand("peachq.execute.fileQuery");
+      await vscode.commands.executeCommand("peachq.execute.selectedQuery");
       await until(() => plain.queries().length > 0, "the query to arrive");
 
       const [query] = plain.queries();
@@ -642,7 +642,7 @@ describe("Executing on a kdb+ connection", () => {
 
       const before = printed(await terminalText(CONSOLE));
       kdb.clear();
-      await vscode.commands.executeCommand("peachq.execute.fileQuery");
+      await vscode.commands.executeCommand("peachq.execute.selectedQuery");
 
       assert.strictEqual(kdb.queries()[0].args?.returnFormat, "text");
       await untilPrinted(before + 1);
@@ -654,7 +654,7 @@ describe("Executing on a kdb+ connection", () => {
 
       const before = printed(await terminalText(CONSOLE));
       kdb.clear();
-      await vscode.commands.executeCommand("peachq.execute.fileQuery");
+      await vscode.commands.executeCommand("peachq.execute.selectedQuery");
 
       assert.strictEqual(kdb.queries()[0].args?.returnFormat, "structuredText");
       await untilPrinted(before + 1);

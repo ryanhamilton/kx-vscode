@@ -949,6 +949,7 @@ export async function executeQuery(
   timeout?: number,
   requestID?: string,
   rowLimit?: RowLimit,
+  asScript = false,
 ): Promise<any> {
   const connMngService = new ConnectionManagementService();
   const queryConsole = ExecutionConsole.start();
@@ -994,12 +995,14 @@ export async function executeQuery(
   const isStringfy = isNotebook ? false : !gridEnabled();
   const isEditorRun =
     selectedConn instanceof LocalConnection && !isPython && !isNotebook;
-  if (isEditorRun && selectedConn.asksAboutNamespace(context)) {
+  if (isEditorRun && !asScript && selectedConn.asksAboutNamespace(context)) {
     await askAboutNamespace(selectedConn, context);
   }
   const startTime = Date.now();
   const results = isEditorRun
-    ? await selectedConn.runQuery(query, context, isStringfy)
+    ? await (asScript
+        ? selectedConn.runScript(query, context)
+        : selectedConn.runQuery(query, context, isStringfy))
     : await connMngService.executeQuery(
         query,
         connLabel,
@@ -1192,6 +1195,7 @@ export async function runQuery(
   isInsights?: boolean,
   timeout?: number,
   cancel?: () => void,
+  asScript?: boolean,
 ) {
   const editor = ext.activeTextEditor;
   if (!editor) {
@@ -1274,6 +1278,9 @@ export async function runQuery(
           false,
           token,
           timeout,
+          undefined,
+          undefined,
+          asScript && !isSql,
         );
   });
 

@@ -1,0 +1,23 @@
+script	aspect	loaded with \l	whole-file command	cause
+test/e2e/workspace/main.q	printed	20700f\n\"NOTIONAL\"\n`AAPL\n		earlier values: \l prints every expression's value, the command only the last
+test/e2e/workspace/main.q	error		file at line 29	exit after a block comment: the lambda runs on past a lone \ that follows a closed block comment
+test/e2e/workspace/lang.q	printed	7f\n		last value: \l prints it, the command shows it as its result
+test/e2e/workspace/plain.q	printed	\"PLAIN_KDB\"\n		last value: \l prints it, the command shows it as its result
+test/e2e/workspace/active.q	printed	\"ACTIVE_TARGET\"\n		last value: \l prints it, the command shows it as its result
+test/e2e/workspace/pinned.q	printed	\"PINNED_REPL\"\n		last value: \l prints it, the command shows it as its result
+test/e2e/workspace/folderA/a.q	printed	\"FOLDER_A\"\n		last value: \l prints it, the command shows it as its result
+test/e2e/workspace/folderB/b.q	printed	\"FOLDER_B\"\n		last value: \l prints it, the command shows it as its result
+test/fixtures/l-diff/suspects/context-after-error.q	ctx	.foo	.	context after an error: \l stays in the failed script's \d, the lambda restores it
+test/fixtures/l-diff/suspects/exit-after-block.q	state b	<absent>	2	exit after a block comment: the lambda runs on past a lone \ that follows a closed block comment
+test/fixtures/l-diff/suspects/function-comment-lines.q	state f	{[x]\\n  / comment line inside\\n  x+1 / trailing\\n  }	{[x]\\n  \\n  x+1 \\n  }	comments in a function body: the lambda drops them from the function's source text
+test/fixtures/l-diff/suspects/last-value.q	printed	a\n-\n1\n2\n		last value: \l prints it, the command shows it as its result
+test/fixtures/l-diff/suspects/namespace-script.q	printed	a b\n---\n1 3\n2 5\n3 7\n		last value: \l prints it, the command shows it as its result
+test/fixtures/l-diff/suspects/prints.q	printed	2\n3\nhi\n1 2 3\n	hi\n1 2 3\n	earlier values: \l prints every expression's value, the command only the last
+test/fixtures/l-diff/third-party/TorQ-Finance-Starter-Pack/appconfig/settings/rdb.q	ctx	.rdb	.	context after an error: \l stays in the failed script's \d, the lambda restores it
+test/fixtures/l-diff/third-party/qspec/lib/mock.q	state .tst.mock	{[name;newVal];\\n name:$[$[1 = c:count vn:` vs name;1b;not null first vn];\\n  / Create fully qualified name if given a local one\\n  ` sv .tst.context,name;\\	{[name;newVal];\\n name:$[$[1 = c:count vn:` vs name;1b;not null first vn];\\n  \\n  ` sv .tst.context,name;\\n  (2 = c) and ` ~ first vn;\\n  '\"Can't mock top	comments in a function body: the lambda drops them from the function's source text
+test/fixtures/l-diff/third-party/qspec/lib/mock.q	state .tst.restore	{\\n / Restore all fully qualified symbols\\n (set') . (key;value) @\\: 1 _ store;\\n `.tst.store set initStore;\\n / Drop each fully qualified symbol from its 	{\\n \\n (set') . (key;value) @\\: 1 _ store;\\n `.tst.store set initStore;\\n \\n if[count removeList;(.[;();_;]') . flip ((` sv -1 _;last) @\\: ` vs) each rem	comments in a function body: the lambda drops them from the function's source text
+test/fixtures/l-diff/third-party/rayforce-qlib/path.q	state .path.i.body	{[p]\\n    t:$[-11h=type p; string p; -10h=type p; enlist p; 10h=type p; p; '`type];\\n    t:$[\":\"~first t; 1_t; t];\\n    / \"pq:\" and not a bare \"pq\": a 	{[p]\\n    t:$[-11h=type p; string p; -10h=type p; enlist p; 10h=type p; p; '`type];\\n    t:$[\":\"~first t; 1_t; t];\\n    \\n    \\n    if[\"pq:\"~3 sublist 	comments in a function body: the lambda drops them from the function's source text
+test/fixtures/l-diff/third-party/rayforce-qlib/path.q	state .path.join	{[parts]\\n    if[not .path.i.many parts; '`type];\\n    if[0=count parts; '`length];\\n    / one component is just conversion - trimming its trailing slash wou	{[parts]\\n    if[not .path.i.many parts; '`type];\\n    if[0=count parts; '`length];\\n    \\n    if[1=count parts; :.path.path first parts];\\n    rs:{$[(0<co	comments in a function body: the lambda drops them from the function's source text
+test/fixtures/l-diff/third-party/reQ/req/json.q	ctx	.j	.	context after an error: \l stays in the failed script's \d, the lambda restores it
+test/fixtures/l-diff/third-party/studyq/euler/03.q	printed	6857\n		last value: \l prints it, the command shows it as its result
+test/fixtures/l-diff/third-party/studyq/euler/06.q	printed	25164150\n25164150\n		earlier values: \l prints every expression's value, the command only the last

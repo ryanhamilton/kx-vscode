@@ -1025,7 +1025,7 @@ function registerExecuteCommands(): CommandRegistration[] {
     {
       command: "peachq.execute.fileQuery",
       callback: async () => {
-        await runActiveEditor(ExecutionTypes.QueryFile);
+        await runActiveEditor(ExecutionTypes.QueryFile, true);
       },
     },
   ];

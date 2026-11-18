@@ -30,14 +30,16 @@ import {
 import { ensure, labelOf } from "./utils/connection";
 import { answer, clear, raised } from "./utils/prompt";
 import { qstudioWrap } from "../../src/q/reply";
+import { queryWrapper, sanitizeQuery } from "../../src/utils/queryUtils";
 
 // Run by `npm run test:e2e:peachq` against real peachq servers PEACHQ_Q starts,
 // each logging every message its .z.pg is handed: text apart from calls, as
-// peachq nests `log,:enlist x` wrongly once log holds a list (NOTES-FOR-PEACHQ).
+// peachq nests `log,:enlist x` wrongly once log holds a list (NOTES-FOR-PEACHQ),
+// and the last call of the evaluate lambda whole.
 const REPO = path.resolve(__dirname, "..", "..", "..");
 const TABLE = "([]a:1 2 3;b:`x`y`z)";
 const LOGGED =
-  ".z.pg:{$[10h=type x; .e2e.text,:enlist x; .e2e.calls,:enlist first x]; value x}";
+  '.z.pg:{$[10h=type x; .e2e.text,:enlist x; [.e2e.calls,:enlist first x; if["{[args]"~7#first x; .e2e.lambda:x]]]; value x}';
 
 const server = (alias: string, port: number, queryMode?: string) => ({
   serverName: "127.0.0.1",
@@ -144,15 +146,15 @@ async function exportedGrid() {
   return text.split("\n");
 }
 
-async function run(uri: vscode.Uri, alias: string, line?: string) {
+async function run(
+  uri: vscode.Uri,
+  alias: string,
+  line?: string,
+  command = "peachq.execute.selectedQuery",
+) {
   const before = (await terminalText(`peachq ${alias}`)).length;
-  if (line) {
-    await caretAt(uri, line);
-    await vscode.commands.executeCommand("peachq.execute.selectedQuery");
-  } else {
-    await focus(uri);
-    await vscode.commands.executeCommand("peachq.execute.fileQuery");
-  }
+  await (line ? caretAt(uri, line) : focus(uri));
+  await vscode.commands.executeCommand(command);
   let shown = "";
   await until(async () => {
     shown = (await terminalText(`peachq ${alias}`)).slice(before);
@@ -242,6 +244,61 @@ describe("Running a query on peachq", function () {
       "index,a,b",
       "0,1,`x",
     ]);
+  });
+
+  describe("the whole-file command", () => {
+    const SCRIPT = [
+      "\\d .foo",
+      "f:{[x]",
+      "  y:x*2;",
+      "  y+1}",
+      "/",
+      "a block comment",
+      "\\",
+      "\\c 25 80",
+      "([]a:1 2 3;b:f 1 2 3)",
+      "",
+    ].join("\n");
+    const lambda = () =>
+      queryWrapper(false, false, fs, {
+        asAbsolutePath: (relative: string) => path.join(REPO, relative),
+      } as vscode.ExtensionContext);
+
+    it("sends KX's lambda unmodified, as a script in the file's namespace", async () => {
+      clear();
+      const uri = await queryFile("script.q", SCRIPT, PLAIN.serverAlias);
+      const shown = await run(
+        uri,
+        PLAIN.serverAlias,
+        undefined,
+        "peachq.execute.fileQuery",
+      );
+
+      const [text, args] = await valueOn<[string, Record<string, unknown>]>(
+        25110,
+        ".e2e.lambda",
+      );
+      assert.strictEqual(text, lambda());
+      assert.strictEqual(args.ctx, ".foo");
+      assert.strictEqual(args.code, sanitizeQuery(SCRIPT));
+      assert.strictEqual(args.returnFormat, "structuredText");
+      assert.strictEqual(await valueOn<number>(25110, ".foo.f 1"), 3);
+      assert.deepStrictEqual(raised(ASKED), []);
+      assert.ok(/a\s+b\s*\r?\n-+\s*\r?\n1\s+3/.test(shown), shown);
+      assert.deepStrictEqual((await exportedGrid()).slice(0, 2), [
+        "index,a,b",
+        "0,1,3",
+      ]);
+    });
+
+    it("leaves a default run of the same text to qStudio's wrapper", async () => {
+      const uri = await queryFile("script.q", SCRIPT, PLAIN.serverAlias);
+      await run(uri, PLAIN.serverAlias);
+
+      assert.deepStrictEqual(await sentTexts(25110, "y:x*2"), [
+        qstudioWrap(SCRIPT),
+      ]);
+    });
   });
 
   describe("from code under \\d .foo", () => {
