@@ -1,0 +1,16 @@
+/ expr<TAB>column<TAB>kdb text from qdocs (\\ \t \n \r escaped)<TAB>qdocs page:line and the NOTES-FOR-PEACHQ.md line
+enlist (::)	console	::\n	qdocs ref/identity.md:80; NOTES-FOR-PEACHQ.md enlist (::)
+enlist (::)	consoleSmall	::\n	qdocs ref/identity.md:80; NOTES-FOR-PEACHQ.md enlist (::)
+((7 8;9 10 11);(13;15 16))	console	7 8 9 10 11\n13  15 16\n	qdocs basics/atomic.md:93; NOTES-FOR-PEACHQ.md matrix of general lists
+(011b;(1b;10b;0b))	console	0  1   1\n1b 10b 0b\n	qdocs basics/implicit-iteration.md:117; NOTES-FOR-PEACHQ.md matrix of general lists
+((1;1 1);(9;9 9);(9;9 9);(5;6 7))	console	1 1 1\n9 9 9\n9 9 9\n5 6 7\n	qdocs ref/vs.md:197; NOTES-FOR-PEACHQ.md matrix of general lists
+((7 8;9 10 11);(13;15 16))	consoleSmall	7 8 9 10 11\n13  15 16\n	qdocs basics/atomic.md:93; NOTES-FOR-PEACHQ.md matrix of general lists
+(011b;(1b;10b;0b))	consoleSmall	0  1   1\n1b 10b 0b\n	qdocs basics/implicit-iteration.md:117; NOTES-FOR-PEACHQ.md matrix of general lists
+((1;1 1);(9;9 9);(9;9 9);(5;6 7))	consoleSmall	1 1 1\n9 9 9\n9 9 9\n5 6 7\n	qdocs ref/vs.md:197; NOTES-FOR-PEACHQ.md matrix of general lists
+((1 2;3);4 5)	console	1 2 3\n4   5\n	qdocs rule of basics/atomic.md:93 (a row mixing atoms and lists aligns); NOTES-FOR-PEACHQ.md matrix of general lists
+((1 2;3);4 5)	consoleSmall	1 2 3\n4   5\n	qdocs rule of basics/atomic.md:93 (a row mixing atoms and lists aligns); NOTES-FOR-PEACHQ.md matrix of general lists
+enlist (::)	consoleWide	::\n	qdocs ref/identity.md:80; NOTES-FOR-PEACHQ.md enlist (::)
+((7 8;9 10 11);(13;15 16))	consoleWide	7 8 9 10 11\n13  15 16\n	qdocs basics/atomic.md:93; NOTES-FOR-PEACHQ.md matrix of general lists
+(011b;(1b;10b;0b))	consoleWide	0  1   1\n1b 10b 0b\n	qdocs basics/implicit-iteration.md:117; NOTES-FOR-PEACHQ.md matrix of general lists
+((1;1 1);(9;9 9);(9;9 9);(5;6 7))	consoleWide	1 1 1\n9 9 9\n9 9 9\n5 6 7\n	qdocs ref/vs.md:197; NOTES-FOR-PEACHQ.md matrix of general lists
+((1 2;3);4 5)	consoleWide	1 2 3\n4   5\n	qdocs rule of basics/atomic.md:93 (a row mixing atoms and lists aligns); NOTES-FOR-PEACHQ.md matrix of general lists

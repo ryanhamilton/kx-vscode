@@ -26,16 +26,17 @@ npm install
 
 Run these with `npm run scriptName`
 
-| Script        | Description                                                                          |
-| :------------ | :----------------------------------------------------------------------------------- |
-| `update-deps` | Update dependencies to latest patch version                                          |
-| `format`      | Format all `ts` files                                                                |
-| `lint`        | Lint all `ts` files                                                                  |
-| `package`     | Produce `vsix`                                                                       |
-| `test`        | Perform [Unit Tests](https://github.com/KxSystems/kx-vscode/tree/dev/test/suite)     |
-| `test:e2e`    | Perform [End to End Tests](https://github.com/KxSystems/kx-vscode/tree/dev/test/e2e) |
-| `coverage`    | Produce coverage reports                                                             |
-| `q-test`      | Perform [q Tests](../../test/q/qunit) on peachq                                      |
+| Script         | Description                                                                          |
+| :------------- | :----------------------------------------------------------------------------------- |
+| `update-deps`  | Update dependencies to latest patch version                                          |
+| `format`       | Format all `ts` files                                                                |
+| `lint`         | Lint all `ts` files                                                                  |
+| `package`      | Produce `vsix`                                                                       |
+| `test`         | Perform [Unit Tests](https://github.com/KxSystems/kx-vscode/tree/dev/test/suite)     |
+| `test:e2e`     | Perform [End to End Tests](https://github.com/KxSystems/kx-vscode/tree/dev/test/e2e) |
+| `coverage`     | Produce coverage reports                                                             |
+| `q-test`       | Perform [q Tests](../../test/q/qunit) on peachq                                      |
+| `gen:q-render` | Regenerate the [q value text fixture](../../test/fixtures/q-render) with peachq      |
 
 ## Debugging
 
@@ -187,6 +188,19 @@ peachq notes. Expected values are never changed to match peachq.
 fail.
 
 `test/q/tests/evaluatePy.quke` is not run: its checks need PyKX.
+
+## q value text
+
+`src/q/` decodes q IPC bytes into typed values (`decode.ts`) and prints them as
+q does (`text.ts`): `toConsole` is `.Q.s` under `\c`, `toOneLine` is `.Q.s1`,
+`toCell` and `toCells` are a cell of q's own table display. The oracle is peachq
+`-classic`: `npm run gen:q-render` runs
+[tools/q-render-gen.q](../../tools/q-render-gen.q) over
+`test/fixtures/q-render/corpus.txt` and writes `expected.tsv` (each row's `-8!`
+bytes and texts) and `compressed.tsv`. `test/suite/q/text.test.ts` renders every
+row; CI regenerates the fixture with the pinned peachq and fails on any
+difference. Where peachq differs from documented kdb, `qdocs.tsv` replaces the
+text with the qdocs one, citing the page and the peachq notes line.
 
 ## Python and matplotlib
 

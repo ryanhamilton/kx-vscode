@@ -131,6 +131,11 @@ jobs:
       - run: npm run q-test
       - name: A failing qunit file makes the runner exit non-zero
         run: '! "$PEACHQ_Q" test/q/run.q test/q/qunit-fixture -classic < /dev/null'
+      - name: The q render fixture is what the pinned peachq prints
+        run: |
+          npm run gen:q-render
+          git diff --exit-code test/fixtures/q-render
+          test -z "$(git status --porcelain test/fixtures/q-render)"
 
   manual-test-smoke:
     name: Manual-test walkthrough (headless, peachq)
