@@ -135,7 +135,12 @@ import {
   showDeferStatus,
 } from "./utils/kxCompat";
 import { MessageKind, notify, Runner } from "./utils/notifications";
-import { qlintActive, startQlint, stopQlint } from "./utils/qlint";
+import {
+  qlintActive,
+  qlintProvides,
+  startQlint,
+  stopQlint,
+} from "./utils/qlint";
 import AuthSettings from "./utils/secretStorage";
 import { ExtensionTelemetry } from "./utils/telemetryClient";
 import { addWorkspaceFile, openWith, setUriContent } from "./utils/workspace";
@@ -377,9 +382,25 @@ export async function activate(context: vscode.ExtensionContext) {
         true,
       ),
     },
+    // Where qlint answers, the built-in server stays quiet so nothing shows
+    // twice; rename, call hierarchy, folding and semantic tokens stay here.
     middleware: {
       handleDiagnostics: (uri, diagnostics, next) =>
         next(uri, qlintActive() ? [] : diagnostics),
+      provideDocumentSymbols: (document, token, next) =>
+        qlintProvides("documentSymbolProvider") ? [] : next(document, token),
+      provideDefinition: (document, position, token, next) =>
+        qlintProvides("definitionProvider")
+          ? []
+          : next(document, position, token),
+      provideReferences: (document, position, options, token, next) =>
+        qlintProvides("referencesProvider")
+          ? []
+          : next(document, position, options, token),
+      provideCompletionItem: (document, position, context, token, next) =>
+        qlintProvides("completionProvider")
+          ? []
+          : next(document, position, context, token),
     },
   };
 

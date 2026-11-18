@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998-2026 KX Systems Inc.
+ * Copyright (c) 2026 peachq contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the
  * License. You may obtain a copy of the License at
@@ -17,6 +17,7 @@ import {
   LanguageClient,
   LanguageClientOptions,
   RevealOutputChannelOn,
+  ServerCapabilities,
   ServerOptions,
   TransportKind,
 } from "vscode-languageclient/node";
@@ -30,6 +31,9 @@ const PROBE_TIMEOUT = 3000;
 let client: LanguageClient | undefined;
 
 export const qlintActive = () => client?.isRunning() ?? false;
+
+export const qlintProvides = (capability: keyof ServerCapabilities) =>
+  qlintActive() && !!client?.initializeResult?.capabilities[capability];
 
 // Never the user's QHOME or PATH q: that may be KX q, which has no -lsp.
 export function lintQ(

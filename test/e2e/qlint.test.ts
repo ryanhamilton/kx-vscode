@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1998-2026 KX Systems Inc.
+ * Copyright (c) 2026 peachq contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the
  * License. You may obtain a copy of the License at
@@ -279,5 +279,182 @@ describe("qlint diagnostics from q -lsp", function () {
       vscode.ConfigurationTarget.Workspace,
     );
     await next(uri, (all) => all.length === 1);
+  });
+});
+
+const SOURCE = [
+  "/ adds two",
+  "/ @param x first",
+  "/ @param y second",
+  "addtwo:{[x;y] x+y}",
+  "\\d .ns",
+  "g:{x}",
+  "\\d .",
+  "t:([] a:1 2)",
+  "h:addtwo[1;2]",
+  ".ns.g 3",
+  "p:addtwo[1",
+  "",
+].join("\n");
+
+function advertises(capability: string) {
+  const reply = spawnSync(BINARY, ["-lsp"], {
+    input: `Content-Length: ${INIT.length}\r\n\r\n${INIT}`,
+    timeout: 3000,
+  });
+  return `${reply.stdout}`.includes(`"${capability}"`);
+}
+
+const at = <T>(command: string, uri: vscode.Uri, line: number, ch: number) =>
+  vscode.commands.executeCommand<T>(
+    command,
+    uri,
+    new vscode.Position(line, ch),
+  );
+
+describe("qlint language features from q -lsp", function () {
+  let source: vscode.Uri;
+  let user: vscode.Uri;
+
+  before(async function () {
+    if (!fs.existsSync(BINARY) || !advertises("hoverProvider")) {
+      this.skip();
+    }
+    await activate();
+    source = write("v2/lib.q", SOURCE);
+    user = write("v2/use.q", "r:addtwo[3;4]\nw:.ns.g 5\n");
+    await open(user);
+    await next(user, () => true);
+  });
+
+  after(async () => {
+    await vscode.commands.executeCommand("workbench.action.closeAllEditors");
+    await vscode.workspace
+      .getConfiguration("peachq.lint")
+      .update("enabled", undefined, vscode.ConfigurationTarget.Workspace);
+  });
+
+  it("outlines namespaces, functions and tables, once each", async () => {
+    await open(source);
+    const symbols = await vscode.commands.executeCommand<
+      vscode.DocumentSymbol[]
+    >("vscode.executeDocumentSymbolProvider", source);
+    const outline = symbols.map(
+      (item) =>
+        `${item.name}:${vscode.SymbolKind[item.kind]}` +
+        item.children.map((child) => `/${child.name}`).join(""),
+    );
+
+    assert.deepStrictEqual(outline.sort(), [
+      ".ns:Namespace/g",
+      "addtwo:Function",
+      "h:Variable",
+      "t:Struct",
+    ]);
+  });
+
+  it("hovers a call with the function's signature and qdoc", async () => {
+    const hovers = await at<vscode.Hover[]>(
+      "vscode.executeHoverProvider",
+      source,
+      8,
+      2,
+    );
+    const text = hovers
+      .flatMap((hover) => hover.contents)
+      .map((part) => (typeof part === "string" ? part : part.value))
+      .join("\n");
+
+    assert.strictEqual(hovers.length, 1);
+    assert.match(text, /addtwo\[x; y\]/);
+    assert.match(text, /adds two/);
+  });
+
+  it("goes to a definition in another file, from one place only", async () => {
+    const found = await at<vscode.Location[]>(
+      "vscode.executeDefinitionProvider",
+      user,
+      0,
+      2,
+    );
+
+    assert.deepStrictEqual(
+      found.map((item) => [path.basename(item.uri.fsPath), item.range.start]),
+      [["lib.q", new vscode.Position(3, 0)]],
+    );
+  });
+
+  it("finds references across files without duplicates", async () => {
+    const found = await at<vscode.Location[]>(
+      "vscode.executeReferenceProvider",
+      source,
+      3,
+      0,
+    );
+    const places = found.map(
+      (item) => `${path.basename(item.uri.fsPath)}:${item.range.start.line}`,
+    );
+
+    assert.deepStrictEqual(places.sort(), [
+      "lib.q:10",
+      "lib.q:3",
+      "lib.q:8",
+      "use.q:0",
+    ]);
+  });
+
+  it("shows signature help inside a call", async () => {
+    const help = await vscode.commands.executeCommand<vscode.SignatureHelp>(
+      "vscode.executeSignatureHelpProvider",
+      source,
+      new vscode.Position(10, 10),
+      "[",
+    );
+
+    assert.strictEqual(help?.signatures[0].label, "addtwo[x; y]");
+    assert.deepStrictEqual(
+      help.signatures[0].parameters.map((item) => item.label),
+      ["x", "y"],
+    );
+  });
+
+  it("completes namespace members after a dot, once each", async () => {
+    const list = await vscode.commands.executeCommand<vscode.CompletionList>(
+      "vscode.executeCompletionItemProvider",
+      source,
+      new vscode.Position(9, 4),
+      ".",
+    );
+    const labels = list.items.map((item) =>
+      typeof item.label === "string" ? item.label : item.label.label,
+    );
+
+    assert.ok(labels.includes(".ns.g"), labels.join(" "));
+    assert.strictEqual(new Set(labels).size, labels.length);
+  });
+
+  it("hands navigation back to the built-in server when qlint is off", async () => {
+    await vscode.workspace
+      .getConfiguration("peachq.lint")
+      .update("enabled", false, vscode.ConfigurationTarget.Workspace);
+    for (let attempt = 0; attempt < 100 && serverPid(); attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+
+    const found = await at<vscode.Location[]>(
+      "vscode.executeReferenceProvider",
+      source,
+      3,
+      0,
+    );
+    const hovers = await at<vscode.Hover[]>(
+      "vscode.executeHoverProvider",
+      source,
+      8,
+      2,
+    );
+
+    assert.ok(found.length > 0);
+    assert.strictEqual(hovers.length, 0);
   });
 });
