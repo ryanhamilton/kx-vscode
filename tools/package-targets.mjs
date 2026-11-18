@@ -21,17 +21,27 @@ import { spawnSync } from "node:child_process";
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { inflateRawSync } from "node:zlib";
 
 import { ASSETS, binaryName, fetchTarget } from "./fetch-peachq.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
-const { name, version } = JSON.parse(
+const { name, publisher, version } = JSON.parse(
   readFileSync(join(ROOT, "package.json"), "utf8"),
 );
 const ignore = readFileSync(join(ROOT, ".vscodeignore"), "utf8");
 
-// The vsix is a zip: read its central directory for names and unix modes.
+function readEntry(zip, central) {
+  const local = zip.readUInt32LE(central + 42);
+  const start =
+    local + 30 + zip.readUInt16LE(local + 26) + zip.readUInt16LE(local + 28);
+  const data = zip.subarray(start, start + zip.readUInt32LE(central + 20));
+  return zip.readUInt16LE(central + 10) === 8 ? inflateRawSync(data) : data;
+}
+
+// The vsix is a zip: read its central directory for names, unix modes and
+// a reader for each entry's data.
 function listVsix(file) {
   const zip = readFileSync(file);
   let end = zip.length - 22;
@@ -44,10 +54,30 @@ function listVsix(file) {
     const extra = zip.readUInt16LE(at + 30);
     const comment = zip.readUInt16LE(at + 32);
     const mode = zip.readUInt32LE(at + 38) >>> 16;
-    entries.set(zip.toString("utf8", at + 46, at + 46 + nameLength), mode);
+    entries.set(zip.toString("utf8", at + 46, at + 46 + nameLength), {
+      mode,
+      read: readEntry.bind(null, zip, at),
+    });
     at += 46 + nameLength + extra + comment;
   }
   return entries;
+}
+
+function checkIdentity(file, entries, target) {
+  const manifest = entries.get("extension.vsixmanifest")?.read().toString();
+  const identity = manifest?.match(/<Identity [^>]*>/)?.[0] ?? "";
+  const want = {
+    Id: name,
+    Version: version,
+    Publisher: publisher,
+    TargetPlatform: target,
+  };
+  for (const [key, value] of Object.entries(want)) {
+    const actual = identity.match(new RegExp(` ${key}="([^"]*)"`))?.[1];
+    if (actual !== value) {
+      throw new Error(`${file}: manifest ${key} is ${actual}, not ${value}`);
+    }
+  }
 }
 
 function vsce(out, target) {
@@ -72,6 +102,7 @@ function check(file, target) {
   if (!entries.has("extension/NOTICE")) {
     throw new Error(`${file} does not carry NOTICE`);
   }
+  checkIdentity(file, entries, target);
   const bundled = [...entries.keys()].filter((entry) =>
     entry.startsWith("extension/bin/"),
   );
@@ -92,7 +123,7 @@ function check(file, target) {
       `${file}: missing [${missing.join(", ")}], unexpected [${stray.join(", ")}]`,
     );
   }
-  const mode = entries.get(dir + binaryName(target));
+  const { mode } = entries.get(dir + binaryName(target));
   if (!target.startsWith("win32-") && !(mode & 0o111)) {
     throw new Error(`${file}: ${dir}q is not executable (mode ${mode})`);
   }
