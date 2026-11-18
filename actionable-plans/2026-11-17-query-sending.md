@@ -57,7 +57,7 @@ size cap, returns `(sizeOK; typed value; .Q.s text)`. Optional in qStudio (`quer
 | `\` commands via `value` | documented: `value"\\t do[…]"` (qdocs kb/performance-tips.md:84) | works |
 | multi-line text via `value` | qdocs defines multi-line only for scripts (basics/syntax.md:680; learn/tour/session.md:43–46 "no way in the session…") | **open** — owner's qStudio experience, then probe |
 | `.Q.s` on peachq | matches kdb for tables, dicts, floats with nulls/infinities, lambdas; same with/without `-classic` | works, except: |
-| char data inside general lists/dicts on peachq | `show (1 2;"hi")` → `h i`; kdb quotes (qdocs basics/internal.md:520) | peachq defect, in NOTES-FOR-PEACHQ.md |
+| char data inside general lists/dicts on peachq | first thought a defect; retracted 2026-11-18 — qdocs shows kdb prints `` `a`b!(1 2 3;"xyz") `` as `b\| x y z` (ref/reverse.md:27–30) | matches kdb |
 | peachq `-classic` | a plain flag (rayforce user-docs/cmdline.md:75); `-classic 1` puts `"1"` in `.z.x` | use `-classic` |
 | detecting peachq features | `` key `.pq `` AUTOLOADS `.pq` (missing-name read; rayforce docs/help-architecture.md:16); `` key ` `` does not | never probe by reading a `.pq` name |
 | KX's `.vscode` probe on peachq | `.vscode.getManifest` is a missing-name read, so a peachq `vscode.q` library would autoload on it | option kept for later (below) |
