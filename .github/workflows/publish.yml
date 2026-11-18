@@ -163,3 +163,4 @@ jobs:
           for file in dist/*.vsix; do
             npx ovsx publish "$file" --trusted-publishing --skip-duplicate
           done
+# Modified by peachq contributors; see NOTICE.
