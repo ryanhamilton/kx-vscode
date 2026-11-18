@@ -334,7 +334,7 @@ export function isStructuredResult(
 export const WHOLE_FILE_COMMAND =
   "peachq: Execute Whole File as if loaded with \\l";
 
-export const SCRIPT_HINT = `Hint: this ran as one q expression, not as a script. To run the file as a script use "${WHOLE_FILE_COMMAND}", or set the connection's Query mode to vscode-wrap. Report a problem: https://github.com/ryanhamilton/kx-vscode/issues/new`;
+export const SCRIPT_HINT = `Hint: this ran as one q expression, not as a script. To run the file as a script use "${WHOLE_FILE_COMMAND}", or set the connection's Query mode to vscode-wrap. Report a problem: https://github.com/timestored/vscode-peachq/issues/new`;
 
 export function contextHint(context: string): string {
   return `Hint: this ran in the root namespace, not ${context}. To run the file in its namespace use "${WHOLE_FILE_COMMAND}", or set Namespaced runs to file-namespace in the connection form. Running \\d or system "d …" this way changes the server's namespace for every later query.`;

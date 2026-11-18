@@ -137,9 +137,9 @@ export namespace ext {
 
   export const urlLinks = {
     suggestFeature:
-      "https://github.com/ryanhamilton/kx-vscode/issues/new?labels=enhancement",
+      "https://github.com/timestored/vscode-peachq/issues/new?labels=enhancement",
     reportBug:
-      "https://github.com/ryanhamilton/kx-vscode/issues/new?labels=bug",
+      "https://github.com/timestored/vscode-peachq/issues/new?labels=bug",
   };
 
   export const kdbLicName = "kc.lic";

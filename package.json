@@ -7,7 +7,7 @@
   "icon": "resources/images/peachq-logo.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ryanhamilton/kx-vscode.git"
+    "url": "https://github.com/timestored/vscode-peachq.git"
   },
   "capabilities": {
     "untrustedWorkspaces": {
@@ -1441,9 +1441,9 @@
   },
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/ryanhamilton/kx-vscode/issues"
+    "url": "https://github.com/timestored/vscode-peachq/issues"
   },
-  "homepage": "https://github.com/ryanhamilton/kx-vscode",
+  "homepage": "https://github.com/timestored/vscode-peachq",
   "prettier": {
     "printWidth": 80,
     "bracketSameLine": true,

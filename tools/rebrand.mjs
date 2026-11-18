@@ -184,10 +184,10 @@ export const METADATA = {
   icon: "resources/images/peachq-logo.png",
   repository: {
     type: "git",
-    url: "https://github.com/ryanhamilton/kx-vscode.git",
+    url: "https://github.com/timestored/vscode-peachq.git",
   },
-  homepage: "https://github.com/ryanhamilton/kx-vscode",
-  bugs: { url: "https://github.com/ryanhamilton/kx-vscode/issues" },
+  homepage: "https://github.com/timestored/vscode-peachq",
+  bugs: { url: "https://github.com/timestored/vscode-peachq/issues" },
 };
 const ACTIVITY_ICON = "resources/images/peachq-icon.svg";
 

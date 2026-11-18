@@ -37,6 +37,16 @@ describe("Release", () => {
     assert.doesNotMatch(read("CHANGELOG.md"), /^## Unreleased/m);
   });
 
+  it("points at timestored/vscode-peachq, not the repository's old name", () => {
+    for (const file of ["package.json", "README.md", "NOTICE"]) {
+      assert.doesNotMatch(read(file), /ryanhamilton\/kx-vscode/, file);
+    }
+    assert.strictEqual(
+      pkg.repository.url,
+      "https://github.com/timestored/vscode-peachq.git",
+    );
+  });
+
   it("has a NOTICE naming the upstream work and the trademarks", () => {
     const notice = prose("NOTICE");
     assert.match(notice, /modified version of the kdb VS Code extension/);

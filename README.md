@@ -3,7 +3,7 @@
 q language support for VS Code: run, chart and lint q against any kdb+ process,
 or with built-in peachq — no licence, no server.
 
-![A q file run on the built-in peachq: the connection tree with its tables and functions, the console with q's own text and the results grid](https://raw.githubusercontent.com/ryanhamilton/kx-vscode/dev/docs/images/readme-query.png)
+![A q file run on the built-in peachq: the connection tree with its tables and functions, the console with q's own text and the results grid](https://raw.githubusercontent.com/timestored/vscode-peachq/dev/docs/images/readme-query.png)
 
 ## Features
 
@@ -33,7 +33,7 @@ or with built-in peachq — no licence, no server.
   extension is enabled, peachq pauses its q features, and it can import the KX
   extension's connections and settings.
 
-![A peachq notebook: a q cell defining a table and a cell aggregating it, each with its table shown inline](https://raw.githubusercontent.com/ryanhamilton/kx-vscode/dev/docs/images/readme-notebook.png)
+![A peachq notebook: a q cell defining a table and a cell aggregating it, each with its table shown inline](https://raw.githubusercontent.com/timestored/vscode-peachq/dev/docs/images/readme-notebook.png)
 
 ## Getting started
 
@@ -78,11 +78,11 @@ is set in the connection form, under Advanced.
 
 ## Reference
 
-- [Reference card](https://github.com/ryanhamilton/kx-vscode/blob/dev/docs/user/reference-card.md):
+- [Reference card](https://github.com/timestored/vscode-peachq/blob/dev/docs/user/reference-card.md):
   every command, keybinding and setting
-- [User notes](https://github.com/ryanhamilton/kx-vscode/blob/dev/docs/user/index.md)
+- [User notes](https://github.com/timestored/vscode-peachq/blob/dev/docs/user/index.md)
   and
-  [developer notes](https://github.com/ryanhamilton/kx-vscode/blob/dev/docs/developer/index.md)
+  [developer notes](https://github.com/timestored/vscode-peachq/blob/dev/docs/developer/index.md)
 
 ## Data and telemetry
 
@@ -92,13 +92,13 @@ This extension collects no usage data and sends no telemetry.
 
 Apache License 2.0. peachq for VS Code is a modified version of the kdb VS Code
 extension by KX Systems, Inc.; see
-[NOTICE](https://github.com/ryanhamilton/kx-vscode/blob/dev/NOTICE) and the
-[CHANGELOG](https://github.com/ryanhamilton/kx-vscode/blob/dev/CHANGELOG.md).
+[NOTICE](https://github.com/timestored/vscode-peachq/blob/dev/NOTICE) and the
+[CHANGELOG](https://github.com/timestored/vscode-peachq/blob/dev/CHANGELOG.md).
 
 kdb+, KDB-X, kdb Insights and KX are trademarks of KX Systems, Inc. peachq is
 not affiliated with or endorsed by KX.
 
 ## Links
 
-- [Issues](https://github.com/ryanhamilton/kx-vscode/issues)
+- [Issues](https://github.com/timestored/vscode-peachq/issues)
 - [peachq.org](https://peachq.org)

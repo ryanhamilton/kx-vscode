@@ -26,6 +26,7 @@ const FORBIDDEN = [
   "newsletter",
   "forum.kx.com/c/ideas",
   "KxSystems/kx-vscode/issues",
+  "ryanhamilton/kx-vscode",
 ];
 
 for (const file of ["out/extension.js", "package.json"]) {
